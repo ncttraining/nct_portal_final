@@ -29,14 +29,46 @@ Deno.serve(async (req: Request) => {
     // Verify the calling user has permission to manage users
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'No authorization header provided' }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
-    if (authError || !user) {
-      throw new Error('Unauthorized');
+    if (authError) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed: ' + authError.message }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'User not authenticated' }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
 
     // Check if user has permission to manage users
@@ -44,16 +76,61 @@ Deno.serve(async (req: Request) => {
       .from('users')
       .select('can_manage_users')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (profileError || !profile?.can_manage_users) {
-      throw new Error('Insufficient permissions');
+    if (profileError) {
+      console.error('Profile lookup error:', profileError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify permissions: ' + profileError.message }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    if (!profile) {
+      return new Response(
+        JSON.stringify({ error: 'User profile not found' }),
+        {
+          status: 404,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    if (!profile.can_manage_users) {
+      return new Response(
+        JSON.stringify({ error: 'You do not have permission to reset passwords. Contact an administrator.' }),
+        {
+          status: 403,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
 
     const { userId, newPassword } = await req.json();
 
     if (!userId || !newPassword) {
-      throw new Error('Missing required fields');
+      return new Response(
+        JSON.stringify({ error: 'Missing userId or newPassword' }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
 
     // Update the user's password
@@ -63,7 +140,17 @@ Deno.serve(async (req: Request) => {
     );
 
     if (updateError) {
-      throw updateError;
+      console.error('Password update error:', updateError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to update password: ' + updateError.message }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
 
     return new Response(
@@ -76,10 +163,11 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
+    console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An unexpected error occurred: ' + error.message }),
       {
-        status: 400,
+        status: 500,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
