@@ -338,7 +338,11 @@ This is an automated message from the NCT Portal system.
   }
 
   async function handleResetPassword(user: User) {
-    if (!confirm(`Reset password for ${user.email}? A new temporary password will be generated and sent to them.`)) {
+    // Prompt for custom password
+    const customPassword = prompt(`Enter a new password for ${user.email} (or leave blank to auto-generate):`);
+
+    if (customPassword === null) {
+      // User clicked cancel
       return;
     }
 
@@ -346,8 +350,15 @@ This is an automated message from the NCT Portal system.
       setError(null);
       setSuccess(null);
 
-      // Generate a random password
-      const newPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase() + '!@#';
+      // Use custom password or generate a random one
+      const newPassword = customPassword.trim() ||
+        Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase() + '!@#';
+
+      // Validate password length
+      if (newPassword.length < 6) {
+        setError('Password must be at least 6 characters long');
+        return;
+      }
 
       // Call edge function to update password
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-user-password`;
