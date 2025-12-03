@@ -455,7 +455,7 @@ function App() {
 
         {/* Footer */}
         <div className="text-center mt-12 text-sm text-slate-500">
-          NCT Portal - Version 0.2 — Menu-based navigation with granular permission controls.
+          NCT Portal - Version 1.0
         </div>
       </main>
     </div>
