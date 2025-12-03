@@ -16,9 +16,12 @@ export default function PageHeader({ currentPage, onNavigate, onEditProfile }: P
 
   async function handleSignOut() {
     try {
+      setShowProfileDropdown(false);
       await signOut();
+      window.location.reload();
     } catch (error) {
       console.error('Error signing out:', error);
+      alert('Failed to sign out. Please try again.');
     }
   }
 
@@ -99,10 +102,7 @@ export default function PageHeader({ currentPage, onNavigate, onEditProfile }: P
                       </button>
                     )}
                     <button
-                      onClick={() => {
-                        handleSignOut();
-                        setShowProfileDropdown(false);
-                      }}
+                      onClick={handleSignOut}
                       className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2"
                     >
                       <LogOut className="w-4 h-4" />
