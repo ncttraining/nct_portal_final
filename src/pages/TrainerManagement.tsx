@@ -590,7 +590,7 @@ function TrainerFormModal({
           password: password,
           fullName: formData.name,
           trainerName: formData.name,
-          trainerTypeId: formData.trainer_type_id,
+          trainerTypeId: selectedTrainerTypes[0],
           telephone: formData.telephone,
           address1: formData.address1,
           address2: formData.address2,
