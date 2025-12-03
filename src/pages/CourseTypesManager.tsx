@@ -247,6 +247,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
   const [draggedFieldIndex, setDraggedFieldIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [trainerTypes, setTrainerTypes] = useState<Array<{ id: string; name: string }>>([]);
+  const [dropdownInputs, setDropdownInputs] = useState<Record<number, string>>({});
 
   useEffect(() => {
     loadTrainerTypes();
@@ -621,9 +622,20 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                           <label className="block text-xs text-slate-400 mb-1">Options (comma-separated)</label>
                           <input
                             type="text"
-                            value={(field.options || []).join(', ')}
-                            onChange={(e) => updateField(index, { options: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                            placeholder="e.g., B1, B2, B3, B4"
+                            value={dropdownInputs[index] ?? (field.options || []).join(', ')}
+                            onChange={(e) => {
+                              setDropdownInputs(prev => ({ ...prev, [index]: e.target.value }));
+                            }}
+                            onBlur={(e) => {
+                              const options = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                              updateField(index, { options });
+                              setDropdownInputs(prev => {
+                                const newInputs = { ...prev };
+                                delete newInputs[index];
+                                return newInputs;
+                              });
+                            }}
+                            placeholder="e.g., Option 1, Option 2, Option 3"
                             className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs"
                           />
                         </div>
