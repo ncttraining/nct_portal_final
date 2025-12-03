@@ -1,0 +1,16 @@
+{
+  "name": "email-worker",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Background email queue worker",
+  "main": "email-worker.js",
+  "scripts": {
+    "start": "node email-worker.js",
+    "dev": "node email-worker.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "dotenv": "^17.2.3",
+    "nodemailer": "^6.9.15"
+  }
+}
