@@ -142,11 +142,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setUser(null);
-    setProfile(null);
-    setSession(null);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        console.error('Sign out error:', error);
+      }
+    } catch (err) {
+      console.error('Sign out exception:', err);
+    } finally {
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      localStorage.clear();
+      sessionStorage.clear();
+    }
   }
 
   async function reloadProfile() {
