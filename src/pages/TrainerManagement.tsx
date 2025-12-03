@@ -623,7 +623,7 @@ function TrainerFormModal({
       await assignTrainerType(trainerId, typeId);
     }
 
-    await sendTemplateEmail('trainer_account_created', formData.email, {
+    await sendTemplateEmail(formData.email, 'trainer_account_created', {
       trainer_name: formData.name,
       email: formData.email,
       password: password
@@ -1090,7 +1090,7 @@ function SuccessModal({
 
                     if (error) throw error;
 
-                    await sendTemplateEmail('trainer_account_created', data.email, {
+                    await sendTemplateEmail(data.email, 'trainer_account_created', {
                       trainer_name: data.name,
                       email: data.email,
                       password: data.password
