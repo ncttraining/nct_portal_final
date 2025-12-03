@@ -114,87 +114,74 @@ export default function UserManagement({ currentPage, onNavigate }: UserManageme
         return;
       }
 
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.full_name,
-          },
-          emailRedirectTo: undefined,
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.full_name,
+          role: formData.role,
+          can_manage_users: formData.can_manage_users,
+          can_manage_bookings: formData.can_manage_bookings,
+          can_manage_courses: formData.can_manage_courses,
+          can_view_bookings: formData.can_view_bookings,
+          can_manage_expenses: formData.can_manage_expenses,
+          can_manage_availability: formData.can_manage_availability,
+        }),
       });
 
-      if (authError) throw authError;
-
-      if (authData.user) {
-        let retries = 0;
-        let updateSuccess = false;
-
-        while (retries < 5 && !updateSuccess) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({
-              full_name: formData.full_name,
-              role: formData.role,
-              can_manage_users: formData.can_manage_users,
-              can_manage_bookings: formData.can_manage_bookings,
-              can_manage_courses: formData.can_manage_courses,
-              can_view_bookings: formData.can_view_bookings,
-              can_manage_expenses: formData.can_manage_expenses,
-              can_manage_availability: formData.can_manage_availability,
-            })
-            .eq('id', authData.user.id);
-
-          if (!updateError) {
-            updateSuccess = true;
-          } else if (retries === 4) {
-            throw updateError;
-          }
-
-          retries++;
-        }
-
-        if (shouldSendEmail) {
-          const emailSuccess = await sendLoginDetailsEmail({
-            id: authData.user.id,
-            email: formData.email,
-            full_name: formData.full_name,
-            role: formData.role,
-            can_manage_users: formData.can_manage_users,
-            can_manage_bookings: formData.can_manage_bookings,
-            can_manage_courses: formData.can_manage_courses,
-            can_view_bookings: formData.can_view_bookings,
-            can_manage_expenses: formData.can_manage_expenses,
-            created_at: new Date().toISOString(),
-          });
-
-          if (emailSuccess) {
-            setSuccess('User created and login details sent successfully');
-          } else {
-            setSuccess('User created successfully, but failed to send email');
-          }
-        } else {
-          setSuccess('User created successfully');
-        }
-
-        setAddingUser(false);
-        setFormData({
-          email: '',
-          password: '',
-          full_name: '',
-          role: 'user',
-          can_manage_users: false,
-          can_manage_bookings: false,
-          can_manage_courses: false,
-          can_view_bookings: false,
-          can_manage_expenses: false,
-          can_manage_availability: false,
-        });
-        loadUsers();
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create user');
       }
+
+      const result = await response.json();
+
+      if (shouldSendEmail) {
+        const emailSuccess = await sendLoginDetailsEmail({
+          id: result.userId,
+          email: formData.email,
+          full_name: formData.full_name,
+          role: formData.role,
+          can_manage_users: formData.can_manage_users,
+          can_manage_bookings: formData.can_manage_bookings,
+          can_manage_courses: formData.can_manage_courses,
+          can_view_bookings: formData.can_view_bookings,
+          can_manage_expenses: formData.can_manage_expenses,
+          can_manage_availability: formData.can_manage_availability,
+          created_at: new Date().toISOString(),
+        });
+
+        if (emailSuccess) {
+          setSuccess('User created and login details sent successfully');
+        } else {
+          setSuccess('User created successfully, but failed to send email');
+        }
+      } else {
+        setSuccess('User created successfully');
+      }
+
+      setAddingUser(false);
+      setFormData({
+        email: '',
+        password: '',
+        full_name: '',
+        role: 'user',
+        can_manage_users: false,
+        can_manage_bookings: false,
+        can_manage_courses: false,
+        can_view_bookings: false,
+        can_manage_expenses: false,
+        can_manage_availability: false,
+      });
+      loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create user');
     }
