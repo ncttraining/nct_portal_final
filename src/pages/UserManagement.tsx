@@ -285,16 +285,22 @@ This is an automated message from the NCT Portal system.
       setError(null);
       setSuccess(null);
 
-      const { error: profileError } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', userId);
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`;
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (profileError) throw profileError;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
 
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-
-      if (authError) throw authError;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete user');
+      }
 
       setSuccess('User deleted successfully');
       loadUsers();
