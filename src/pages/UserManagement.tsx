@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Pencil, Trash2, Save, X, Eye, Bell, BellOff, ChevronDown, ChevronUp, Mail, UserCheck, UserX, ExternalLink } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Save, X, Eye, Bell, BellOff, ChevronDown, ChevronUp, Mail, UserCheck, UserX, ExternalLink, KeyRound } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,7 +9,7 @@ import {
   saveUserTrainerPermissions,
   saveUserTrainerTypePermissions
 } from '../lib/bookings-permissions';
-import { sendEmail } from '../lib/email';
+import { sendEmail, sendTemplateEmail } from '../lib/email';
 
 interface User {
   id: string;
@@ -337,6 +337,60 @@ This is an automated message from the NCT Portal system.
     }
   }
 
+  async function handleResetPassword(user: User) {
+    if (!confirm(`Reset password for ${user.email}? A new temporary password will be generated and sent to them.`)) {
+      return;
+    }
+
+    try {
+      setError(null);
+      setSuccess(null);
+
+      // Generate a random password
+      const newPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase() + '!@#';
+
+      // Call edge function to update password
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-user-password`;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to reset password');
+      }
+
+      // Send email with new password
+      const emailSent = await sendTemplateEmail(
+        user.email,
+        'password_reset',
+        {
+          user_name: user.full_name || user.email,
+          email: user.email,
+          password: newPassword,
+        }
+      );
+
+      if (emailSent) {
+        setSuccess(`Password reset successfully. New password sent to ${user.email}`);
+      } else {
+        setSuccess(`Password reset successfully, but failed to send email. New password: ${newPassword}`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset password');
+    }
+  }
+
   if (!profile?.can_manage_users) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
@@ -573,6 +627,7 @@ This is an automated message from the NCT Portal system.
                     onSave={handleUpdateUser}
                     onDelete={handleDeleteUser}
                     onSendLoginDetails={() => handleSendLoginDetails(user)}
+                    onResetPassword={() => handleResetPassword(user)}
                     onManagePermissions={() => setManagingPermissionsFor(user.id)}
                     onNavigate={onNavigate}
                     currentUserId={profile?.id}
@@ -608,12 +663,13 @@ interface UserRowProps {
   onSave: (userId: string, updates: Partial<User>) => void;
   onDelete: (userId: string) => void;
   onSendLoginDetails: () => void;
+  onResetPassword: () => void;
   onManagePermissions: () => void;
   onNavigate: (page: string) => void;
   currentUserId?: string;
 }
 
-function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSendLoginDetails, onManagePermissions, onNavigate, currentUserId }: UserRowProps) {
+function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSendLoginDetails, onResetPassword, onManagePermissions, onNavigate, currentUserId }: UserRowProps) {
   const [editData, setEditData] = useState({
     full_name: user.full_name || '',
     role: user.role,
@@ -885,6 +941,13 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
             title="Send login details"
           >
             <Mail className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onResetPassword}
+            className="p-1.5 text-amber-400 hover:text-amber-300 transition-colors"
+            title="Reset password"
+          >
+            <KeyRound className="w-4 h-4" />
           </button>
           <button
             onClick={onEdit}

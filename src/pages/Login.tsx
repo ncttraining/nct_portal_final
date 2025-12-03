@@ -28,26 +28,9 @@ export default function Login() {
     }
   }
 
-  async function handlePasswordReset(e: React.FormEvent) {
-    e.preventDefault();
-    setResetError('');
-    setResetSuccess(false);
-    setResetLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/`,
-      });
-
-      if (error) throw error;
-
-      setResetSuccess(true);
-      setResetEmail('');
-    } catch (err: any) {
-      setResetError(err.message || 'Failed to send password reset email');
-    } finally {
-      setResetLoading(false);
-    }
+  function handleShowForgotPassword() {
+    setShowForgotPassword(true);
+    setResetSuccess(true); // Show the contact admin message immediately
   }
 
   function handleBackToLogin() {
@@ -104,7 +87,7 @@ export default function Login() {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={() => setShowForgotPassword(true)}
+                  onClick={handleShowForgotPassword}
                   className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                 >
                   Forgot Password?
@@ -132,61 +115,20 @@ export default function Login() {
               Reset Password
             </h2>
 
-            {resetSuccess ? (
-              <div className="space-y-4">
-                <p className="text-center text-sm text-green-400 bg-green-900/30 py-3 px-4 rounded-lg">
-                  Password reset email sent! Please check your inbox and follow the instructions to reset your password.
+            <div className="space-y-4">
+              <div className="text-center text-sm text-blue-400 bg-blue-900/30 py-4 px-4 rounded-lg space-y-2">
+                <p className="font-semibold">Forgot your password?</p>
+                <p className="text-slate-300">
+                  Please contact your system administrator to reset your password. They will send you a new temporary password via email.
                 </p>
-                <button
-                  onClick={handleBackToLogin}
-                  className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-full transition-colors"
-                >
-                  Back to Login
-                </button>
               </div>
-            ) : (
-              <form onSubmit={handlePasswordReset} className="flex flex-col gap-4">
-                <p className="text-sm text-slate-400 text-center mb-2">
-                  Enter your email address and we'll send you a link to reset your password.
-                </p>
-
-                <div>
-                  <label htmlFor="reset-email" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="reset-email"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
-                  />
-                </div>
-
-                {resetError && (
-                  <p className="text-sm text-red-400 bg-red-900/30 py-2 px-4 rounded-lg">
-                    {resetError}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={resetLoading}
-                  className="w-full mt-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                >
-                  {resetLoading ? 'Sending...' : 'Send Reset Link'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleBackToLogin}
-                  className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-full transition-colors"
-                >
-                  Back to Login
-                </button>
-              </form>
-            )}
+              <button
+                onClick={handleBackToLogin}
+                className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-full transition-colors"
+              >
+                Back to Login
+              </button>
+            </div>
           </>
         )}
       </div>
