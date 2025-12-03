@@ -70,8 +70,8 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setNotification({ type: 'error', message: 'Image size must be less than 2MB' });
+    if (file.size > 16 * 1024 * 1024) {
+      setNotification({ type: 'error', message: 'Image size must be less than 16MB' });
       return;
     }
 
