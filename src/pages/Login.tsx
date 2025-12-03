@@ -35,18 +35,6 @@ export default function Login() {
     setResetLoading(true);
 
     try {
-      const { data: user } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', resetEmail)
-        .maybeSingle();
-
-      if (!user) {
-        setResetError('No account found with this email address');
-        setResetLoading(false);
-        return;
-      }
-
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/`,
       });
