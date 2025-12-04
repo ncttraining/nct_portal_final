@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Mail, Award, Send, AlertTriangle } from 'lucide-react';
+import { X, Plus, Trash2, Mail, Award, Send, AlertTriangle, Info } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getCourseTypes, CourseType } from '../lib/certificates';
 import { sendBookingConfirmationEmail, sendCandidateBookingConfirmationEmail } from '../lib/email';
 import { sendNewBookingNotification, sendBookingUpdatedNotification } from '../lib/booking-notifications';
 import { getAvailableCourseTypesForTrainer, validateTrainerForCourse } from '../lib/trainer-types';
+import { getActiveTrainingCentres, getActiveRoomsForCentre, getUnavailableRoomIds, TrainingCentre, TrainingCentreRoom } from '../lib/training-centres';
 
 interface Trainer {
   id: string;
@@ -63,6 +64,8 @@ interface Booking {
   in_centre: boolean;
   num_days: number;
   course_type_id?: string;
+  centre_id?: string;
+  room_id?: string;
   candidates?: BookingCandidate[];
 }
 
@@ -99,7 +102,9 @@ export default function BookingModal({
     status: 'confirmed',
     in_centre: false,
     num_days: 1,
-    course_type_id: undefined
+    course_type_id: undefined,
+    centre_id: undefined,
+    room_id: undefined
   });
 
   const [candidates, setCandidates] = useState<BookingCandidate[]>([]);
@@ -116,16 +121,73 @@ export default function BookingModal({
   const [sendingCandidateEmail, setSendingCandidateEmail] = useState<{[key: number]: boolean}>({});
   const [candidateEmailSent, setCandidateEmailSent] = useState<{[key: number]: boolean}>({});
 
+  // Training centre state
+  const [trainingCentres, setTrainingCentres] = useState<TrainingCentre[]>([]);
+  const [availableRooms, setAvailableRooms] = useState<TrainingCentreRoom[]>([]);
+  const [unavailableRoomIds, setUnavailableRoomIds] = useState<string[]>([]);
+
   useEffect(() => {
     loadCourseTypes();
+    loadTrainingCentres();
     if (trainer?.id) {
       loadTrainerCourseTypes();
     }
   }, [trainer?.id]);
 
+  // Load rooms when centre is selected
+  useEffect(() => {
+    if (formData.centre_id) {
+      loadRoomsForCentre(formData.centre_id);
+    } else {
+      setAvailableRooms([]);
+      setUnavailableRoomIds([]);
+    }
+  }, [formData.centre_id]);
+
+  // Check room availability when date, num_days, or centre changes
+  useEffect(() => {
+    if (formData.centre_id && formData.booking_date && formData.num_days) {
+      checkRoomAvailability();
+    }
+  }, [formData.centre_id, formData.booking_date, formData.num_days]);
+
   async function loadCourseTypes() {
     const types = await getCourseTypes();
     setCourseTypes(types);
+  }
+
+  async function loadTrainingCentres() {
+    try {
+      const centres = await getActiveTrainingCentres();
+      setTrainingCentres(centres);
+    } catch (err) {
+      console.error('Error loading training centres:', err);
+    }
+  }
+
+  async function loadRoomsForCentre(centreId: string) {
+    try {
+      const rooms = await getActiveRoomsForCentre(centreId);
+      setAvailableRooms(rooms);
+    } catch (err) {
+      console.error('Error loading rooms:', err);
+    }
+  }
+
+  async function checkRoomAvailability() {
+    if (!formData.centre_id || !formData.booking_date || !formData.num_days) return;
+
+    try {
+      const unavailable = await getUnavailableRoomIds(
+        formData.centre_id,
+        formData.booking_date,
+        formData.num_days,
+        formData.id // Exclude current booking when editing
+      );
+      setUnavailableRoomIds(unavailable);
+    } catch (err) {
+      console.error('Error checking room availability:', err);
+    }
   }
 
   async function loadTrainerCourseTypes() {
@@ -181,7 +243,9 @@ export default function BookingModal({
         status: booking.status,
         in_centre: booking.in_centre,
         num_days: booking.num_days,
-        course_type_id: booking.course_type_id
+        course_type_id: booking.course_type_id,
+        centre_id: booking.centre_id,
+        room_id: booking.room_id
       });
 
       if (booking.client_id) {
@@ -769,28 +833,121 @@ export default function BookingModal({
                 </>
               )}
 
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2 mt-3">
-                Location / Address
-              </label>
-              <input
-                type="text"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value, location_id: undefined })}
-                placeholder="e.g. Triumph Stoke"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Custom locations will be saved automatically for this client
-              </p>
-              <label className="flex items-center gap-2 mt-2 text-sm text-slate-400">
+              {!formData.in_centre && (
+                <>
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2 mt-3">
+                    Location / Address
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value, location_id: undefined })}
+                    placeholder="e.g. Triumph Stoke"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Custom locations will be saved automatically for this client
+                  </p>
+                </>
+              )}
+
+              <label className="flex items-center gap-2 mt-3 text-sm text-slate-400">
                 <input
                   type="checkbox"
                   checked={formData.in_centre}
-                  onChange={(e) => setFormData({ ...formData, in_centre: e.target.checked })}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    in_centre: e.target.checked,
+                    centre_id: e.target.checked ? formData.centre_id : undefined,
+                    room_id: e.target.checked ? formData.room_id : undefined,
+                    location: e.target.checked ? '' : formData.location,
+                    location_id: e.target.checked ? undefined : formData.location_id
+                  })}
                   className="rounded"
                 />
                 In-centre (NCT training centre)
               </label>
+
+              {formData.in_centre && (
+                <div className="mt-3 space-y-3 p-3 bg-blue-500/5 border border-blue-500/20 rounded">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                      Training Centre *
+                    </label>
+                    <select
+                      value={formData.centre_id || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        centre_id: e.target.value || undefined,
+                        room_id: undefined // Reset room when centre changes
+                      })}
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                      required={formData.in_centre}
+                    >
+                      <option value="">Select training centre...</option>
+                      {trainingCentres.map(centre => (
+                        <option key={centre.id} value={centre.id}>
+                          {centre.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {formData.centre_id && (
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                        Room *
+                      </label>
+                      <select
+                        value={formData.room_id || ''}
+                        onChange={(e) => setFormData({ ...formData, room_id: e.target.value || undefined })}
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                        required={formData.in_centre}
+                      >
+                        <option value="">Select room...</option>
+                        {availableRooms.map(room => {
+                          const isUnavailable = unavailableRoomIds.includes(room.id);
+                          return (
+                            <option
+                              key={room.id}
+                              value={room.id}
+                              disabled={isUnavailable}
+                              style={{ color: isUnavailable ? '#64748b' : undefined }}
+                            >
+                              {room.room_name} (Capacity: {room.capacity}) {isUnavailable ? '- OCCUPIED' : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+
+                      {formData.room_id && (
+                        <div className="mt-2 p-2 bg-slate-900 border border-slate-700 rounded">
+                          {(() => {
+                            const selectedRoom = availableRooms.find(r => r.id === formData.room_id);
+                            if (!selectedRoom) return null;
+                            return (
+                              <div className="text-xs space-y-1">
+                                <div className="flex items-start gap-2">
+                                  <Info className="w-3 h-3 text-blue-400 flex-shrink-0 mt-0.5" />
+                                  <div className="flex-1">
+                                    <p className="text-slate-300"><span className="text-slate-500">Capacity:</span> {selectedRoom.capacity} people</p>
+                                    {selectedRoom.equipment && (
+                                      <p className="text-slate-300 mt-1"><span className="text-slate-500">Equipment:</span> {selectedRoom.equipment}</p>
+                                    )}
+                                    {selectedRoom.notes && (
+                                      <p className="text-slate-400 mt-1 italic">{selectedRoom.notes}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>

@@ -62,6 +62,17 @@ interface Booking {
   num_days: number;
   candidates?: BookingCandidate[];
   course_type_id?: string;
+  centre_id?: string;
+  room_id?: string;
+  training_centre?: {
+    id: string;
+    name: string;
+  };
+  training_centre_room?: {
+    id: string;
+    room_name: string;
+    capacity: number;
+  };
   course_type?: {
     id: string;
     name: string;
@@ -167,6 +178,15 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
           id,
           name,
           trainer_type_id
+        ),
+        training_centre:training_centres(
+          id,
+          name
+        ),
+        training_centre_room:training_centre_rooms(
+          id,
+          room_name,
+          capacity
         )
       `)
       .gte('booking_date', startDate)
@@ -363,6 +383,26 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
 
     // Check if any other booking overlaps with this one
     return trainerBookings.some(otherBooking => {
+      const { start: otherStart, end: otherEnd } = getBookingDateRange(otherBooking);
+
+      // Check for any overlap between date ranges
+      return bookingStart <= otherEnd && bookingEnd >= otherStart;
+    });
+  }
+
+  function checkRoomConflict(booking: Booking): boolean {
+    // Only check room conflicts for in-centre bookings with a room assigned
+    if (!booking.in_centre || !booking.room_id) return false;
+
+    // Get all other bookings for the same room
+    const roomBookings = bookings.filter(b =>
+      b.room_id === booking.room_id && b.id !== booking.id && b.status !== 'cancelled'
+    );
+
+    const { start: bookingStart, end: bookingEnd } = getBookingDateRange(booking);
+
+    // Check if any other booking overlaps with this one
+    return roomBookings.some(otherBooking => {
       const { start: otherStart, end: otherEnd } = getBookingDateRange(otherBooking);
 
       // Check for any overlap between date ranges
@@ -708,6 +748,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                 const delegateCount = booking.candidates?.length || 0;
                                 const overlapsUnavailable = bookingOverlapsUnavailability(booking);
                                 const hasClash = checkBookingClash(booking, trainer.id);
+                                const hasRoomConflict = checkRoomConflict(booking);
 
                                 // Check if trainer is qualified for this course type
                                 const courseRequiresType = booking.course_type?.trainer_type_id;
@@ -745,25 +786,39 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                       e.stopPropagation();
                                       openBookingModal(trainer, booking.booking_date, booking);
                                     }}
-                                    className={`booking-pill absolute top-1 left-1 right-1 bottom-1 px-2 py-1.5 text-xs border rounded cursor-move ${statusClass} ${overlapsUnavailable ? 'ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950' : ''} ${hasClash ? '!border-red-500 !border-2' : ''}`}
+                                    className={`booking-pill absolute top-1 left-1 right-1 bottom-1 px-2 py-1.5 text-xs border rounded cursor-move ${statusClass} ${overlapsUnavailable ? 'ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950' : ''} ${hasClash || hasRoomConflict ? '!border-red-500 !border-2' : ''}`}
                                     style={{
                                       width: `calc(${booking.num_days * 120}px - 8px)`,
                                       zIndex: 2
                                     }}
                                   >
                                     <div className="font-semibold truncate">
-                                      {booking.in_centre ? '[Centre]' : '[Off-site]'} {booking.title}
+                                      {booking.in_centre ? (
+                                        booking.training_centre_room?.room_name
+                                          ? `[${booking.training_centre_room.room_name}]`
+                                          : '[Centre]'
+                                      ) : '[Off-site]'} {booking.title}
                                     </div>
-                                    {booking.location && (
+                                    {booking.in_centre && booking.training_centre ? (
+                                      <div className="text-[10px] opacity-90 truncate">
+                                        {booking.num_days > 1 && `[${booking.num_days}d] `}
+                                        {booking.training_centre.name}
+                                      </div>
+                                    ) : booking.location ? (
                                       <div className="text-[10px] opacity-90 truncate">
                                         {booking.num_days > 1 && `[${booking.num_days}d] `}
                                         {booking.location}
                                       </div>
-                                    )}
+                                    ) : null}
                                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                                       {hasClash && (
                                         <span className="px-1.5 py-0.5 bg-red-500 text-white rounded text-[10px] font-semibold">
-                                          ⚠ CLASH
+                                          ⚠ TRAINER CLASH
+                                        </span>
+                                      )}
+                                      {hasRoomConflict && (
+                                        <span className="px-1.5 py-0.5 bg-red-500 text-white rounded text-[10px] font-semibold">
+                                          ⚠ ROOM CLASH
                                         </span>
                                       )}
                                       {!trainerQualified && (

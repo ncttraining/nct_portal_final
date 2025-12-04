@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, Shield, Calendar, GraduationCap, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, ArrowRight, UserCog, Inbox, CalendarClock } from 'lucide-react';
+import { AlertCircle, Shield, Calendar, GraduationCap, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, ArrowRight, UserCog, Inbox, CalendarClock, DoorOpen } from 'lucide-react';
 import PageHeader from './components/PageHeader';
 import TrainerMap from './pages/TrainerMap';
 import TrainerTypes from './pages/TrainerTypes';
@@ -17,10 +17,11 @@ import CandidatesManagement from './pages/CandidatesManagement';
 import TrainerExpenses from './pages/TrainerExpenses';
 import TrainerCalendar from './pages/TrainerCalendar';
 import TrainerAvailability from './pages/TrainerAvailability';
+import CentreManagement from './pages/CentreManagement';
 import EditProfile from './components/EditProfile';
 import { useAuth } from './contexts/AuthContext';
 
-type PageType = 'home' | 'administration' | 'bookings-management' | 'course-management' | 'trainer-map' | 'trainer-types' | 'email-templates' | 'email-queue' | 'user-management' | 'trainer-management' | 'course-booking' | 'candidates-management' | 'client-management' | 'certificate-templates' | 'certificates' | 'course-types' | 'bookings-viewer' | 'trainer-expenses' | 'trainer-availability';
+type PageType = 'home' | 'administration' | 'bookings-management' | 'course-management' | 'trainer-map' | 'trainer-types' | 'email-templates' | 'email-queue' | 'user-management' | 'trainer-management' | 'course-booking' | 'candidates-management' | 'client-management' | 'certificate-templates' | 'certificates' | 'course-types' | 'bookings-viewer' | 'trainer-expenses' | 'trainer-availability' | 'centre-management';
 
 function App() {
   const { profile, reloadProfile } = useAuth();
@@ -46,6 +47,7 @@ function App() {
       case 'candidates-management':
       case 'trainer-map':
       case 'client-management':
+      case 'centre-management':
         return canManageBookings;
       case 'certificate-templates':
       case 'certificates':
@@ -135,6 +137,9 @@ function App() {
         break;
       case 'trainer-availability':
         pageContent = <TrainerAvailability currentPage={currentPage} onNavigate={handleNavigate} />;
+        break;
+      case 'centre-management':
+        pageContent = <CentreManagement currentPage={currentPage} onNavigate={handleNavigate} />;
         break;
     }
 
@@ -236,6 +241,12 @@ function App() {
           title: 'Clients',
           description: 'Manage client information and locations',
           icon: Building,
+        },
+        {
+          id: 'centre-management',
+          title: 'Centre Management',
+          description: 'Manage in-centre training locations and rooms',
+          icon: DoorOpen,
         },
       ];
     } else if (currentPage === 'course-management' && canManageCourses) {

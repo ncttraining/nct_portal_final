@@ -1,4 +1,4 @@
-import { Shield, Calendar, GraduationCap, Eye, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, Home, DollarSign, UserCog, ChevronDown, Inbox, Menu, X, CalendarClock } from 'lucide-react';
+import { Shield, Calendar, GraduationCap, Eye, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, Home, DollarSign, UserCog, ChevronDown, Inbox, Menu, X, CalendarClock, DoorOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 
@@ -55,6 +55,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
         { id: 'candidates-management', label: 'Candidates', icon: Users },
         { id: 'trainer-map', label: 'Trainer Map', icon: MapPin },
         { id: 'client-management', label: 'Clients', icon: Building },
+        { id: 'centre-management', label: 'Centre Management', icon: DoorOpen },
       ],
     },
     {
