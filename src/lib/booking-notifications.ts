@@ -303,15 +303,14 @@ export async function sendBookingCancelledNotification(
 function compareBookings(oldBooking: Booking, newBooking: Booking): string[] {
   const changes: string[] = [];
 
+  // Only compare substantive fields that trigger notifications
   const fieldsToCompare = [
     { key: 'title', label: 'Course Title' },
     { key: 'booking_date', label: 'Date', formatter: formatDate },
     { key: 'start_time', label: 'Start Time' },
     { key: 'num_days', label: 'Duration', formatter: formatDuration },
     { key: 'location', label: 'Location' },
-    { key: 'status', label: 'Status', formatter: formatStatus },
     { key: 'in_centre', label: 'Location Type', formatter: (v: boolean) => v ? 'In Centre' : 'Off-site' },
-    { key: 'notes', label: 'Notes' },
   ];
 
   for (const field of fieldsToCompare) {
@@ -329,16 +328,19 @@ function compareBookings(oldBooking: Booking, newBooking: Booking): string[] {
 }
 
 export function hasSubstantiveChanges(oldBooking: Booking, newBooking: Booking): boolean {
+  // Only check fields that constitute substantive changes:
+  // - Job description (title)
+  // - Date (booking_date)
+  // - Time (start_time)
+  // - Course length (num_days)
+  // - Venue changes (location, in_centre, location_id)
   const fieldsToCheck = [
     'title',
     'booking_date',
     'start_time',
     'num_days',
     'location',
-    'status',
     'in_centre',
-    'notes',
-    'course_type_id',
     'location_id'
   ];
 
