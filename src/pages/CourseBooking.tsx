@@ -628,7 +628,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
           </div>
 
           <div className="border border-slate-800 rounded-lg overflow-hidden">
-            <div className="overflow-x-auto overflow-y-hidden">
+            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)]">
               <div className="min-w-max">
                 <div className="flex bg-slate-900/80 border-b border-slate-800 sticky top-0 z-10">
                   <div className="w-40 px-3 py-2 border-r border-slate-800 font-semibold text-sm">
