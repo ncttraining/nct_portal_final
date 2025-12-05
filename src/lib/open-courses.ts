@@ -14,12 +14,16 @@ import { supabase } from './supabase';
 export interface Venue {
   id: string;
   name: string;
-  address: string | null;
-  city: string | null;
-  postcode: string | null;
-  capacity: number | null;
-  facilities: string[] | null;
-  active: boolean;
+  address1?: string;
+  address2?: string;
+  town?: string;
+  postcode?: string;
+  contact_name?: string;
+  contact_email?: string;
+  contact_telephone?: string;
+  notes?: string;
+  is_active: boolean;
+  sort_order?: number;
   created_at: string;
   updated_at: string;
 }
@@ -162,7 +166,7 @@ export interface OpenCourseSessionSummary {
 
 export async function getVenues(): Promise<Venue[]> {
   const { data, error } = await supabase
-    .from('venues')
+    .from('training_centres')
     .select('*')
     .order('name');
 
@@ -172,9 +176,9 @@ export async function getVenues(): Promise<Venue[]> {
 
 export async function getActiveVenues(): Promise<Venue[]> {
   const { data, error } = await supabase
-    .from('venues')
+    .from('training_centres')
     .select('*')
-    .eq('active', true)
+    .eq('is_active', true)
     .order('name');
 
   if (error) throw error;
@@ -183,7 +187,7 @@ export async function getActiveVenues(): Promise<Venue[]> {
 
 export async function getVenueById(id: string): Promise<Venue | null> {
   const { data, error } = await supabase
-    .from('venues')
+    .from('training_centres')
     .select('*')
     .eq('id', id)
     .single();
@@ -194,7 +198,7 @@ export async function getVenueById(id: string): Promise<Venue | null> {
 
 export async function createVenue(venue: Omit<Venue, 'id' | 'created_at' | 'updated_at'>): Promise<Venue> {
   const { data, error } = await supabase
-    .from('venues')
+    .from('training_centres')
     .insert([venue])
     .select()
     .single();
@@ -205,7 +209,7 @@ export async function createVenue(venue: Omit<Venue, 'id' | 'created_at' | 'upda
 
 export async function updateVenue(id: string, updates: Partial<Venue>): Promise<Venue> {
   const { data, error } = await supabase
-    .from('venues')
+    .from('training_centres')
     .update(updates)
     .eq('id', id)
     .select()
@@ -217,7 +221,7 @@ export async function updateVenue(id: string, updates: Partial<Venue>): Promise<
 
 export async function deleteVenue(id: string): Promise<void> {
   const { error } = await supabase
-    .from('venues')
+    .from('training_centres')
     .delete()
     .eq('id', id);
 
@@ -239,7 +243,7 @@ export async function getSessions(filters?: {
     .from('open_course_sessions')
     .select(`
       *,
-      venue:venues(id, name, address, city, postcode),
+      venue:training_centres(id, name, town, postcode),
       trainer:trainers(id, name, email),
       course_type:course_types(id, name, code)
     `)
@@ -272,7 +276,7 @@ export async function getSessionById(id: string): Promise<OpenCourseSessionWithD
     .from('open_course_sessions')
     .select(`
       *,
-      venue:venues(id, name, address, city, postcode),
+      venue:training_centres(id, name, town, postcode),
       trainer:trainers(id, name, email),
       course_type:course_types(id, name, code)
     `)

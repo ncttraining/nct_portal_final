@@ -26,6 +26,7 @@ import {
   Video,
   X,
   Save,
+  UserCog,
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
@@ -533,7 +534,16 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                               <div className="flex items-center gap-1 text-slate-400">
                                 <MapPin className="w-3 h-3" />
                                 <span className="truncate" title={session.venue.name}>
-                                  {session.venue.name}
+                                  {session.venue.town || session.venue.name}
+                                </span>
+                              </div>
+                            )}
+
+                            {session.trainer && (
+                              <div className="flex items-center gap-1 text-slate-400">
+                                <UserCog className="w-3 h-3" />
+                                <span className="truncate" title={session.trainer.name}>
+                                  {session.trainer.name}
                                 </span>
                               </div>
                             )}
@@ -778,7 +788,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                     <option value="">Select venue...</option>
                     {venues.map((venue) => (
                       <option key={venue.id} value={venue.id}>
-                        {venue.name} - {venue.city}
+                        {venue.name}{venue.town ? ` - ${venue.town}` : ''}
                       </option>
                     ))}
                   </select>
