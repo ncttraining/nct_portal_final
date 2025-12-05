@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Pencil, Trash2, Save, X, Eye, Bell, BellOff, ChevronDown, ChevronUp, Mail, UserCheck, UserX, ExternalLink, KeyRound } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Save, X, Eye, Bell, BellOff, ChevronDown, ChevronUp, Mail, UserCheck, UserX, ExternalLink, KeyRound, Search, Filter } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -64,6 +64,9 @@ export default function UserManagement({ currentPage, onNavigate }: UserManageme
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [managingPermissionsFor, setManagingPermissionsFor] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [permissionFilter, setPermissionFilter] = useState<string>('all');
 
   const [formData, setFormData] = useState({
     email: '',
@@ -438,6 +441,31 @@ This is an automated message from the NCT Portal system.
     }
   }
 
+  const filteredUsers = users.filter((user) => {
+    // Search filter (name or email)
+    const matchesSearch = searchTerm === '' ||
+      (user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Role filter
+    const matchesRole = roleFilter === 'all' ||
+      (roleFilter === 'super_admin' && user.super_admin) ||
+      (roleFilter === 'admin' && user.role === 'admin' && !user.super_admin) ||
+      (roleFilter === 'user' && user.role === 'user') ||
+      (roleFilter === 'trainer' && user.is_trainer);
+
+    // Permission filter
+    const matchesPermission = permissionFilter === 'all' ||
+      (permissionFilter === 'manage_users' && user.can_manage_users) ||
+      (permissionFilter === 'manage_bookings' && user.can_manage_bookings) ||
+      (permissionFilter === 'manage_courses' && user.can_manage_courses) ||
+      (permissionFilter === 'view_bookings' && user.can_view_bookings) ||
+      (permissionFilter === 'manage_expenses' && user.can_manage_expenses) ||
+      (permissionFilter === 'manage_availability' && user.can_manage_availability);
+
+    return matchesSearch && matchesRole && matchesPermission;
+  });
+
   if (!profile?.can_manage_users) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
@@ -667,6 +695,65 @@ This is an automated message from the NCT Portal system.
           </div>
         )}
 
+        <div className="mb-6 bg-slate-900 border border-slate-800 rounded-lg p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by name or email..."
+                  className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-slate-500" />
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+              >
+                <option value="all">All Roles</option>
+                <option value="super_admin">Super Admin</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+                <option value="trainer">Trainer</option>
+              </select>
+              <select
+                value={permissionFilter}
+                onChange={(e) => setPermissionFilter(e.target.value)}
+                className="px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+              >
+                <option value="all">All Permissions</option>
+                <option value="manage_users">Manage Users</option>
+                <option value="manage_bookings">Manage Bookings</option>
+                <option value="manage_courses">Manage Courses</option>
+                <option value="view_bookings">View Bookings</option>
+                <option value="manage_expenses">Manage Expenses</option>
+                <option value="manage_availability">Manage Availability</option>
+              </select>
+            </div>
+            {(searchTerm || roleFilter !== 'all' || permissionFilter !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setRoleFilter('all');
+                  setPermissionFilter('all');
+                }}
+                className="px-3 py-2 text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="mt-3 text-sm text-slate-400">
+            Showing {filteredUsers.length} of {users.length} users
+          </div>
+        </div>
+
         <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
           <table className="w-full">
             <thead>
@@ -686,14 +773,14 @@ This is an automated message from the NCT Portal system.
                     Loading users...
                   </td>
                 </tr>
-              ) : users.length === 0 ? (
+              ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
-                    No users found
+                    {users.length === 0 ? 'No users found' : 'No users match the current filters'}
                   </td>
                 </tr>
               ) : (
-                users.map((user) => (
+                filteredUsers.map((user) => (
                   <UserRow
                     key={user.id}
                     user={user as any}
