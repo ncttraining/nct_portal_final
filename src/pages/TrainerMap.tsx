@@ -13,11 +13,16 @@ import {
   saveAttributeValues
 } from '../lib/supabase';
 import { sendEmail, sendTemplateEmail, getEmailTemplates, type EmailTemplate } from '../lib/email';
+import { getTrainerTypesForMultipleTrainers, type TrainerType as LibTrainerType } from '../lib/trainer-types';
 import PageHeader from '../components/PageHeader';
 
 interface TrainerType {
   id: string;
   name: string;
+}
+
+interface ExtendedTrainer extends Trainer {
+  assigned_types?: LibTrainerType[];
 }
 
 interface TrainerMapProps {
@@ -26,7 +31,7 @@ interface TrainerMapProps {
 }
 
 export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps) {
-  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [trainers, setTrainers] = useState<ExtendedTrainer[]>([]);
   const [trainerTypes, setTrainerTypes] = useState<TrainerType[]>([]);
   const [selectedTypeId, setSelectedTypeId] = useState<string>('all');
   const [searchPostcode, setSearchPostcode] = useState('');
@@ -96,24 +101,26 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
   }
 
   async function loadTrainers() {
-    let query = supabase
+    const { data, error } = await supabase
       .from('trainers')
       .select('*')
       .eq('suspended', false)
       .order('name');
-
-    if (selectedTypeId !== 'all') {
-      query = query.eq('trainer_type_id', selectedTypeId);
-    }
-
-    const { data, error } = await query;
 
     if (error) {
       console.error('Error loading trainers:', error);
       return;
     }
 
-    setTrainers(data || []);
+    const trainerIds = (data || []).map(t => t.id);
+    const trainerTypesMap = await getTrainerTypesForMultipleTrainers(trainerIds);
+
+    const trainersWithTypes = (data || []).map(trainer => ({
+      ...trainer,
+      assigned_types: trainerTypesMap[trainer.id] || []
+    }));
+
+    setTrainers(trainersWithTypes);
   }
 
   function renderMarkers() {
@@ -121,7 +128,11 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
 
     markersLayerRef.current.clearLayers();
 
-    trainers.forEach((trainer) => {
+    const displayTrainers = trainers.filter(
+      trainer => selectedTypeId === 'all' || trainer.assigned_types?.some(at => at.id === selectedTypeId)
+    );
+
+    displayTrainers.forEach((trainer) => {
       if (!trainer.latitude || !trainer.longitude) return;
 
       const marker = L.marker([trainer.latitude, trainer.longitude]).addTo(
@@ -281,7 +292,9 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
   }
 
   function getSortedTrainers() {
-    let list = [...trainers];
+    let list = trainers.filter(
+      trainer => selectedTypeId === 'all' || trainer.assigned_types?.some(at => at.id === selectedTypeId)
+    );
 
     if (currentSort.mode === 'distance' && currentSort.origin) {
       const org = currentSort.origin;
@@ -1379,14 +1392,9 @@ function EmailModal({
           return;
         }
 
-        const trainerTypeName =
-          trainer.trainer_type_id === '455cf29f-9426-457c-93c3-951145ca86c7'
-            ? 'MHE Trainer'
-            : trainer.trainer_type_id === '1a8f3959-eeae-4b45-b48a-13ce8a019872'
-            ? 'First Aid Trainer'
-            : trainer.trainer_type_id === 'f89ec203-c81e-47ea-9a3f-2b17b0363340'
-            ? 'CPC Trainer'
-            : 'Trainer';
+        const trainerTypeName = trainer.assigned_types && trainer.assigned_types.length > 0
+          ? trainer.assigned_types.map(t => t.name).join(', ')
+          : 'Trainer';
 
         const templateData: Record<string, string> = {
           trainer_name: trainer.name,

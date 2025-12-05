@@ -584,7 +584,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                   </select>
                 </div>
                 <span className="text-sm text-slate-400">
-                  {trainers.filter(t => !selectedTrainerType || t.trainer_type_id === selectedTrainerType).length} trainer(s) - {days} day(s)
+                  {trainers.filter(t => !selectedTrainerType || t.assigned_types?.some(at => at.id === selectedTrainerType)).length} trainer(s) - {days} day(s)
                 </span>
               </div>
             </div>
@@ -658,7 +658,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
 
                 <div>
                   {trainers
-                    .filter(trainer => !selectedTrainerType || trainer.trainer_type_id === selectedTrainerType)
+                    .filter(trainer => !selectedTrainerType || trainer.assigned_types?.some(at => at.id === selectedTrainerType))
                     .map((trainer, trainerIndex) => (
                     <div
                       key={trainer.id}

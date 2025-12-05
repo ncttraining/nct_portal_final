@@ -138,7 +138,7 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
       trainer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trainer.postcode.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesType = filterType === 'all' || trainer.trainer_type_id === filterType;
+    const matchesType = filterType === 'all' || trainer.assigned_types?.some(at => at.id === filterType);
 
     const matchesStatus =
       filterStatus === 'all' ||

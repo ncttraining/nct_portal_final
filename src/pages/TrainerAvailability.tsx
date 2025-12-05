@@ -11,6 +11,7 @@ import {
   getBookingConflicts,
   TrainerUnavailability,
 } from '../lib/trainer-availability';
+import { getTrainerTypesForMultipleTrainers, type TrainerType as LibTrainerType } from '../lib/trainer-types';
 
 interface TrainerType {
   id: string;
@@ -27,6 +28,7 @@ interface Trainer {
   postcode: string;
   display_order: number;
   trainer_type_id: string | null;
+  assigned_types?: LibTrainerType[];
 }
 
 interface TrainerAvailabilityProps {
@@ -108,7 +110,15 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
       return;
     }
 
-    setTrainers(data || []);
+    const trainerIds = (data || []).map(t => t.id);
+    const trainerTypesMap = await getTrainerTypesForMultipleTrainers(trainerIds);
+
+    const trainersWithTypes = (data || []).map(trainer => ({
+      ...trainer,
+      assigned_types: trainerTypesMap[trainer.id] || []
+    }));
+
+    setTrainers(trainersWithTypes);
   }
 
   async function loadUnavailability() {
@@ -308,7 +318,7 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   const filteredTrainers = trainers.filter(
-    trainer => !selectedTrainerType || trainer.trainer_type_id === selectedTrainerType
+    trainer => !selectedTrainerType || trainer.assigned_types?.some(at => at.id === selectedTrainerType)
   );
 
   const totalUnavailableDays = unavailability.length;
