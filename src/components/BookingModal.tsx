@@ -120,6 +120,8 @@ export default function BookingModal({
   const [emailSent, setEmailSent] = useState(false);
   const [sendingCandidateEmail, setSendingCandidateEmail] = useState<{[key: number]: boolean}>({});
   const [candidateEmailSent, setCandidateEmailSent] = useState<{[key: number]: boolean}>({});
+  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
 
   // Training centre state
   const [trainingCentres, setTrainingCentres] = useState<TrainingCentre[]>([]);
@@ -317,6 +319,35 @@ export default function BookingModal({
     }));
     setShowClientSuggestions(false);
     loadClientLocations(client.id);
+  }
+
+  async function handleTitleChange(title: string) {
+    setFormData(prev => ({ ...prev, title }));
+
+    if (title.trim().length > 0) {
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('title')
+          .ilike('title', `%${title}%`)
+          .limit(10);
+
+        if (!error && data) {
+          const uniqueTitles = [...new Set(data.map(b => b.title))].filter(t => t && t.trim());
+          setTitleSuggestions(uniqueTitles);
+          setShowTitleSuggestions(uniqueTitles.length > 0);
+        }
+      } catch (err) {
+        console.error('Error fetching title suggestions:', err);
+      }
+    } else {
+      setShowTitleSuggestions(false);
+    }
+  }
+
+  function selectTitle(title: string) {
+    setFormData(prev => ({ ...prev, title }));
+    setShowTitleSuggestions(false);
   }
 
   function handleLocationChange(locationId: string) {
@@ -769,14 +800,32 @@ export default function BookingModal({
             <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
               Course / Job Description
             </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g. 3 x B1 refresher - Triumph Stoke"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
-              required
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                onFocus={() => formData.title && handleTitleChange(formData.title)}
+                onBlur={() => setTimeout(() => setShowTitleSuggestions(false), 250)}
+                placeholder="e.g. 3 x B1 refresher - Triumph Stoke"
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                required
+              />
+              {showTitleSuggestions && titleSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-slate-800 border-2 border-blue-500 rounded shadow-2xl max-h-60 overflow-y-auto">
+                  {titleSuggestions.map((title, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => selectTitle(title)}
+                      className="w-full px-3 py-2.5 text-left text-sm hover:bg-slate-700 transition-colors border-b border-slate-700 last:border-b-0 text-white"
+                    >
+                      {title}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
