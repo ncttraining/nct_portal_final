@@ -14,15 +14,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Calendar,
   Users,
   MapPin,
   Clock,
   Copy,
   Edit,
   Trash2,
-  AlertCircle,
-  CheckCircle,
   Video,
   X,
   Save,
@@ -40,16 +37,13 @@ import {
   deleteSession,
   getDelegates,
   transferDelegate,
-  getVenues,
   getActiveVenues,
-  getWeekDates,
   formatDate,
   formatTime,
   getCapacityColor,
   getCapacityBgColor,
   OpenCourseSession,
   OpenCourseSessionWithDetails,
-  OpenCourseDelegate,
   OpenCourseDelegateWithDetails,
   Venue,
 } from '../lib/open-courses';
@@ -61,23 +55,22 @@ interface PageProps {
 }
 
 interface SessionFormData {
-  title: string;
-  description: string;
-  start_date: string;
-  end_date: string;
+  event_title: string;
+  event_subtitle: string;
+  event_description: string;
+  session_date: string;
   start_time: string;
   end_time: string;
   venue_id: string;
   trainer_id: string;
-  capacity: number;
+  capacity_limit: number;
   course_type_id: string;
-  status: 'draft' | 'published' | 'cancelled' | 'completed';
-  is_virtual: boolean;
+  status: string;
+  is_online: boolean;
   meeting_url: string;
   meeting_id: string;
   meeting_password: string;
   price: number;
-  currency: string;
   notes: string;
 }
 
@@ -116,23 +109,22 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
 
   function getEmptyFormData(): SessionFormData {
     return {
-      title: '',
-      description: '',
-      start_date: '',
-      end_date: '',
+      event_title: '',
+      event_subtitle: '',
+      event_description: '',
+      session_date: '',
       start_time: '09:00',
       end_time: '17:00',
       venue_id: '',
       trainer_id: '',
-      capacity: 12,
+      capacity_limit: 12,
       course_type_id: '',
       status: 'published',
-      is_virtual: false,
+      is_online: false,
       meeting_url: '',
       meeting_id: '',
       meeting_password: '',
       price: 0,
-      currency: 'GBP',
       notes: '',
     };
   }
@@ -155,7 +147,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       await Promise.all(
         sessionsData.map(async (session) => {
           const delegates = await getDelegates({ sessionId: session.id });
-          delegatesMap[session.id] = delegates.filter(d => d.attendance_status !== 'cancelled');
+          delegatesMap[session.id] = delegates.filter(d => d.status !== 'cancelled');
         })
       );
       setSessionDelegates(delegatesMap);
@@ -203,12 +195,18 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     setCurrentWeekStart(new Date(today.setDate(diff)));
   }
 
-  function getWeekDateStrings(): string[] {
-    return getWeekDates(currentWeekStart).map(date => date.toISOString().split('T')[0]);
+  function getWeekDates(): Date[] {
+    const dates: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(currentWeekStart);
+      date.setDate(date.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
   }
 
   function getSessionsForDate(date: string): OpenCourseSessionWithDetails[] {
-    return sessions.filter(session => session.start_date === date);
+    return sessions.filter(session => session.session_date === date);
   }
 
   function handleCreateSession() {
@@ -220,23 +218,22 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   function handleEditSession(session: OpenCourseSessionWithDetails) {
     setEditingSession(session);
     setSessionFormData({
-      title: session.title,
-      description: session.description || '',
-      start_date: session.start_date,
-      end_date: session.end_date,
+      event_title: session.event_title,
+      event_subtitle: session.event_subtitle || '',
+      event_description: session.event_description || '',
+      session_date: session.session_date,
       start_time: session.start_time || '09:00',
       end_time: session.end_time || '17:00',
       venue_id: session.venue_id || '',
       trainer_id: session.trainer_id || '',
-      capacity: session.capacity,
+      capacity_limit: session.capacity_limit,
       course_type_id: session.course_type_id || '',
       status: session.status,
-      is_virtual: session.is_virtual,
+      is_online: session.is_online,
       meeting_url: session.meeting_url || '',
       meeting_id: session.meeting_id || '',
       meeting_password: session.meeting_password || '',
       price: session.price || 0,
-      currency: session.currency,
       notes: session.notes || '',
     });
     setShowSessionModal(true);
@@ -245,19 +242,15 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   async function handleDuplicateSession(session: OpenCourseSessionWithDetails) {
     try {
       // Calculate next week's date
-      const nextWeekDate = new Date(session.start_date);
+      const nextWeekDate = new Date(session.session_date);
       nextWeekDate.setDate(nextWeekDate.getDate() + 7);
-      const newStartDate = nextWeekDate.toISOString().split('T')[0];
+      const newSessionDate = nextWeekDate.toISOString().split('T')[0];
 
-      const nextWeekEndDate = new Date(session.end_date);
-      nextWeekEndDate.setDate(nextWeekEndDate.getDate() + 7);
-      const newEndDate = nextWeekEndDate.toISOString().split('T')[0];
-
-      await duplicateSession(session.id, newStartDate, newEndDate);
+      await duplicateSession(session.id, newSessionDate);
 
       setNotification({
         type: 'success',
-        message: `Session duplicated successfully for ${formatDate(newStartDate)}`,
+        message: `Session duplicated successfully for ${formatDate(newSessionDate)}`,
       });
 
       loadData();
@@ -278,7 +271,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       }
     }
 
-    if (!confirm(`Are you sure you want to delete "${session.title}"?`)) {
+    if (!confirm(`Are you sure you want to delete "${session.event_title}"?`)) {
       return;
     }
 
@@ -299,26 +292,34 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
 
   async function handleSaveSession() {
     try {
-      if (!sessionFormData.title || !sessionFormData.start_date) {
+      if (!sessionFormData.event_title || !sessionFormData.session_date) {
         setNotification({
           type: 'error',
-          message: 'Please fill in required fields (Title, Start Date)',
+          message: 'Please fill in required fields (Title, Date)',
         });
         return;
       }
 
-      const sessionData = {
-        ...sessionFormData,
-        description: sessionFormData.description || null,
+      const sessionData: Partial<OpenCourseSession> = {
+        event_title: sessionFormData.event_title,
+        event_subtitle: sessionFormData.event_subtitle || null,
+        event_description: sessionFormData.event_description || null,
+        session_date: sessionFormData.session_date,
         start_time: sessionFormData.start_time || null,
         end_time: sessionFormData.end_time || null,
         venue_id: sessionFormData.venue_id || null,
         trainer_id: sessionFormData.trainer_id || null,
         course_type_id: sessionFormData.course_type_id || null,
-        meeting_url: sessionFormData.is_virtual ? sessionFormData.meeting_url || null : null,
-        meeting_id: sessionFormData.is_virtual ? sessionFormData.meeting_id || null : null,
-        meeting_password: sessionFormData.is_virtual ? sessionFormData.meeting_password || null : null,
+        capacity_limit: sessionFormData.capacity_limit,
+        is_online: sessionFormData.is_online,
+        meeting_url: sessionFormData.is_online ? sessionFormData.meeting_url || null : null,
+        meeting_id: sessionFormData.is_online ? sessionFormData.meeting_id || null : null,
+        meeting_password: sessionFormData.is_online ? sessionFormData.meeting_password || null : null,
+        price: sessionFormData.price,
+        status: sessionFormData.status,
         notes: sessionFormData.notes || null,
+        website_visible: true,
+        allow_overbooking: false,
       };
 
       if (editingSession) {
@@ -374,7 +375,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
 
       setNotification({
         type: 'success',
-        message: `Delegate ${draggedDelegate.delegate.first_name} ${draggedDelegate.delegate.last_name} transferred successfully`,
+        message: `Delegate transferred successfully`,
       });
 
       loadData();
@@ -399,7 +400,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     );
   }
 
-  const weekDates = getWeekDateStrings();
+  const weekDates = getWeekDates();
   const weekDaysLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
@@ -462,12 +463,13 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
         {/* Week Grid */}
         <div className="grid grid-cols-7 gap-4">
           {weekDates.map((date, index) => {
-            const daySessions = getSessionsForDate(date);
-            const isToday = date === new Date().toISOString().split('T')[0];
+            const dateString = date.toISOString().split('T')[0];
+            const daySessions = getSessionsForDate(dateString);
+            const isToday = dateString === new Date().toISOString().split('T')[0];
 
             return (
               <div
-                key={date}
+                key={dateString}
                 className={`bg-slate-900 border rounded-lg overflow-hidden ${
                   isToday ? 'border-blue-500' : 'border-slate-800'
                 }`}
@@ -476,7 +478,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                 <div className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
                   <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
                   <div className="text-xs text-slate-400 mt-1">
-                    {new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>
 
@@ -490,8 +492,8 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                     daySessions.map((session) => {
                       const delegates = sessionDelegates[session.id] || [];
                       const delegateCount = delegates.length;
-                      const capacityColor = getCapacityColor(session.available_spaces, session.capacity);
-                      const capacityBg = getCapacityBgColor(session.available_spaces, session.capacity);
+                      const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+                      const capacityBg = getCapacityBgColor(delegateCount, session.capacity_limit);
                       const isDragOver = dragOverSessionId === session.id;
 
                       return (
@@ -507,8 +509,8 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                           {/* Session Header */}
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1 min-w-0">
-                              <div className="font-semibold truncate" title={session.title}>
-                                {session.title}
+                              <div className="font-semibold truncate" title={session.event_title}>
+                                {session.event_title}
                               </div>
                               {session.course_type && (
                                 <div className="text-slate-400 text-[10px] truncate">
@@ -516,7 +518,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                                 </div>
                               )}
                             </div>
-                            {session.is_virtual && (
+                            {session.is_online && (
                               <Video className="w-3 h-3 text-blue-400 ml-1 flex-shrink-0" />
                             )}
                           </div>
@@ -530,7 +532,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                               </div>
                             )}
 
-                            {session.venue && (
+                            {session.venue && !session.is_online && (
                               <div className="flex items-center gap-1 text-slate-400">
                                 <MapPin className="w-3 h-3" />
                                 <span className="truncate" title={session.venue.name}>
@@ -551,9 +553,9 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                             <div className="flex items-center gap-1">
                               <Users className={`w-3 h-3 ${capacityColor}`} />
                               <span className={capacityColor}>
-                                {delegateCount} / {session.capacity}
+                                {delegateCount} / {session.capacity_limit}
                               </span>
-                              {session.available_spaces === 0 && (
+                              {delegateCount >= session.capacity_limit && (
                                 <span className="ml-1 text-red-400 font-semibold">FULL</span>
                               )}
                             </div>
@@ -571,11 +573,11 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                                   title={`Drag to transfer delegate`}
                                 >
                                   <div className="text-[10px] font-medium truncate">
-                                    {delegate.first_name} {delegate.last_name}
+                                    {delegate.delegate_name}
                                   </div>
-                                  {delegate.company_name && (
+                                  {delegate.delegate_company && (
                                     <div className="text-[9px] text-slate-500 truncate">
-                                      {delegate.company_name}
+                                      {delegate.delegate_company}
                                     </div>
                                   )}
                                 </div>
@@ -646,9 +648,9 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
 
       {/* Session Modal */}
       {showSessionModal && (
-        <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-slate-900 border-b border-slate-800 p-6 flex items-start justify-between">
+        <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-3xl my-8">
+            <div className="sticky top-0 bg-slate-900 border-b border-slate-800 p-6 flex items-start justify-between rounded-t-lg">
               <h2 className="text-xl font-semibold">
                 {editingSession ? 'Edit Session' : 'Create New Session'}
               </h2>
@@ -660,7 +662,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
               {/* Title */}
               <div>
                 <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
@@ -668,10 +670,24 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                 </label>
                 <input
                   type="text"
-                  value={sessionFormData.title}
-                  onChange={(e) => setSessionFormData({ ...sessionFormData, title: e.target.value })}
+                  value={sessionFormData.event_title}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, event_title: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
                   placeholder="e.g., Forklift Training - Counterbalance"
+                />
+              </div>
+
+              {/* Subtitle */}
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                  Subtitle
+                </label>
+                <input
+                  type="text"
+                  value={sessionFormData.event_subtitle}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, event_subtitle: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                  placeholder="Optional subtitle"
                 />
               </div>
 
@@ -700,38 +716,25 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                   Description
                 </label>
                 <textarea
-                  value={sessionFormData.description}
-                  onChange={(e) => setSessionFormData({ ...sessionFormData, description: e.target.value })}
+                  value={sessionFormData.event_description}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, event_description: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
                   rows={3}
                   placeholder="Optional description..."
                 />
               </div>
 
-              {/* Dates */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
-                    Start Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={sessionFormData.start_date}
-                    onChange={(e) => setSessionFormData({ ...sessionFormData, start_date: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
-                    End Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={sessionFormData.end_date}
-                    onChange={(e) => setSessionFormData({ ...sessionFormData, end_date: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
-                  />
-                </div>
+              {/* Date */}
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                  Session Date *
+                </label>
+                <input
+                  type="date"
+                  value={sessionFormData.session_date}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, session_date: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                />
               </div>
 
               {/* Times */}
@@ -760,22 +763,22 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                 </div>
               </div>
 
-              {/* Virtual Toggle */}
+              {/* Online Toggle */}
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
-                  id="is_virtual"
-                  checked={sessionFormData.is_virtual}
-                  onChange={(e) => setSessionFormData({ ...sessionFormData, is_virtual: e.target.checked })}
+                  id="is_online"
+                  checked={sessionFormData.is_online}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, is_online: e.target.checked })}
                   className="w-4 h-4"
                 />
-                <label htmlFor="is_virtual" className="text-sm cursor-pointer">
+                <label htmlFor="is_online" className="text-sm cursor-pointer">
                   Virtual/Online Session
                 </label>
               </div>
 
-              {/* Venue (if not virtual) */}
-              {!sessionFormData.is_virtual && (
+              {/* Venue (if not online) */}
+              {!sessionFormData.is_online && (
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
                     Venue
@@ -795,8 +798,8 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                 </div>
               )}
 
-              {/* Meeting Details (if virtual) */}
-              {sessionFormData.is_virtual && (
+              {/* Meeting Details (if online) */}
+              {sessionFormData.is_online && (
                 <>
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
@@ -864,41 +867,25 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                 <input
                   type="number"
                   min="1"
-                  value={sessionFormData.capacity}
-                  onChange={(e) => setSessionFormData({ ...sessionFormData, capacity: parseInt(e.target.value) || 12 })}
+                  value={sessionFormData.capacity_limit}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, capacity_limit: parseInt(e.target.value) || 12 })}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
                 />
               </div>
 
               {/* Price */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
-                    Price
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={sessionFormData.price}
-                    onChange={(e) => setSessionFormData({ ...sessionFormData, price: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
-                    Currency
-                  </label>
-                  <select
-                    value={sessionFormData.currency}
-                    onChange={(e) => setSessionFormData({ ...sessionFormData, currency: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
-                  >
-                    <option value="GBP">GBP</option>
-                    <option value="EUR">EUR</option>
-                    <option value="USD">USD</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                  Price (£)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={sessionFormData.price}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, price: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                />
               </div>
 
               {/* Status */}
@@ -908,7 +895,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                 </label>
                 <select
                   value={sessionFormData.status}
-                  onChange={(e) => setSessionFormData({ ...sessionFormData, status: e.target.value as any })}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, status: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
                 >
                   <option value="draft">Draft</option>
@@ -933,7 +920,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex items-center justify-end gap-3 rounded-b-lg">
               <button
                 onClick={() => setShowSessionModal(false)}
                 className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"

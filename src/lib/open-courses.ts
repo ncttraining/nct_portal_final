@@ -14,15 +14,13 @@ import { supabase } from './supabase';
 export interface Venue {
   id: string;
   name: string;
+  code?: string;
   address1?: string;
   address2?: string;
   town?: string;
   postcode?: string;
-  contact_name?: string;
-  contact_email?: string;
-  contact_telephone?: string;
-  notes?: string;
-  is_active: boolean;
+  default_capacity?: number;
+  active: boolean;
   sort_order?: number;
   created_at: string;
   updated_at: string;
@@ -31,29 +29,40 @@ export interface Venue {
 export interface OpenCourseSession {
   id: string;
   wp_event_id: number | null;
-  wp_repeat_interval: string | null;
+  wp_repeat_interval: number | null;
   course_type_id: string | null;
-  title: string;
-  description: string | null;
-  start_date: string;
-  end_date: string;
-  start_time: string | null;
-  end_time: string | null;
   venue_id: string | null;
   trainer_id: string | null;
-  capacity: number;
-  available_spaces: number;
-  status: 'draft' | 'published' | 'cancelled' | 'completed';
-  is_virtual: boolean;
+  session_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  capacity_limit: number;
+  price: number | null;
+  early_bird_price: number | null;
+  early_bird_cutoff_date: string | null;
+  allow_overbooking: boolean;
+  overbooking_limit: number | null;
+  capacity_threshold_warning: number | null;
+  is_online: boolean;
   meeting_url: string | null;
   meeting_id: string | null;
   meeting_password: string | null;
-  price: number | null;
-  currency: string;
+  virtual_type: string | null;
+  show_meeting_link_when: string | null;
+  event_title: string;
+  event_subtitle: string | null;
+  event_description: string | null;
+  event_image_url: string | null;
+  event_color: string | null;
+  status: string;
+  timezone: string | null;
+  website_visible: boolean;
+  woocommerce_product_id: string | null;
+  eventon_event_id: string | null;
   notes: string | null;
+  created_by: string | null;
   created_at: string;
   updated_at: string;
-  synced_at: string | null;
 }
 
 export interface OpenCourseSessionWithDetails extends OpenCourseSession {
@@ -122,13 +131,15 @@ export interface OpenCourseDelegateWithDetails extends OpenCourseDelegate {
 export interface OpenCourseCapacityAlert {
   id: string;
   session_id: string;
-  alert_type: 'low_capacity' | 'full' | 'overbooked';
-  threshold_percentage: number;
+  alert_type: string;
+  current_count: number;
+  capacity_limit: number;
   triggered_at: string;
-  acknowledged: boolean;
-  acknowledged_by: string | null;
-  acknowledged_at: string | null;
-  created_at: string;
+  actioned_by: string | null;
+  actioned_at: string | null;
+  action_taken: string | null;
+  action_notes: string | null;
+  new_session_id: string | null;
 }
 
 export interface OpenCourseSyncLog {
@@ -166,7 +177,7 @@ export interface OpenCourseSessionSummary {
 
 export async function getVenues(): Promise<Venue[]> {
   const { data, error } = await supabase
-    .from('training_centres')
+    .from('venues')
     .select('*')
     .order('name');
 
@@ -176,9 +187,9 @@ export async function getVenues(): Promise<Venue[]> {
 
 export async function getActiveVenues(): Promise<Venue[]> {
   const { data, error } = await supabase
-    .from('training_centres')
+    .from('venues')
     .select('*')
-    .eq('is_active', true)
+    .eq('active', true)
     .order('name');
 
   if (error) throw error;
@@ -187,7 +198,7 @@ export async function getActiveVenues(): Promise<Venue[]> {
 
 export async function getVenueById(id: string): Promise<Venue | null> {
   const { data, error } = await supabase
-    .from('training_centres')
+    .from('venues')
     .select('*')
     .eq('id', id)
     .single();
@@ -198,7 +209,7 @@ export async function getVenueById(id: string): Promise<Venue | null> {
 
 export async function createVenue(venue: Omit<Venue, 'id' | 'created_at' | 'updated_at'>): Promise<Venue> {
   const { data, error } = await supabase
-    .from('training_centres')
+    .from('venues')
     .insert([venue])
     .select()
     .single();
@@ -209,7 +220,7 @@ export async function createVenue(venue: Omit<Venue, 'id' | 'created_at' | 'upda
 
 export async function updateVenue(id: string, updates: Partial<Venue>): Promise<Venue> {
   const { data, error } = await supabase
-    .from('training_centres')
+    .from('venues')
     .update(updates)
     .eq('id', id)
     .select()
@@ -221,7 +232,7 @@ export async function updateVenue(id: string, updates: Partial<Venue>): Promise<
 
 export async function deleteVenue(id: string): Promise<void> {
   const { error } = await supabase
-    .from('training_centres')
+    .from('venues')
     .delete()
     .eq('id', id);
 
@@ -243,17 +254,17 @@ export async function getSessions(filters?: {
     .from('open_course_sessions')
     .select(`
       *,
-      venue:training_centres(id, name, town, postcode),
+      venue:venues(id, name, code, town, postcode),
       trainer:trainers(id, name, email),
       course_type:course_types(id, name, code)
     `)
-    .order('start_date', { ascending: true });
+    .order('session_date', { ascending: true });
 
   if (filters?.startDate) {
-    query = query.gte('start_date', filters.startDate);
+    query = query.gte('session_date', filters.startDate);
   }
   if (filters?.endDate) {
-    query = query.lte('start_date', filters.endDate);
+    query = query.lte('session_date', filters.endDate);
   }
   if (filters?.status) {
     query = query.eq('status', filters.status);
@@ -276,7 +287,7 @@ export async function getSessionById(id: string): Promise<OpenCourseSessionWithD
     .from('open_course_sessions')
     .select(`
       *,
-      venue:training_centres(id, name, town, postcode),
+      venue:venues(id, name, code, town, postcode),
       trainer:trainers(id, name, email),
       course_type:course_types(id, name, code)
     `)
@@ -298,13 +309,10 @@ export async function getSessionsForWeek(weekStartDate: string): Promise<OpenCou
   });
 }
 
-export async function createSession(session: Omit<OpenCourseSession, 'id' | 'created_at' | 'updated_at' | 'synced_at'>): Promise<OpenCourseSession> {
+export async function createSession(session: Partial<OpenCourseSession>): Promise<OpenCourseSession> {
   const { data, error } = await supabase
     .from('open_course_sessions')
-    .insert([{
-      ...session,
-      available_spaces: session.capacity,
-    }])
+    .insert([session])
     .select()
     .single();
 
@@ -324,20 +332,18 @@ export async function updateSession(id: string, updates: Partial<OpenCourseSessi
   return data;
 }
 
-export async function duplicateSession(id: string, newStartDate: string, newEndDate?: string): Promise<OpenCourseSession> {
+export async function duplicateSession(id: string, newSessionDate: string): Promise<OpenCourseSession> {
   const original = await getSessionById(id);
   if (!original) throw new Error('Session not found');
 
-  const { id: _, created_at, updated_at, synced_at, wp_event_id, wp_repeat_interval, ...sessionData } = original;
+  const { id: _, created_at, updated_at, created_by, wp_event_id, wp_repeat_interval, woocommerce_product_id, eventon_event_id, venue, trainer, course_type, ...sessionData } = original as any;
 
   const newSession = {
     ...sessionData,
-    start_date: newStartDate,
-    end_date: newEndDate || newStartDate,
+    session_date: newSessionDate,
     wp_event_id: null,
     wp_repeat_interval: null,
-    available_spaces: sessionData.capacity,
-    status: 'draft' as const,
+    status: 'draft',
   };
 
   return createSession(newSession);
@@ -358,7 +364,7 @@ export async function updateSessionCapacity(sessionId: string): Promise<void> {
     .from('open_course_delegates')
     .select('*', { count: 'exact', head: true })
     .eq('session_id', sessionId)
-    .neq('attendance_status', 'cancelled');
+    .in('status', ['registered', 'confirmed', 'attended']);
 
   if (countError) throw countError;
 
@@ -367,20 +373,13 @@ export async function updateSessionCapacity(sessionId: string): Promise<void> {
   if (!session) throw new Error('Session not found');
 
   const delegateCount = count || 0;
-  const availableSpaces = session.capacity - delegateCount;
-
-  // Update available spaces
-  await updateSession(sessionId, { available_spaces: availableSpaces });
+  const capacityPercentage = (delegateCount / session.capacity_limit) * 100;
 
   // Check for capacity alerts
-  const capacityPercentage = (delegateCount / session.capacity) * 100;
-
   if (capacityPercentage >= 100) {
-    await createCapacityAlert(sessionId, 'overbooked', 100);
-  } else if (capacityPercentage >= 90) {
-    await createCapacityAlert(sessionId, 'full', 90);
-  } else if (capacityPercentage >= 75) {
-    await createCapacityAlert(sessionId, 'low_capacity', 75);
+    await createCapacityAlert(sessionId, 'high', delegateCount, session.capacity_limit);
+  } else if (capacityPercentage >= session.capacity_threshold_warning!) {
+    await createCapacityAlert(sessionId, 'medium', delegateCount, session.capacity_limit);
   }
 }
 
@@ -578,7 +577,7 @@ export async function getCapacityAlerts(sessionId?: string): Promise<OpenCourseC
   let query = supabase
     .from('open_course_capacity_alerts')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('triggered_at', { ascending: false });
 
   if (sessionId) {
     query = query.eq('session_id', sessionId);
@@ -590,21 +589,11 @@ export async function getCapacityAlerts(sessionId?: string): Promise<OpenCourseC
   return data || [];
 }
 
-export async function getUnacknowledgedAlerts(): Promise<OpenCourseCapacityAlert[]> {
-  const { data, error } = await supabase
-    .from('open_course_capacity_alerts')
-    .select('*')
-    .eq('acknowledged', false)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data || [];
-}
-
 export async function createCapacityAlert(
   sessionId: string,
-  alertType: OpenCourseCapacityAlert['alert_type'],
-  thresholdPercentage: number
+  alertType: string,
+  currentCount: number,
+  capacityLimit: number
 ): Promise<OpenCourseCapacityAlert> {
   // Check if similar alert already exists for this session
   const { data: existing } = await supabase
@@ -612,7 +601,7 @@ export async function createCapacityAlert(
     .select('*')
     .eq('session_id', sessionId)
     .eq('alert_type', alertType)
-    .eq('acknowledged', false)
+    .is('actioned_at', null)
     .single();
 
   if (existing) {
@@ -624,26 +613,10 @@ export async function createCapacityAlert(
     .insert([{
       session_id: sessionId,
       alert_type: alertType,
-      threshold_percentage: thresholdPercentage,
+      current_count: currentCount,
+      capacity_limit: capacityLimit,
       triggered_at: new Date().toISOString(),
-      acknowledged: false,
     }])
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-export async function acknowledgeAlert(id: string, userId: string): Promise<OpenCourseCapacityAlert> {
-  const { data, error } = await supabase
-    .from('open_course_capacity_alerts')
-    .update({
-      acknowledged: true,
-      acknowledged_by: userId,
-      acknowledged_at: new Date().toISOString(),
-    })
-    .eq('id', id)
     .select()
     .single();
 
@@ -712,16 +685,16 @@ export function formatTime(time: string | null): string {
   return time.substring(0, 5); // Returns HH:MM from HH:MM:SS
 }
 
-export function getCapacityColor(availableSpaces: number, capacity: number): string {
-  const percentage = ((capacity - availableSpaces) / capacity) * 100;
+export function getCapacityColor(registeredCount: number, capacityLimit: number): string {
+  const percentage = (registeredCount / capacityLimit) * 100;
   if (percentage >= 100) return 'text-red-400';
   if (percentage >= 90) return 'text-orange-400';
   if (percentage >= 75) return 'text-yellow-400';
   return 'text-green-400';
 }
 
-export function getCapacityBgColor(availableSpaces: number, capacity: number): string {
-  const percentage = ((capacity - availableSpaces) / capacity) * 100;
+export function getCapacityBgColor(registeredCount: number, capacityLimit: number): string {
+  const percentage = (registeredCount / capacityLimit) * 100;
   if (percentage >= 100) return 'bg-red-500/10 border-red-500/20';
   if (percentage >= 90) return 'bg-orange-500/10 border-orange-500/20';
   if (percentage >= 75) return 'bg-yellow-500/10 border-yellow-500/20';
