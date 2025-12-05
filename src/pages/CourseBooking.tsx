@@ -608,16 +608,16 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
               </div>
               <div className="flex items-center justify-end gap-4 text-xs">
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500/20 border-2 border-green-500/60 rounded-full"></div>
-                  <span>Confirmed</span>
+                  <div className="w-2 h-2 bg-green-500 border-2 border-green-600 rounded-full"></div>
+                  <span>In-centre</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-amber-300 border-2 border-amber-400 rounded-full"></div>
+                  <span>Onsite</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-slate-300 border-2 border-slate-500 rounded-full"></div>
                   <span>Provisional</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-blue-500/20 border-2 border-blue-500/60 rounded-full"></div>
-                  <span>Hold</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-red-500/20 border-2 border-red-500/70 rounded-full"></div>
