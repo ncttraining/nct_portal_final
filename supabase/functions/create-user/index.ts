@@ -11,6 +11,7 @@ interface CreateUserRequest {
   password: string;
   full_name: string;
   role: 'admin' | 'user';
+  super_admin: boolean;
   can_manage_users: boolean;
   can_manage_bookings: boolean;
   can_manage_courses: boolean;
@@ -96,6 +97,7 @@ Deno.serve(async (req: Request) => {
       password,
       full_name,
       role,
+      super_admin,
       can_manage_users,
       can_manage_bookings,
       can_manage_courses,
@@ -142,6 +144,7 @@ Deno.serve(async (req: Request) => {
       .update({
         full_name,
         role,
+        super_admin: super_admin || false,
         can_manage_users,
         can_manage_bookings,
         can_manage_courses,

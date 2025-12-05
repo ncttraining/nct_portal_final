@@ -8,6 +8,7 @@ interface UserProfile {
   full_name: string | null;
   avatar_url: string | null;
   role: 'admin' | 'user';
+  super_admin: boolean;
   can_manage_users: boolean;
   can_manage_bookings: boolean;
   can_manage_courses: boolean;

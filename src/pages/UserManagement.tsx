@@ -16,6 +16,7 @@ interface User {
   email: string;
   full_name: string | null;
   role: 'admin' | 'user';
+  super_admin: boolean;
   can_manage_users: boolean;
   can_manage_bookings: boolean;
   can_manage_courses: boolean;
@@ -69,6 +70,7 @@ export default function UserManagement({ currentPage, onNavigate }: UserManageme
     password: '',
     full_name: '',
     role: 'user' as 'admin' | 'user',
+    super_admin: false,
     can_manage_users: false,
     can_manage_bookings: false,
     can_manage_courses: false,
@@ -128,12 +130,13 @@ export default function UserManagement({ currentPage, onNavigate }: UserManageme
           password: formData.password,
           full_name: formData.full_name,
           role: formData.role,
-          can_manage_users: formData.can_manage_users,
-          can_manage_bookings: formData.can_manage_bookings,
-          can_manage_courses: formData.can_manage_courses,
-          can_view_bookings: formData.can_view_bookings,
-          can_manage_expenses: formData.can_manage_expenses,
-          can_manage_availability: formData.can_manage_availability,
+          super_admin: formData.super_admin,
+          can_manage_users: formData.role === 'admin' ? true : formData.can_manage_users,
+          can_manage_bookings: formData.role === 'admin' ? true : formData.can_manage_bookings,
+          can_manage_courses: formData.role === 'admin' ? true : formData.can_manage_courses,
+          can_view_bookings: formData.role === 'admin' ? true : formData.can_view_bookings,
+          can_manage_expenses: formData.role === 'admin' ? true : formData.can_manage_expenses,
+          can_manage_availability: formData.role === 'admin' ? true : formData.can_manage_availability,
         }),
       });
 
@@ -174,6 +177,7 @@ export default function UserManagement({ currentPage, onNavigate }: UserManageme
         password: '',
         full_name: '',
         role: 'user',
+        super_admin: false,
         can_manage_users: false,
         can_manage_bookings: false,
         can_manage_courses: false,
@@ -277,12 +281,13 @@ This is an automated message from the NCT Portal system.
         email: updates.email,
         full_name: updates.full_name,
         role: updates.role,
-        can_manage_users: updates.can_manage_users,
-        can_manage_bookings: updates.can_manage_bookings,
-        can_manage_courses: updates.can_manage_courses,
-        can_view_bookings: updates.can_view_bookings,
-        can_manage_expenses: updates.can_manage_expenses,
-        can_manage_availability: updates.can_manage_availability,
+        super_admin: updates.super_admin,
+        can_manage_users: updates.role === 'admin' ? true : updates.can_manage_users,
+        can_manage_bookings: updates.role === 'admin' ? true : updates.can_manage_bookings,
+        can_manage_courses: updates.role === 'admin' ? true : updates.can_manage_courses,
+        can_view_bookings: updates.role === 'admin' ? true : updates.can_view_bookings,
+        can_manage_expenses: updates.role === 'admin' ? true : updates.can_manage_expenses,
+        can_manage_availability: updates.role === 'admin' ? true : updates.can_manage_availability,
         can_login: updates.can_login,
       };
 
@@ -303,6 +308,18 @@ This is an automated message from the NCT Portal system.
   }
 
   async function handleDeleteUser(userId: string) {
+    const userToDelete = users.find(u => u.id === userId);
+
+    if (userToDelete?.role === 'admin' && !profile?.super_admin) {
+      setError('Only super admins can delete admin users');
+      return;
+    }
+
+    if (userToDelete?.super_admin && !profile?.super_admin) {
+      setError('Only super admins can delete super admin users');
+      return;
+    }
+
     if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       return;
     }
@@ -531,59 +548,88 @@ This is an automated message from the NCT Portal system.
                 </select>
               </div>
               <div className="col-span-2 space-y-2">
+                {profile?.super_admin && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.super_admin}
+                      onChange={(e) => setFormData({ ...formData, super_admin: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-yellow-400 font-semibold">Super Admin (Full System Access)</span>
+                  </label>
+                )}
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.can_manage_users}
+                    checked={formData.role === 'admin' ? true : formData.can_manage_users}
                     onChange={(e) => setFormData({ ...formData, can_manage_users: e.target.checked })}
+                    disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm text-slate-400">Can manage users (Admin)</span>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Can manage users {formData.role === 'admin' ? '(Auto-enabled for Admins)' : '(Admin)'}
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.can_manage_bookings}
+                    checked={formData.role === 'admin' ? true : formData.can_manage_bookings}
                     onChange={(e) => setFormData({ ...formData, can_manage_bookings: e.target.checked })}
+                    disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm text-slate-400">Can manage bookings</span>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Can manage bookings {formData.role === 'admin' && '(Auto-enabled for Admins)'}
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.can_manage_courses}
+                    checked={formData.role === 'admin' ? true : formData.can_manage_courses}
                     onChange={(e) => setFormData({ ...formData, can_manage_courses: e.target.checked })}
+                    disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm text-slate-400">Can manage courses</span>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Can manage courses {formData.role === 'admin' && '(Auto-enabled for Admins)'}
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.can_view_bookings}
+                    checked={formData.role === 'admin' ? true : formData.can_view_bookings}
                     onChange={(e) => setFormData({ ...formData, can_view_bookings: e.target.checked })}
+                    disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm text-slate-400">Can view bookings (Booking Viewer)</span>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Can view bookings {formData.role === 'admin' ? '(Auto-enabled for Admins)' : '(Booking Viewer)'}
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.can_manage_expenses}
+                    checked={formData.role === 'admin' ? true : formData.can_manage_expenses}
                     onChange={(e) => setFormData({ ...formData, can_manage_expenses: e.target.checked })}
+                    disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm text-slate-400">Can manage expenses</span>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Can manage expenses {formData.role === 'admin' && '(Auto-enabled for Admins)'}
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.can_manage_availability}
+                    checked={formData.role === 'admin' ? true : formData.can_manage_availability}
                     onChange={(e) => setFormData({ ...formData, can_manage_availability: e.target.checked })}
+                    disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm text-slate-400">Can manage availability (Trainer)</span>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Can manage availability {formData.role === 'admin' ? '(Auto-enabled for Admins)' : '(Trainer)'}
+                  </span>
                 </label>
               </div>
             </div>
@@ -700,10 +746,12 @@ interface UserRowProps {
 }
 
 function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSendLoginDetails, onResetPassword, onManagePermissions, onNavigate, currentUserId }: UserRowProps) {
+  const { profile } = useAuth();
   const [editData, setEditData] = useState({
     email: user.email,
     full_name: user.full_name || '',
     role: user.role,
+    super_admin: user.super_admin,
     can_manage_users: user.can_manage_users,
     can_manage_bookings: user.can_manage_bookings,
     can_manage_courses: user.can_manage_courses,
@@ -756,71 +804,90 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
         </td>
         <td className="px-6 py-4">
           <div className="space-y-1">
+            {profile?.super_admin && (
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  id={`super_admin_${user.id}`}
+                  name="super_admin"
+                  checked={editData.super_admin}
+                  onChange={(e) => setEditData({ ...editData, super_admin: e.target.checked })}
+                  className="w-3 h-3"
+                />
+                <span className="text-yellow-400 font-semibold">Super Admin</span>
+              </label>
+            )}
             <label className="flex items-center gap-2 text-xs">
               <input
                 type="checkbox"
                 id={`can_manage_users_${user.id}`}
                 name="can_manage_users"
-                checked={editData.can_manage_users}
+                checked={editData.role === 'admin' ? true : editData.can_manage_users}
                 onChange={(e) => setEditData({ ...editData, can_manage_users: e.target.checked })}
+                disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className="text-slate-400">Manage Users</span>
+              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Users</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
                 type="checkbox"
                 id={`can_manage_bookings_${user.id}`}
                 name="can_manage_bookings"
-                checked={editData.can_manage_bookings}
+                checked={editData.role === 'admin' ? true : editData.can_manage_bookings}
                 onChange={(e) => setEditData({ ...editData, can_manage_bookings: e.target.checked })}
+                disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className="text-slate-400">Manage Bookings</span>
+              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Bookings</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
                 type="checkbox"
                 id={`can_manage_courses_${user.id}`}
                 name="can_manage_courses"
-                checked={editData.can_manage_courses}
+                checked={editData.role === 'admin' ? true : editData.can_manage_courses}
                 onChange={(e) => setEditData({ ...editData, can_manage_courses: e.target.checked })}
+                disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className="text-slate-400">Manage Courses</span>
+              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Courses</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
                 type="checkbox"
                 id={`can_view_bookings_${user.id}`}
                 name="can_view_bookings"
-                checked={editData.can_view_bookings}
+                checked={editData.role === 'admin' ? true : editData.can_view_bookings}
                 onChange={(e) => setEditData({ ...editData, can_view_bookings: e.target.checked })}
+                disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className="text-slate-400">View Bookings</span>
+              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>View Bookings</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
                 type="checkbox"
                 id={`can_manage_expenses_${user.id}`}
                 name="can_manage_expenses"
-                checked={editData.can_manage_expenses}
+                checked={editData.role === 'admin' ? true : editData.can_manage_expenses}
                 onChange={(e) => setEditData({ ...editData, can_manage_expenses: e.target.checked })}
+                disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className="text-slate-400">Manage Expenses</span>
+              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Expenses</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
                 type="checkbox"
                 id={`can_manage_availability_${user.id}`}
                 name="can_manage_availability"
-                checked={editData.can_manage_availability}
+                checked={editData.role === 'admin' ? true : editData.can_manage_availability}
                 onChange={(e) => setEditData({ ...editData, can_manage_availability: e.target.checked })}
+                disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className="text-slate-400">Manage Availability</span>
+              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Availability</span>
             </label>
             {user.is_trainer && (
               <label className="flex items-center gap-2 text-xs">
@@ -899,6 +966,11 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
       <td className="px-6 py-4 text-sm text-slate-400">{user.email}</td>
       <td className="px-6 py-4">
         <div className="flex flex-col gap-1">
+          {user.super_admin && (
+            <span className="px-2 py-1 text-xs rounded inline-block w-fit bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 font-semibold">
+              Super Admin
+            </span>
+          )}
           <span
             className={`px-2 py-1 text-xs rounded inline-block w-fit ${
               user.role === 'admin'
@@ -997,11 +1069,11 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
           >
             <Pencil className="w-4 h-4" />
           </button>
-          {!isCurrentUser && (
+          {!isCurrentUser && (user.role !== 'admin' || profile?.super_admin) && (
             <button
               onClick={() => onDelete(user.id)}
               className="p-1.5 text-red-400 hover:text-red-300 transition-colors"
-              title="Delete"
+              title={user.role === 'admin' && !profile?.super_admin ? "Only super admins can delete admin users" : "Delete"}
             >
               <Trash2 className="w-4 h-4" />
             </button>
