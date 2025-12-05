@@ -466,7 +466,7 @@ function App() {
 
         {/* Footer */}
         <div className="text-center mt-12 text-sm text-slate-500">
-          NCT Portal - Version 1.0
+          NCT Portal - Version 1.1
         </div>
       </main>
     </div>
