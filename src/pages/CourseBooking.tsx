@@ -793,11 +793,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                     }}
                                   >
                                     <div className="font-semibold truncate">
-                                      {booking.in_centre ? (
-                                        booking.training_centre_room?.room_name
-                                          ? `[${booking.training_centre_room.room_name}]`
-                                          : '[Centre]'
-                                      ) : '[Off-site]'} {booking.title}
+                                      {booking.title}
                                     </div>
                                     {booking.in_centre && booking.training_centre ? (
                                       <div className="text-[10px] opacity-90 truncate">
