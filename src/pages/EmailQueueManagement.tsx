@@ -534,19 +534,23 @@ export default function EmailQueueManagement({ currentPage, onNavigate }: EmailQ
                 </div>
               )}
 
-              {detailEmail.html_body && (
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">Email Content</label>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Email Content</label>
+                {detailEmail.html_body ? (
                   <div className="bg-white rounded border border-slate-700 overflow-hidden">
                     <iframe
                       srcDoc={detailEmail.html_body}
-                      className="w-full h-96 border-0"
+                      className="w-full min-h-[500px] border-0"
                       sandbox="allow-same-origin"
                       title="Email preview"
                     />
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="bg-slate-950 border border-slate-800 rounded p-4 text-slate-400 text-sm">
+                    No email content available
+                  </div>
+                )}
+              </div>
 
               {detailEmail.attachments && detailEmail.attachments.length > 0 && (
                 <div>

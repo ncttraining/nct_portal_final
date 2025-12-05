@@ -186,6 +186,9 @@ async function processEmail(email) {
         status: 'sent',
         sent_at: new Date().toISOString(),
         error_message: null,
+        subject: subject,
+        html_body: htmlBody,
+        text_body: textBody,
       })
       .eq('id', email.id);
 
