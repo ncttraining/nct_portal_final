@@ -534,12 +534,17 @@ export default function EmailQueueManagement({ currentPage, onNavigate }: EmailQ
                 </div>
               )}
 
-              {detailEmail.template_data && (
+              {detailEmail.html_body && (
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Template Data</label>
-                  <pre className="bg-slate-950 p-3 rounded text-xs overflow-x-auto">
-                    {JSON.stringify(detailEmail.template_data, null, 2)}
-                  </pre>
+                  <label className="block text-sm text-slate-400 mb-1">Email Content</label>
+                  <div className="bg-white rounded border border-slate-700 overflow-hidden">
+                    <iframe
+                      srcDoc={detailEmail.html_body}
+                      className="w-full h-96 border-0"
+                      sandbox="allow-same-origin"
+                      title="Email preview"
+                    />
+                  </div>
                 </div>
               )}
 
