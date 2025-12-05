@@ -248,7 +248,33 @@ This is an automated message from the NCT Portal system.
       setError(null);
       setSuccess(null);
 
+      const currentUser = users.find(u => u.id === userId);
+      const emailChanged = currentUser && updates.email && updates.email !== currentUser.email;
+
+      if (emailChanged) {
+        const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-user-email`;
+        const { data: { session } } = await supabase.auth.getSession();
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            newEmail: updates.email,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to update email');
+        }
+      }
+
       const validUserFields = {
+        email: updates.email,
         full_name: updates.full_name,
         role: updates.role,
         can_manage_users: updates.can_manage_users,
@@ -675,6 +701,7 @@ interface UserRowProps {
 
 function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSendLoginDetails, onResetPassword, onManagePermissions, onNavigate, currentUserId }: UserRowProps) {
   const [editData, setEditData] = useState({
+    email: user.email,
     full_name: user.full_name || '',
     role: user.role,
     can_manage_users: user.can_manage_users,
@@ -704,7 +731,17 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
             />
           </div>
         </td>
-        <td className="px-6 py-4 text-sm text-slate-400">{user.email}</td>
+        <td className="px-6 py-4">
+          <input
+            type="email"
+            id={`email_${user.id}`}
+            name="email"
+            value={editData.email}
+            onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+            className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+            placeholder="user@example.com"
+          />
+        </td>
         <td className="px-6 py-4">
           <select
             id={`role_${user.id}`}
