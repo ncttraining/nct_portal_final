@@ -175,7 +175,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       trainer_id: '',
       capacity_limit: 12,
       course_type_id: '',
-      status: 'published',
+      status: 'draft',
       is_online: false,
       meeting_url: '',
       meeting_id: '',
@@ -383,6 +383,10 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
         return;
       }
 
+      const finalStatus = sessionFormData.trainer_id
+        ? 'confirmed'
+        : sessionFormData.status;
+
       const sessionData: Partial<OpenCourseSession> = {
         event_title: sessionFormData.event_title,
         event_subtitle: sessionFormData.event_subtitle || null,
@@ -399,7 +403,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
         meeting_id: sessionFormData.is_online ? sessionFormData.meeting_id || null : null,
         meeting_password: sessionFormData.is_online ? sessionFormData.meeting_password || null : null,
         price: sessionFormData.price,
-        status: sessionFormData.status,
+        status: finalStatus,
         notes: sessionFormData.notes || null,
         website_visible: true,
         allow_overbooking: false,
@@ -448,6 +452,29 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       setNotification({
         type: 'error',
         message: error.message || 'Failed to save session',
+      });
+    }
+  }
+
+  async function handleCancelSession() {
+    if (!editingSession) return;
+
+    if (!confirm(`Are you sure you want to cancel "${decodeHtmlEntities(editingSession.event_title)}"?`)) {
+      return;
+    }
+
+    try {
+      await updateSession(editingSession.id, { status: 'cancelled' });
+      setNotification({
+        type: 'success',
+        message: 'Session cancelled successfully',
+      });
+      setShowSessionModal(false);
+      loadData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to cancel session',
       });
     }
   }
@@ -701,7 +728,7 @@ The Training Team`,
       const sessionDate = new Date(s.session_date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return sessionDate >= today && s.status === 'scheduled';
+      return sessionDate >= today && s.status === 'confirmed';
     }).sort((a, b) => {
       const dateCompare = a.session_date.localeCompare(b.session_date);
       if (dateCompare !== 0) return dateCompare;
@@ -1516,22 +1543,6 @@ The Training Team`,
                 />
               </div>
 
-              {/* Status */}
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
-                  Status
-                </label>
-                <select
-                  value={sessionFormData.status}
-                  onChange={(e) => setSessionFormData({ ...sessionFormData, status: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="cancelled">Cancelled</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
 
               {/* Notes */}
               <div>
@@ -1548,20 +1559,34 @@ The Training Team`,
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex items-center justify-end gap-3 rounded-b-lg">
-              <button
-                onClick={() => setShowSessionModal(false)}
-                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveSession}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
-              >
-                <Save className="w-4 h-4" />
-                {editingSession ? 'Update Session' : 'Create Session'}
-              </button>
+            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex items-center justify-between rounded-b-lg">
+              <div>
+                {editingSession && editingSession.status !== 'cancelled' && (
+                  <button
+                    onClick={handleCancelSession}
+                    className="px-4 py-2 border border-red-700 hover:border-red-600 text-red-400 hover:text-red-300 rounded transition-colors"
+                  >
+                    Cancel Session
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowSessionModal(false)}
+                  className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                >
+                  Close
+                </button>
+                {(!editingSession || editingSession.status !== 'cancelled') && (
+                  <button
+                    onClick={handleSaveSession}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
+                  >
+                    <Save className="w-4 h-4" />
+                    {editingSession ? 'Update Session' : 'Create Session'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
