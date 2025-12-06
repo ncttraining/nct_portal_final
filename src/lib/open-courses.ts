@@ -261,9 +261,11 @@ export async function getSessions(filters?: {
     .order('session_date', { ascending: true });
 
   if (filters?.startDate) {
+    console.log('Filtering sessions >= ', filters.startDate);
     query = query.gte('session_date', filters.startDate);
   }
   if (filters?.endDate) {
+    console.log('Filtering sessions <= ', filters.endDate);
     query = query.lte('session_date', filters.endDate);
   }
   if (filters?.status) {
@@ -277,6 +279,8 @@ export async function getSessions(filters?: {
   }
 
   const { data, error } = await query;
+
+  console.log('Supabase query result:', { data, error, filters });
 
   if (error) throw error;
   return data || [];
@@ -299,13 +303,19 @@ export async function getSessionById(id: string): Promise<OpenCourseSessionWithD
 }
 
 export async function getSessionsForWeek(weekStartDate: string): Promise<OpenCourseSessionWithDetails[]> {
-  const weekStart = new Date(weekStartDate);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 7);
+  // Calculate end date (7 days later)
+  const startParts = weekStartDate.split('-');
+  const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 6); // Include the 7th day
+
+  const endDateString = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+
+  console.log('Week range:', weekStartDate, 'to', endDateString);
 
   return getSessions({
-    startDate: weekStart.toISOString().split('T')[0],
-    endDate: weekEnd.toISOString().split('T')[0],
+    startDate: weekStartDate,
+    endDate: endDateString,
   });
 }
 

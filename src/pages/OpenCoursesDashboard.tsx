@@ -137,6 +137,14 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     try {
       setLoading(true);
 
+      // Diagnostic: Check what sessions exist in database (first 5)
+      const { data: allSessions } = await supabase
+        .from('open_course_sessions')
+        .select('id, event_title, session_date, status')
+        .order('session_date', { ascending: true })
+        .limit(5);
+      console.log('First 5 sessions in database:', allSessions);
+
       // Load sessions for the week
       const weekStart = currentWeekStart.toISOString().split('T')[0];
       console.log('Loading sessions for week starting:', weekStart);
