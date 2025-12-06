@@ -415,23 +415,20 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       return;
     }
 
-    try {
-      await transferDelegate(draggedDelegate.delegate.id, toSessionId);
-
-      setNotification({
-        type: 'success',
-        message: `Delegate transferred successfully`,
-      });
-
-      loadData();
-    } catch (error: any) {
-      setNotification({
-        type: 'error',
-        message: error.message || 'Failed to transfer delegate',
-      });
-    } finally {
+    const targetSession = sessions.find(s => s.id === toSessionId);
+    if (!targetSession) {
       setDraggedDelegate(null);
+      return;
     }
+
+    setSelectedTargetSession(targetSession);
+    setDelegateToMove({
+      delegate: draggedDelegate.delegate,
+      currentSessionId: draggedDelegate.fromSessionId,
+      courseTypeId: targetSession.course_type_id || '',
+    });
+    setShowMoveConfirmModal(true);
+    setDraggedDelegate(null);
   }
 
   async function handleOpenMoveModal(delegate: OpenCourseDelegateWithDetails, currentSessionId: string, courseTypeId: string) {
