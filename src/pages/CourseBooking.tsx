@@ -235,6 +235,13 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       .eq('status', 'confirmed')
       .order('session_date', { ascending: true });
 
+    console.log('Open Courses Query Debug:', {
+      error: openCoursesError,
+      dataCount: openCoursesData?.length || 0,
+      dateRange: { startDate, endDateStr },
+      rawData: openCoursesData
+    });
+
     if (openCoursesError) {
       console.error('Error loading open courses:', openCoursesError);
     }
@@ -267,7 +274,15 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       open_course_session_id: session.id
     }));
 
-    setBookings([...(bookingsData || []), ...transformedOpenCourses]);
+    const combinedBookings = [...(bookingsData || []), ...transformedOpenCourses];
+    console.log('Combined Bookings:', {
+      regularBookings: bookingsData?.length || 0,
+      openCourses: transformedOpenCourses.length,
+      total: combinedBookings.length,
+      openCoursesDetails: transformedOpenCourses
+    });
+
+    setBookings(combinedBookings);
   }
 
   async function loadClients() {
