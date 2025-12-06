@@ -28,6 +28,8 @@ import {
   UserCog,
   MoveRight,
   Calendar,
+  Mail,
+  Send,
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
@@ -148,6 +150,13 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   });
   const [selectedSessions, setSelectedSessions] = useState<Set<string>>(new Set());
   const [availableSessionsForBooking, setAvailableSessionsForBooking] = useState<OpenCourseSessionWithDetails[]>([]);
+
+  const [showResendModal, setShowResendModal] = useState(false);
+  const [resendDelegate, setResendDelegate] = useState<any | null>(null);
+  const [resendCurrentSession, setResendCurrentSession] = useState<any | null>(null);
+  const [resendUpcomingBookings, setResendUpcomingBookings] = useState<any[]>([]);
+  const [resendingSingle, setResendingSingle] = useState(false);
+  const [resendingAll, setResendingAll] = useState(false);
 
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'warning' | 'info';
@@ -759,6 +768,155 @@ The Training Team`,
     setSelectedSessions(newSelected);
   }
 
+  async function handleOpenResendModal(delegate: any, currentSession: any) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const { data: allDelegateBookings } = await supabase
+      .from('open_course_delegates')
+      .select(`
+        *,
+        session:open_course_sessions!inner(
+          id,
+          session_date,
+          start_time,
+          end_time,
+          event_title,
+          event_subtitle,
+          is_online,
+          venue_id,
+          venues:training_venues(
+            id,
+            name,
+            address_line1,
+            city,
+            postcode
+          )
+        )
+      `)
+      .eq('delegate_email', delegate.delegate_email)
+      .gte('session.session_date', today.toISOString().split('T')[0])
+      .order('session.session_date', { ascending: true });
+
+    const upcomingBookings = allDelegateBookings || [];
+
+    if (upcomingBookings.length <= 1) {
+      await sendSingleBookingEmail(delegate, currentSession);
+    } else {
+      setResendDelegate(delegate);
+      setResendCurrentSession(currentSession);
+      setResendUpcomingBookings(upcomingBookings);
+      setShowResendModal(true);
+    }
+  }
+
+  async function sendSingleBookingEmail(delegate: any, session: any) {
+    setResendingSingle(true);
+    try {
+      const { sendTemplateEmail } = await import('../lib/email');
+
+      const templateData = {
+        delegate_name: delegate.delegate_name,
+        course_name: session.event_title,
+        course_subtitle: session.event_subtitle || '',
+        session_date: formatDate(session.session_date),
+        start_time: session.start_time ? formatTime(session.start_time) : '',
+        end_time: session.end_time ? formatTime(session.end_time) : '',
+        location: session.is_online ? 'Online' : (session.venue?.name || 'TBA'),
+        location_address: session.venue ? `${session.venue.address_line1}, ${session.venue.city}, ${session.venue.postcode}` : '',
+        is_online: session.is_online,
+      };
+
+      const success = await sendTemplateEmail(
+        delegate.delegate_email,
+        'open_course_booking_confirmation',
+        templateData,
+        { recipientName: delegate.delegate_name }
+      );
+
+      if (success) {
+        setNotification({
+          type: 'success',
+          message: 'Booking details sent successfully',
+        });
+      } else {
+        setNotification({
+          type: 'error',
+          message: 'Failed to send booking details',
+        });
+      }
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to send booking details',
+      });
+    } finally {
+      setResendingSingle(false);
+    }
+  }
+
+  async function handleResendSingle() {
+    if (!resendDelegate || !resendCurrentSession) return;
+    await sendSingleBookingEmail(resendDelegate, resendCurrentSession);
+    setShowResendModal(false);
+  }
+
+  async function handleResendAll() {
+    if (!resendDelegate || resendUpcomingBookings.length === 0) return;
+
+    setResendingAll(true);
+    try {
+      const { sendTemplateEmail } = await import('../lib/email');
+
+      const bookingsList = resendUpcomingBookings.map((booking: any) => {
+        const session = booking.session;
+        return `
+          <div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">${session.event_title}</h3>
+            ${session.event_subtitle ? `<p style="margin: 0 0 10px 0; color: #666;">${session.event_subtitle}</p>` : ''}
+            <p style="margin: 5px 0;"><strong>Date:</strong> ${formatDate(session.session_date)}</p>
+            ${session.start_time ? `<p style="margin: 5px 0;"><strong>Time:</strong> ${formatTime(session.start_time)} - ${formatTime(session.end_time || '')}</p>` : ''}
+            <p style="margin: 5px 0;"><strong>Location:</strong> ${session.is_online ? 'Online' : (session.venues?.name || 'TBA')}</p>
+            ${session.venues && !session.is_online ? `<p style="margin: 5px 0; color: #666;">${session.venues.address_line1}, ${session.venues.city}, ${session.venues.postcode}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      const templateData = {
+        delegate_name: resendDelegate.delegate_name,
+        bookings_count: resendUpcomingBookings.length,
+        bookings_list: bookingsList,
+      };
+
+      const success = await sendTemplateEmail(
+        resendDelegate.delegate_email,
+        'open_course_multiple_bookings',
+        templateData,
+        { recipientName: resendDelegate.delegate_name }
+      );
+
+      if (success) {
+        setNotification({
+          type: 'success',
+          message: `Booking details sent for ${resendUpcomingBookings.length} session(s)`,
+        });
+      } else {
+        setNotification({
+          type: 'error',
+          message: 'Failed to send booking details',
+        });
+      }
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to send booking details',
+      });
+    } finally {
+      setResendingAll(false);
+      setShowResendModal(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white">
@@ -991,6 +1149,16 @@ The Training Team`,
                                         </div>
                                       )}
                                     </div>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenResendModal(delegate, session);
+                                      }}
+                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      title="Resend booking details"
+                                    >
+                                      <Mail className="w-3 h-3 text-slate-400" />
+                                    </button>
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -1977,6 +2145,96 @@ The Training Team`,
                   </button>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resend Booking Modal */}
+      {showResendModal && resendDelegate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+              <div>
+                <h2 className="text-xl font-semibold">Resend Booking Details</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  {resendDelegate.delegate_name} has {resendUpcomingBookings.length} upcoming booking(s)
+                </p>
+              </div>
+              <button
+                onClick={() => setShowResendModal(false)}
+                className="p-2 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className="text-sm text-slate-400 mb-4">
+                Would you like to send booking details for just this session or all upcoming sessions?
+              </p>
+
+              <div className="space-y-3">
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                  <div className="font-medium mb-2">This Session Only</div>
+                  <div className="text-sm text-slate-400">
+                    <div>{resendCurrentSession.event_title}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Calendar className="w-3 h-3" />
+                      {formatDate(resendCurrentSession.session_date)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                  <div className="font-medium mb-2">All Upcoming Sessions ({resendUpcomingBookings.length})</div>
+                  <div className="text-xs text-slate-400 space-y-1 max-h-32 overflow-y-auto">
+                    {resendUpcomingBookings.map((booking: any) => (
+                      <div key={booking.id} className="flex items-center gap-2">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(booking.session.session_date)} - {booking.session.event_title}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex items-center justify-end gap-3 rounded-b-lg">
+              <button
+                onClick={() => setShowResendModal(false)}
+                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResendSingle}
+                disabled={resendingSingle}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {resendingSingle ? (
+                  <>Sending...</>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    This Session Only
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleResendAll}
+                disabled={resendingAll}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {resendingAll ? (
+                  <>Sending...</>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    All Sessions ({resendUpcomingBookings.length})
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
