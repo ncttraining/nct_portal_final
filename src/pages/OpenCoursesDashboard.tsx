@@ -139,7 +139,9 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
 
       // Load sessions for the week
       const weekStart = currentWeekStart.toISOString().split('T')[0];
+      console.log('Loading sessions for week starting:', weekStart);
       const sessionsData = await getSessionsForWeek(weekStart);
+      console.log('Sessions loaded:', sessionsData.length, sessionsData);
       setSessions(sessionsData);
 
       // Load delegates for each session
