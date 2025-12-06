@@ -374,7 +374,7 @@ export async function updateSessionCapacity(sessionId: string): Promise<void> {
     .from('open_course_delegates')
     .select('*', { count: 'exact', head: true })
     .eq('session_id', sessionId)
-    .in('status', ['registered', 'confirmed', 'attended']);
+    .in('attendance_status', ['registered', 'confirmed', 'attended']);
 
   if (countError) throw countError;
 
@@ -386,10 +386,12 @@ export async function updateSessionCapacity(sessionId: string): Promise<void> {
   const capacityPercentage = (delegateCount / session.capacity_limit) * 100;
 
   // Check for capacity alerts
-  if (capacityPercentage >= 100) {
-    await createCapacityAlert(sessionId, 'high', delegateCount, session.capacity_limit);
-  } else if (capacityPercentage >= session.capacity_threshold_warning!) {
-    await createCapacityAlert(sessionId, 'medium', delegateCount, session.capacity_limit);
+  if (delegateCount > session.capacity_limit) {
+    await createCapacityAlert(sessionId, 'overbooked', delegateCount, session.capacity_limit);
+  } else if (capacityPercentage >= 100) {
+    await createCapacityAlert(sessionId, 'at_capacity', delegateCount, session.capacity_limit);
+  } else if (session.capacity_threshold_warning && capacityPercentage >= session.capacity_threshold_warning) {
+    await createCapacityAlert(sessionId, 'approaching_capacity', delegateCount, session.capacity_limit);
   }
 }
 

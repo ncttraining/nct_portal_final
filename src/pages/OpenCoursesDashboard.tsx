@@ -120,6 +120,10 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   } | null>(null);
   const [availableSessions, setAvailableSessions] = useState<OpenCourseSessionWithDetails[]>([]);
 
+  const [showMoveConfirmModal, setShowMoveConfirmModal] = useState(false);
+  const [selectedTargetSession, setSelectedTargetSession] = useState<OpenCourseSessionWithDetails | null>(null);
+  const [sendMoveNotification, setSendMoveNotification] = useState(true);
+
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'warning' | 'info';
     message: string;
@@ -463,19 +467,91 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     }
   }
 
-  async function handleMoveDelegate(toSessionId: string) {
-    if (!delegateToMove) return;
+  function handleMoveDelegate(toSessionId: string) {
+    const targetSession = availableSessions.find(s => s.id === toSessionId);
+    if (!targetSession) return;
+
+    setSelectedTargetSession(targetSession);
+    setShowMoveConfirmModal(true);
+  }
+
+  async function confirmMoveDelegate() {
+    if (!delegateToMove || !selectedTargetSession) return;
 
     try {
-      await transferDelegate(delegateToMove.delegate.id, toSessionId);
+      await transferDelegate(delegateToMove.delegate.id, selectedTargetSession.id);
+
+      if (sendMoveNotification) {
+        const { queueEmail } = await import('../lib/email-queue');
+
+        const sessionDate = new Date(selectedTargetSession.session_date).toLocaleDateString('en-GB', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+
+        const venueName = selectedTargetSession.venue?.name || 'TBC';
+        const venueAddress = [
+          selectedTargetSession.venue?.address1,
+          selectedTargetSession.venue?.town,
+          selectedTargetSession.venue?.postcode
+        ].filter(Boolean).join(', ') || 'Address TBC';
+
+        await queueEmail({
+          recipientEmail: delegateToMove.delegate.email,
+          recipientName: `${delegateToMove.delegate.first_name} ${delegateToMove.delegate.last_name}`,
+          subject: `Course Session Change - ${selectedTargetSession.event_title}`,
+          htmlBody: `
+            <p>Dear ${delegateToMove.delegate.first_name},</p>
+
+            <p>Your course session has been moved to a new date.</p>
+
+            <h3>New Course Details:</h3>
+            <p><strong>Course:</strong> ${selectedTargetSession.event_title}</p>
+            ${selectedTargetSession.event_subtitle ? `<p><strong>Details:</strong> ${decodeHtmlEntities(selectedTargetSession.event_subtitle)}</p>` : ''}
+            <p><strong>Date:</strong> ${sessionDate}</p>
+            <p><strong>Time:</strong> ${selectedTargetSession.start_time} - ${selectedTargetSession.end_time}</p>
+            ${selectedTargetSession.is_online ? `
+              <p><strong>Location:</strong> Online</p>
+              ${selectedTargetSession.meeting_url ? `<p><strong>Meeting Link:</strong> <a href="${selectedTargetSession.meeting_url}">${selectedTargetSession.meeting_url}</a></p>` : ''}
+            ` : `
+              <p><strong>Venue:</strong> ${venueName}</p>
+              <p><strong>Address:</strong> ${venueAddress}</p>
+            `}
+
+            <p>If you have any questions about this change, please don't hesitate to contact us.</p>
+
+            <p>Best regards,<br>The Training Team</p>
+          `,
+          textBody: `Dear ${delegateToMove.delegate.first_name},
+
+Your course session has been moved to a new date.
+
+New Course Details:
+Course: ${selectedTargetSession.event_title}
+${selectedTargetSession.event_subtitle ? `Details: ${decodeHtmlEntities(selectedTargetSession.event_subtitle)}\n` : ''}Date: ${sessionDate}
+Time: ${selectedTargetSession.start_time} - ${selectedTargetSession.end_time}
+${selectedTargetSession.is_online ? `Location: Online${selectedTargetSession.meeting_url ? `\nMeeting Link: ${selectedTargetSession.meeting_url}` : ''}` : `Venue: ${venueName}\nAddress: ${venueAddress}`}
+
+If you have any questions about this change, please don't hesitate to contact us.
+
+Best regards,
+The Training Team`,
+          priority: 5
+        });
+      }
 
       setNotification({
         type: 'success',
-        message: `Delegate moved successfully`,
+        message: `Delegate moved successfully${sendMoveNotification ? ' and notification email queued' : ''}`,
       });
 
       setShowMoveModal(false);
+      setShowMoveConfirmModal(false);
       setDelegateToMove(null);
+      setSelectedTargetSession(null);
+      setSendMoveNotification(true);
       loadData();
     } catch (error: any) {
       setNotification({
@@ -1171,6 +1247,105 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                   })}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Move Confirmation Modal */}
+      {showMoveConfirmModal && delegateToMove && selectedTargetSession && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+              <h2 className="text-xl font-semibold">Confirm Move</h2>
+              <button
+                onClick={() => {
+                  setShowMoveConfirmModal(false);
+                  setSelectedTargetSession(null);
+                  setSendMoveNotification(true);
+                }}
+                className="p-2 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-slate-300 mb-4">
+                  Move <span className="font-medium text-white">{delegateToMove.delegate.first_name} {delegateToMove.delegate.last_name}</span> to:
+                </p>
+
+                <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 space-y-2">
+                  <div className="font-medium">{selectedTargetSession.event_title}</div>
+                  {selectedTargetSession.event_subtitle && (
+                    <div className="text-sm text-slate-400">
+                      {decodeHtmlEntities(selectedTargetSession.event_subtitle)}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4 text-sm text-slate-400">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {formatDate(new Date(selectedTargetSession.session_date))}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {selectedTargetSession.start_time} - {selectedTargetSession.end_time}
+                    </div>
+                  </div>
+                  {selectedTargetSession.is_online ? (
+                    <div className="flex items-center gap-1 text-sm text-slate-400">
+                      <Video className="w-4 h-4" />
+                      Online
+                    </div>
+                  ) : (
+                    selectedTargetSession.venue && (
+                      <div className="flex items-center gap-1 text-sm text-slate-400">
+                        <MapPin className="w-4 h-4" />
+                        {selectedTargetSession.venue.name}
+                        {selectedTargetSession.venue.town && `, ${selectedTargetSession.venue.town}`}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-slate-700 pt-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={sendMoveNotification}
+                    onChange={(e) => setSendMoveNotification(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                  />
+                  <div>
+                    <div className="font-medium text-sm">Send notification email</div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      Notify the delegate about their new course session details
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-800">
+              <button
+                onClick={() => {
+                  setShowMoveConfirmModal(false);
+                  setSelectedTargetSession(null);
+                  setSendMoveNotification(true);
+                }}
+                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmMoveDelegate}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
+              >
+                <MoveRight className="w-4 h-4" />
+                Confirm Move
+              </button>
             </div>
           </div>
         </div>
