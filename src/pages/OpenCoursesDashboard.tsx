@@ -13,6 +13,8 @@ import { useState, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Plus,
   Users,
   MapPin,
@@ -455,8 +457,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                   className="p-2 hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-white"
                   title="Previous Month"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  <ChevronLeft className="w-4 h-4 -ml-3" />
+                  <ChevronsLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => navigateWeek('prev')}
@@ -484,8 +485,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                   className="p-2 hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-white"
                   title="Next Month"
                 >
-                  <ChevronRight className="w-4 h-4" />
-                  <ChevronRight className="w-4 h-4 -ml-3" />
+                  <ChevronsRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
