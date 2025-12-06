@@ -1105,12 +1105,17 @@ The Training Team`,
                               </div>
                             )}
 
-                            {session.trainer && (
+                            {session.trainer ? (
                               <div className="flex items-center gap-1 text-slate-400">
                                 <UserCog className="w-3 h-3" />
                                 <span className="truncate" title={session.trainer.name}>
                                   {session.trainer.name}
                                 </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-amber-400">
+                                <UserCog className="w-3 h-3" />
+                                <span className="text-xs font-semibold">ASSIGN TRAINER</span>
                               </div>
                             )}
 
