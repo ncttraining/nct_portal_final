@@ -213,8 +213,8 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
           id,
           name,
           town,
-          address_line1,
-          city,
+          address1,
+          address2,
           postcode
         ),
         trainer:trainers(
