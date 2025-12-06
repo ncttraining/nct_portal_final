@@ -39,7 +39,6 @@ import {
   updateSession,
   duplicateSession,
   deleteSession,
-  getDelegates,
   transferDelegate,
   getActiveVenues,
   formatDate,
@@ -48,7 +47,6 @@ import {
   getCapacityBgColor,
   OpenCourseSession,
   OpenCourseSessionWithDetails,
-  OpenCourseDelegateWithDetails,
   Venue,
 } from '../lib/open-courses';
 import { supabase } from '../lib/supabase';
@@ -100,7 +98,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   });
 
   const [sessions, setSessions] = useState<OpenCourseSessionWithDetails[]>([]);
-  const [sessionDelegates, setSessionDelegates] = useState<Record<string, OpenCourseDelegateWithDetails[]>>({});
+  const [sessionDelegates, setSessionDelegates] = useState<Record<string, any[]>>({});
   const [venues, setVenues] = useState<Venue[]>([]);
   const [trainers, setTrainers] = useState<any[]>([]);
   const [courseTypes, setCourseTypes] = useState<any[]>([]);
@@ -123,6 +121,19 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [showMoveConfirmModal, setShowMoveConfirmModal] = useState(false);
   const [selectedTargetSession, setSelectedTargetSession] = useState<OpenCourseSessionWithDetails | null>(null);
   const [sendMoveNotification, setSendMoveNotification] = useState(true);
+
+  const [showEditDelegateModal, setShowEditDelegateModal] = useState(false);
+  const [editingDelegate, setEditingDelegate] = useState<any | null>(null);
+  const [delegateFormData, setDelegateFormData] = useState({
+    delegate_name: '',
+    delegate_email: '',
+    delegate_phone: '',
+    delegate_company: '',
+    dietary_requirements: '',
+    special_requirements: '',
+    attendance_status: 'registered' as string,
+    notes: '',
+  });
 
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'warning' | 'info';
@@ -175,11 +186,15 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       setSessions(sessionsData);
 
       // Load delegates for each session
-      const delegatesMap: Record<string, OpenCourseDelegateWithDetails[]> = {};
+      const delegatesMap: Record<string, any[]> = {};
       await Promise.all(
         sessionsData.map(async (session) => {
-          const delegates = await getDelegates({ sessionId: session.id });
-          delegatesMap[session.id] = delegates.filter(d => d.status !== 'cancelled');
+          const { data } = await supabase
+            .from('open_course_delegates')
+            .select('*')
+            .eq('session_id', session.id)
+            .neq('status', 'cancelled');
+          delegatesMap[session.id] = data || [];
         })
       );
       setSessionDelegates(delegatesMap);
@@ -495,12 +510,14 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
           selectedTargetSession.venue?.postcode
         ].filter(Boolean).join(', ') || 'Address TBC';
 
+        const delegateFirstName = delegateToMove.delegate.delegate_name.split(' ')[0];
+
         await queueEmail({
-          recipientEmail: delegateToMove.delegate.email,
-          recipientName: `${delegateToMove.delegate.first_name} ${delegateToMove.delegate.last_name}`,
+          recipientEmail: delegateToMove.delegate.delegate_email,
+          recipientName: delegateToMove.delegate.delegate_name,
           subject: `Course Session Change - ${selectedTargetSession.event_title}`,
           htmlBody: `
-            <p>Dear ${delegateToMove.delegate.first_name},</p>
+            <p>Dear ${delegateFirstName},</p>
 
             <p>Your course session has been moved to a new date.</p>
 
@@ -521,7 +538,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
 
             <p>Best regards,<br>The Training Team</p>
           `,
-          textBody: `Dear ${delegateToMove.delegate.first_name},
+          textBody: `Dear ${delegateFirstName},
 
 Your course session has been moved to a new date.
 
@@ -554,6 +571,57 @@ The Training Team`,
       setNotification({
         type: 'error',
         message: error.message || 'Failed to move delegate',
+      });
+    }
+  }
+
+  function handleOpenEditDelegate(delegate: any) {
+    setEditingDelegate(delegate);
+    setDelegateFormData({
+      delegate_name: delegate.delegate_name || '',
+      delegate_email: delegate.delegate_email || '',
+      delegate_phone: delegate.delegate_phone || '',
+      delegate_company: delegate.delegate_company || '',
+      dietary_requirements: delegate.dietary_requirements || '',
+      special_requirements: delegate.special_requirements || '',
+      attendance_status: delegate.attendance_status || 'registered',
+      notes: delegate.notes || '',
+    });
+    setShowEditDelegateModal(true);
+  }
+
+  async function handleSaveDelegate() {
+    if (!editingDelegate) return;
+
+    try {
+      const { error } = await supabase
+        .from('open_course_delegates')
+        .update({
+          delegate_name: delegateFormData.delegate_name,
+          delegate_email: delegateFormData.delegate_email,
+          delegate_phone: delegateFormData.delegate_phone || null,
+          delegate_company: delegateFormData.delegate_company || null,
+          dietary_requirements: delegateFormData.dietary_requirements || null,
+          special_requirements: delegateFormData.special_requirements || null,
+          attendance_status: delegateFormData.attendance_status,
+          notes: delegateFormData.notes || null,
+        })
+        .eq('id', editingDelegate.id);
+
+      if (error) throw error;
+
+      setNotification({
+        type: 'success',
+        message: 'Delegate updated successfully',
+      });
+
+      setShowEditDelegateModal(false);
+      setEditingDelegate(null);
+      loadData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to update delegate',
       });
     }
   }
@@ -782,6 +850,16 @@ The Training Team`,
                                         </div>
                                       )}
                                     </div>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenEditDelegate(delegate);
+                                      }}
+                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      title="Edit delegate details"
+                                    >
+                                      <Edit className="w-3 h-3 text-slate-400" />
+                                    </button>
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -1342,6 +1420,160 @@ The Training Team`,
               >
                 <MoveRight className="w-4 h-4" />
                 Confirm Move
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Delegate Modal */}
+      {showEditDelegateModal && editingDelegate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+              <div>
+                <h2 className="text-xl font-semibold">Edit Delegate</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  Update delegate information
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowEditDelegateModal(false);
+                  setEditingDelegate(null);
+                }}
+                className="p-2 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                    Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={delegateFormData.delegate_name}
+                    onChange={(e) => setDelegateFormData({ ...delegateFormData, delegate_name: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={delegateFormData.delegate_email}
+                    onChange={(e) => setDelegateFormData({ ...delegateFormData, delegate_email: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={delegateFormData.delegate_phone}
+                    onChange={(e) => setDelegateFormData({ ...delegateFormData, delegate_phone: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    value={delegateFormData.delegate_company}
+                    onChange={(e) => setDelegateFormData({ ...delegateFormData, delegate_company: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                    Dietary Requirements
+                  </label>
+                  <textarea
+                    value={delegateFormData.dietary_requirements}
+                    onChange={(e) => setDelegateFormData({ ...delegateFormData, dietary_requirements: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    rows={2}
+                    placeholder="Any dietary requirements..."
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                    Special Requirements
+                  </label>
+                  <textarea
+                    value={delegateFormData.special_requirements}
+                    onChange={(e) => setDelegateFormData({ ...delegateFormData, special_requirements: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    rows={2}
+                    placeholder="Any special needs or accessibility requirements..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                    Attendance Status
+                  </label>
+                  <select
+                    value={delegateFormData.attendance_status}
+                    onChange={(e) => setDelegateFormData({ ...delegateFormData, attendance_status: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                  >
+                    <option value="registered">Registered</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="attended">Attended</option>
+                    <option value="no_show">No Show</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    value={delegateFormData.notes}
+                    onChange={(e) => setDelegateFormData({ ...delegateFormData, notes: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    rows={3}
+                    placeholder="Internal notes..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex items-center justify-end gap-3 rounded-b-lg">
+              <button
+                onClick={() => {
+                  setShowEditDelegateModal(false);
+                  setEditingDelegate(null);
+                }}
+                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveDelegate}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                Save Changes
               </button>
             </div>
           </div>
