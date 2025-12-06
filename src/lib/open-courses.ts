@@ -486,7 +486,7 @@ export async function getDelegates(filters?: {
     .select(`
       *,
       order:open_course_orders(*),
-      session:open_course_sessions(*)
+      session:open_course_sessions!session_id(*)
     `)
     .order('created_at', { ascending: false });
 
@@ -512,7 +512,7 @@ export async function getDelegateById(id: string): Promise<OpenCourseDelegateWit
     .select(`
       *,
       order:open_course_orders(*),
-      session:open_course_sessions(*)
+      session:open_course_sessions!session_id(*)
     `)
     .eq('id', id)
     .single();
