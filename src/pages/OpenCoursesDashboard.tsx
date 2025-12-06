@@ -442,7 +442,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
         .select(`
           *,
           venue:venues(name, town, postcode),
-          trainer:trainers(first_name, last_name),
+          trainer:trainers(name),
           course_type:course_types(name, duration_days)
         `)
         .eq('course_type_id', courseTypeId)
