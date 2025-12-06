@@ -232,6 +232,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       .gte('session_date', startDate)
       .lte('session_date', endDateStr)
       .not('trainer_id', 'is', null)
+      .in('status', ['scheduled', 'confirmed'])
       .order('session_date', { ascending: true });
 
     if (openCoursesError) {
