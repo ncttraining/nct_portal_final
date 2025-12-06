@@ -204,11 +204,24 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     setCurrentWeekStart(newDate);
   }
 
+  function navigateMonth(direction: 'prev' | 'next') {
+    const newDate = new Date(currentWeekStart);
+    newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    setCurrentWeekStart(newDate);
+  }
+
   function goToToday() {
     const today = new Date();
     const day = today.getDay();
     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
     setCurrentWeekStart(new Date(today.setDate(diff)));
+  }
+
+  function jumpToDate(dateString: string) {
+    const selectedDate = new Date(dateString);
+    const day = selectedDate.getDay();
+    const diff = selectedDate.getDate() - day + (day === 0 ? -6 : 1);
+    setCurrentWeekStart(new Date(selectedDate.setDate(diff)));
   }
 
   function getWeekDates(): Date[] {
@@ -434,30 +447,60 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
 
         {/* Week Navigation */}
         <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigateWeek('prev')}
-                className="p-2 hover:bg-slate-800 rounded transition-colors"
-                title="Previous Week"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 mr-2">
+                <button
+                  onClick={() => navigateMonth('prev')}
+                  className="p-2 hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-white"
+                  title="Previous Month"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4 -ml-3" />
+                </button>
+                <button
+                  onClick={() => navigateWeek('prev')}
+                  className="p-2 hover:bg-slate-800 rounded transition-colors"
+                  title="Previous Week"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              </div>
 
               <div className="text-lg font-semibold">
                 Week of {formatDate(currentWeekStart)}
               </div>
 
-              <button
-                onClick={() => navigateWeek('next')}
-                className="p-2 hover:bg-slate-800 rounded transition-colors"
-                title="Next Week"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1 ml-2">
+                <button
+                  onClick={() => navigateWeek('next')}
+                  className="p-2 hover:bg-slate-800 rounded transition-colors"
+                  title="Next Week"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => navigateMonth('next')}
+                  className="p-2 hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-white"
+                  title="Next Month"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4 -ml-3" />
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-slate-400">Jump to:</label>
+                <input
+                  type="date"
+                  onChange={(e) => jumpToDate(e.target.value)}
+                  className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded text-sm hover:border-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+                  title="Jump to date"
+                />
+              </div>
+
               <button
                 onClick={goToToday}
                 className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors text-sm"
