@@ -26,6 +26,8 @@ import {
   X,
   Save,
   UserCog,
+  MoveRight,
+  Calendar,
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
@@ -109,6 +111,14 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
 
   const [draggedDelegate, setDraggedDelegate] = useState<DraggedDelegate | null>(null);
   const [dragOverSessionId, setDragOverSessionId] = useState<string | null>(null);
+
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [delegateToMove, setDelegateToMove] = useState<{
+    delegate: OpenCourseDelegateWithDetails;
+    currentSessionId: string;
+    courseTypeId: string;
+  } | null>(null);
+  const [availableSessions, setAvailableSessions] = useState<OpenCourseSessionWithDetails[]>([]);
 
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'warning' | 'info';
@@ -420,6 +430,61 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     }
   }
 
+  async function handleOpenMoveModal(delegate: OpenCourseDelegateWithDetails, currentSessionId: string, courseTypeId: string) {
+    setDelegateToMove({ delegate, currentSessionId, courseTypeId });
+
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const { data, error } = await supabase
+        .from('open_course_sessions')
+        .select(`
+          *,
+          venue:venues(name, location),
+          trainer:trainers(first_name, last_name),
+          course_type:course_types(name, duration_days)
+        `)
+        .eq('course_type_id', courseTypeId)
+        .neq('id', currentSessionId)
+        .gte('session_date', today.toISOString().split('T')[0])
+        .order('session_date', { ascending: true })
+        .order('start_time', { ascending: true });
+
+      if (error) throw error;
+
+      setAvailableSessions(data || []);
+      setShowMoveModal(true);
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to load available sessions',
+      });
+    }
+  }
+
+  async function handleMoveDelegate(toSessionId: string) {
+    if (!delegateToMove) return;
+
+    try {
+      await transferDelegate(delegateToMove.delegate.id, toSessionId);
+
+      setNotification({
+        type: 'success',
+        message: `Delegate moved successfully`,
+      });
+
+      setShowMoveModal(false);
+      setDelegateToMove(null);
+      loadData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to move delegate',
+      });
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white">
@@ -626,19 +691,35 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                               {delegates.map((delegate) => (
                                 <div
                                   key={delegate.id}
-                                  draggable
-                                  onDragStart={() => handleDragStart(delegate, session.id)}
-                                  className="bg-slate-800/50 rounded px-2 py-1 cursor-move hover:bg-slate-800 transition-colors"
-                                  title={`Drag to transfer delegate`}
+                                  className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group"
                                 >
-                                  <div className="text-[10px] font-medium truncate">
-                                    {delegate.delegate_name}
-                                  </div>
-                                  {delegate.delegate_company && (
-                                    <div className="text-[9px] text-slate-500 truncate">
-                                      {delegate.delegate_company}
+                                  <div className="flex items-center gap-1">
+                                    <div
+                                      draggable
+                                      onDragStart={() => handleDragStart(delegate, session.id)}
+                                      className="flex-1 cursor-move"
+                                      title="Drag to transfer delegate"
+                                    >
+                                      <div className="text-[10px] font-medium truncate">
+                                        {delegate.delegate_name}
+                                      </div>
+                                      {delegate.delegate_company && (
+                                        <div className="text-[9px] text-slate-500 truncate">
+                                          {delegate.delegate_company}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenMoveModal(delegate, session.id, session.course_type_id);
+                                      }}
+                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      title="Move to different session"
+                                    >
+                                      <MoveRight className="w-3 h-3 text-slate-400" />
+                                    </button>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -993,6 +1074,102 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                 <Save className="w-4 h-4" />
                 {editingSession ? 'Update Session' : 'Create Session'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Move Delegate Modal */}
+      {showMoveModal && delegateToMove && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+              <div>
+                <h2 className="text-xl font-semibold">Move Delegate</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  Move {delegateToMove.delegate.delegate_name} to another session
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowMoveModal(false);
+                  setDelegateToMove(null);
+                }}
+                className="p-2 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {availableSessions.length === 0 ? (
+                <div className="text-center py-12 text-slate-400">
+                  No upcoming sessions available for this course type
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {availableSessions.map((session) => {
+                    const delegates = sessionDelegates[session.id] || [];
+                    const currentCapacity = delegates.length;
+                    const isFull = currentCapacity >= session.capacity_limit;
+
+                    return (
+                      <button
+                        key={session.id}
+                        onClick={() => handleMoveDelegate(session.id)}
+                        disabled={isFull}
+                        className={`w-full text-left p-4 rounded-lg border transition-all ${
+                          isFull
+                            ? 'border-slate-700 bg-slate-800/30 opacity-50 cursor-not-allowed'
+                            : 'border-slate-700 bg-slate-800/50 hover:bg-slate-800 hover:border-slate-600'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{session.event_title}</div>
+                            {session.event_subtitle && (
+                              <div className="text-sm text-slate-400 truncate">
+                                {decodeHtmlEntities(session.event_subtitle)}
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(new Date(session.session_date))}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {session.start_time} - {session.end_time}
+                              </div>
+                              {session.is_online ? (
+                                <div className="flex items-center gap-1">
+                                  <Video className="w-3 h-3" />
+                                  Online
+                                </div>
+                              ) : (
+                                session.venue && (
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3" />
+                                    {session.venue.name}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-sm">
+                            <Users className="w-4 h-4 text-slate-400" />
+                            <span className={isFull ? 'text-red-400 font-medium' : ''}>
+                              {currentCapacity}/{session.capacity_limit}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
