@@ -4,6 +4,12 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getTrainerUnavailability, markDateUnavailable, removeDateUnavailability, TrainerUnavailability } from '../lib/trainer-availability';
 
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 interface Booking {
   id: string;
   booking_date: string;
@@ -367,7 +373,7 @@ export default function TrainerCalendar() {
                             }}
                             className={`w-full text-left px-2 py-1 rounded text-xs font-medium text-white truncate ${getBookingColor(bookingIndex)} hover:opacity-80 transition-opacity`}
                           >
-                            {booking.title}
+                            {decodeHtmlEntities(booking.title)}
                           </button>
                         ))}
 
@@ -415,7 +421,7 @@ export default function TrainerCalendar() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="text-sm text-slate-400">Title</label>
-                <p className="text-white font-medium mt-1">{selectedBooking.title}</p>
+                <p className="text-white font-medium mt-1">{decodeHtmlEntities(selectedBooking.title)}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

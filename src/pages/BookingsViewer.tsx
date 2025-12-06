@@ -5,6 +5,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { getBookingsForUser, getUserAuthorizedTrainerIds, BookingWithDetails } from '../lib/bookings-permissions';
 import { supabase } from '../lib/supabase';
 
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 interface BookingsViewerProps {
   currentPage: string;
   onNavigate: (page: string) => void;
@@ -222,7 +228,7 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold">{booking.title}</h3>
+                      <h3 className="text-lg font-semibold">{decodeHtmlEntities(booking.title)}</h3>
                       <span className={`px-2 py-0.5 text-xs border rounded ${STATUS_COLORS[booking.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.confirmed}`}>
                         {booking.status}
                       </span>
@@ -305,7 +311,7 @@ function BookingDetailsModal({ booking, onClose }: BookingDetailsModalProps) {
       <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-slate-900 border-b border-slate-800 p-6 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-2xl font-semibold mb-1">{booking.title}</h2>
+            <h2 className="text-2xl font-semibold mb-1">{decodeHtmlEntities(booking.title)}</h2>
             <p className="text-sm text-slate-400">{formatDate(booking.booking_date)}</p>
           </div>
           <button

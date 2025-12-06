@@ -49,6 +49,12 @@ import {
 } from '../lib/open-courses';
 import { supabase } from '../lib/supabase';
 
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 interface PageProps {
   currentPage: string;
   onNavigate: (page: string) => void;
@@ -281,7 +287,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       }
     }
 
-    if (!confirm(`Are you sure you want to delete "${session.event_title}"?`)) {
+    if (!confirm(`Are you sure you want to delete "${decodeHtmlEntities(session.event_title)}"?`)) {
       return;
     }
 
@@ -519,8 +525,8 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                           {/* Session Header */}
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1 min-w-0">
-                              <div className="font-semibold truncate" title={session.event_title}>
-                                {session.event_title}
+                              <div className="font-semibold truncate" title={decodeHtmlEntities(session.event_title)}>
+                                {decodeHtmlEntities(session.event_title)}
                               </div>
                               {session.course_type && (
                                 <div className="text-slate-400 text-[10px] truncate">
