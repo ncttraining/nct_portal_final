@@ -406,13 +406,36 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       };
 
       if (editingSession) {
+        const oldTrainerId = editingSession.trainer_id;
+        const newTrainerId = sessionData.trainer_id;
+
         await updateSession(editingSession.id, sessionData);
+
+        if (!oldTrainerId && newTrainerId) {
+          try {
+            const { sendOpenCourseAssignmentNotification } = await import('../lib/booking-notifications');
+            await sendOpenCourseAssignmentNotification(editingSession.id, newTrainerId);
+          } catch (error) {
+            console.error('Failed to send trainer notification:', error);
+          }
+        }
+
         setNotification({
           type: 'success',
           message: 'Session updated successfully',
         });
       } else {
-        await createSession(sessionData);
+        const newSession = await createSession(sessionData);
+
+        if (newSession && sessionData.trainer_id) {
+          try {
+            const { sendOpenCourseAssignmentNotification } = await import('../lib/booking-notifications');
+            await sendOpenCourseAssignmentNotification(newSession.id, sessionData.trainer_id);
+          } catch (error) {
+            console.error('Failed to send trainer notification:', error);
+          }
+        }
+
         setNotification({
           type: 'success',
           message: 'Session created successfully',

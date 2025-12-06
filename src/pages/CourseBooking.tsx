@@ -78,6 +78,8 @@ interface Booking {
     name: string;
     trainer_type_id: string | null;
   };
+  is_open_course?: boolean;
+  open_course_session_id?: string;
 }
 
 interface CourseBookingProps {
@@ -169,7 +171,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
     const endDate = new Date(currentYear, currentMonth, 0);
     const endDateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${endDate.getDate()}`;
 
-    const { data, error } = await supabase
+    const { data: bookingsData, error: bookingsError } = await supabase
       .from('bookings')
       .select(`
         *,
@@ -193,12 +195,78 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       .lte('booking_date', endDateStr)
       .order('booking_date', { ascending: true });
 
-    if (error) {
-      console.error('Error loading bookings:', error);
+    if (bookingsError) {
+      console.error('Error loading bookings:', bookingsError);
       return;
     }
 
-    setBookings(data || []);
+    const { data: openCoursesData, error: openCoursesError } = await supabase
+      .from('open_course_sessions')
+      .select(`
+        *,
+        course_type:course_types(
+          id,
+          name,
+          trainer_type_id
+        ),
+        venue:venues(
+          id,
+          name,
+          town,
+          address_line1,
+          city,
+          postcode
+        ),
+        trainer:trainers(
+          id,
+          name,
+          email
+        ),
+        delegates:open_course_delegates(
+          id,
+          delegate_name,
+          delegate_email,
+          delegate_telephone
+        )
+      `)
+      .gte('session_date', startDate)
+      .lte('session_date', endDateStr)
+      .not('trainer_id', 'is', null)
+      .order('session_date', { ascending: true });
+
+    if (openCoursesError) {
+      console.error('Error loading open courses:', openCoursesError);
+    }
+
+    const transformedOpenCourses = (openCoursesData || []).map(session => ({
+      id: `open-${session.id}`,
+      trainer_id: session.trainer_id,
+      booking_date: session.session_date,
+      start_time: session.start_time || '09:00',
+      title: `${session.event_title}${session.event_subtitle ? ` - ${session.event_subtitle}` : ''}`,
+      location: session.is_online ? 'Online' : (session.venue?.town || session.venue?.name || 'TBA'),
+      client_name: 'Open Course',
+      client_contact_name: '',
+      client_email: '',
+      client_telephone: '',
+      notes: `Open Course Session\nCapacity: ${session.delegates?.length || 0}/${session.capacity_limit}`,
+      status: 'confirmed' as const,
+      in_centre: false,
+      num_days: 1,
+      candidates: (session.delegates || []).map(delegate => ({
+        candidate_name: delegate.delegate_name,
+        email: delegate.delegate_email,
+        telephone: delegate.delegate_telephone,
+        paid: true,
+        outstanding_balance: 0
+      })),
+      course_type_id: session.course_type_id,
+      course_type: session.course_type,
+      is_open_course: true,
+      open_course_session_id: session.id
+    }));
+
+    setBookings([...(bookingsData || []), ...transformedOpenCourses]);
   }
 
   async function loadClients() {
@@ -309,6 +377,14 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
   }
 
   function openBookingModal(trainer: Trainer, date: string, booking: Booking | null) {
+    if (booking?.is_open_course) {
+      setNotification({
+        message: 'Open course sessions cannot be edited from here. Please manage them from the Open Courses Dashboard.',
+        type: 'warning'
+      });
+      return;
+    }
+
     const unavailable = isTrainerUnavailable(trainer.id, date);
 
     if (unavailable && !booking) {
@@ -336,6 +412,11 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
 
   async function handleDeleteBooking(bookingId: string) {
     const bookingToDelete = bookings.find(b => b.id === bookingId);
+
+    if (bookingToDelete?.is_open_course) {
+      alert('Open course sessions cannot be deleted from here. Please manage them from the Open Courses Dashboard.');
+      return;
+    }
 
     const { error } = await supabase
       .from('bookings')
