@@ -441,7 +441,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
         .from('open_course_sessions')
         .select(`
           *,
-          venue:venues(name, location),
+          venue:venues(name, town, postcode),
           trainer:trainers(first_name, last_name),
           course_type:course_types(name, duration_days)
         `)
@@ -1152,6 +1152,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
                                   <div className="flex items-center gap-1">
                                     <MapPin className="w-3 h-3" />
                                     {session.venue.name}
+                                    {session.venue.town && `, ${session.venue.town}`}
                                   </div>
                                 )
                               )}
