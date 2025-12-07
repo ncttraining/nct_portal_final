@@ -64,7 +64,7 @@ export default function OpenCoursesRegisterTrainer({
   const saveTimers = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
   const userId = profile?.id;
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || profile?.super_admin;
 
   // Load session and delegates
   const loadData = useCallback(async () => {

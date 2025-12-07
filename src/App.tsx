@@ -37,7 +37,7 @@ function App() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [navigationData, setNavigationData] = useState<NavigationData>({});
 
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || profile?.super_admin;
   const canManageBookings = isAdmin || profile?.can_manage_bookings;
   const canManageCourses = isAdmin || profile?.can_manage_courses;
   const canViewBookings = isAdmin || profile?.can_view_bookings;

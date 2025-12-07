@@ -26,7 +26,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
 
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || profile?.super_admin;
   const canManageBookings = isAdmin || profile?.can_manage_bookings;
   const canManageCourses = isAdmin || profile?.can_manage_courses;
   const canViewBookings = isAdmin || profile?.can_view_bookings;

@@ -71,7 +71,7 @@ export default function OpenCoursesRegisterList({
   const [trainers, setTrainers] = useState<Array<{ id: string; name: string }>>([]);
   const [courseTypes, setCourseTypes] = useState<CourseType[]>([]);
 
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || profile?.super_admin;
 
   // Load filter options
   useEffect(() => {
