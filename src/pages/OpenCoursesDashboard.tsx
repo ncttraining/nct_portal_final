@@ -537,9 +537,9 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
             is_online,
             status,
             venue_id,
-            venues:training_venues!venue_id(
+            venues:venues!venue_id(
               name,
-              city
+              town
             )
           )
         `)
@@ -2117,7 +2117,7 @@ The Training Team`,
                                     Online
                                   </span>
                                 ) : booking.session.venues ? (
-                                  `${booking.session.venues.name}, ${booking.session.venues.city}`
+                                  `${booking.session.venues.name}, ${booking.session.venues.town}`
                                 ) : (
                                   'Location TBC'
                                 )}
