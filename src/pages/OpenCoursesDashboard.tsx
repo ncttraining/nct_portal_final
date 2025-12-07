@@ -780,7 +780,7 @@ The Training Team`,
         special_requirements: newDelegateData.special_requirements || null,
         notes: newDelegateData.notes || null,
         status: 'confirmed',
-        booking_source: 'manual',
+        booking_source: 'admin',
       }));
 
       const { error: delegatesError } = await supabase
