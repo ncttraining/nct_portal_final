@@ -333,11 +333,11 @@ export default function OpenCoursesRegisterTrainer({
                             </div>
                             <div>
                               <p className="text-sm font-medium text-white">
-                                {delegate.first_name} {delegate.last_name}
+                                {delegate.delegate_name}
                               </p>
-                              {delegate.company_name && (
+                              {delegate.delegate_company && (
                                 <p className="text-xs text-slate-400">
-                                  {delegate.company_name}
+                                  {delegate.delegate_company}
                                 </p>
                               )}
                             </div>

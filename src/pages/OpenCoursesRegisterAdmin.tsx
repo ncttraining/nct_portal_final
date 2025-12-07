@@ -446,26 +446,15 @@ export default function OpenCoursesRegisterAdmin({
                               <User className="w-3 h-3 text-slate-400" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex gap-1">
-                                <input
-                                  type="text"
-                                  value={delegate.first_name || ''}
-                                  onChange={(e) =>
-                                    updateDelegate(delegate.id, 'first_name', e.target.value)
-                                  }
-                                  placeholder="First"
-                                  className="w-20 px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
-                                />
-                                <input
-                                  type="text"
-                                  value={delegate.last_name || ''}
-                                  onChange={(e) =>
-                                    updateDelegate(delegate.id, 'last_name', e.target.value)
-                                  }
-                                  placeholder="Last"
-                                  className="w-24 px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
+                              <input
+                                type="text"
+                                value={delegate.delegate_name || ''}
+                                onChange={(e) =>
+                                  updateDelegate(delegate.id, 'delegate_name', e.target.value)
+                                }
+                                placeholder="Delegate Name"
+                                className="w-40 px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
+                              />
                             </div>
                           </div>
                         </td>
@@ -487,9 +476,9 @@ export default function OpenCoursesRegisterAdmin({
                         <td className="px-3 py-2">
                           <input
                             type="email"
-                            value={delegate.email || ''}
+                            value={delegate.delegate_email || ''}
                             onChange={(e) =>
-                              updateDelegate(delegate.id, 'email', e.target.value)
+                              updateDelegate(delegate.id, 'delegate_email', e.target.value)
                             }
                             placeholder="email@example.com"
                             className="w-36 px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
@@ -667,13 +656,13 @@ export default function OpenCoursesRegisterAdmin({
                                   </button>
                                 </div>
 
-                                {delegate.company_name && (
+                                {delegate.delegate_company && (
                                   <div>
                                     <label className="block text-xs text-slate-400 mb-1">
                                       Company
                                     </label>
                                     <p className="text-sm text-white">
-                                      {delegate.company_name}
+                                      {delegate.delegate_company}
                                     </p>
                                   </div>
                                 )}

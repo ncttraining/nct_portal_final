@@ -126,14 +126,14 @@ export interface OpenCourseDelegate {
   order_id: string;
   session_id: string;
   wp_booking_id: number | null;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string | null;
-  company_name: string | null;
+  // Database uses delegate_name, delegate_email, etc.
+  delegate_name: string;
+  delegate_email: string;
+  delegate_phone: string | null;
+  delegate_company: string | null;
   dietary_requirements: string | null;
   special_needs: string | null;
-  attendance_status: 'registered' | 'confirmed' | 'attended' | 'no_show' | 'cancelled';
+  attendance_status: 'registered' | 'confirmed' | 'attended' | 'no_show' | 'cancelled' | null;
   certificate_issued: boolean;
   certificate_number: string | null;
   notes: string | null;
@@ -144,10 +144,10 @@ export interface OpenCourseDelegate {
   driver_number?: string;
   licence_category?: LicenceCategory;
   id_type?: IdType;
-  id_checked: boolean;
+  id_checked?: boolean;
   attendance_detail?: AttendanceDetail;
   additional_comments?: string;
-  dvsa_uploaded: boolean;
+  dvsa_uploaded?: boolean;
   dvsa_uploaded_at?: string;
   dvsa_uploaded_by?: string;
   attendance_marked_by?: string;
@@ -980,7 +980,7 @@ export async function updateDelegateFields(
   delegateId: string,
   updates: Partial<Pick<OpenCourseDelegate,
     'driver_number' | 'licence_category' | 'id_type' | 'id_checked' |
-    'attendance_detail' | 'additional_comments' | 'first_name' | 'last_name' | 'email'
+    'attendance_detail' | 'additional_comments' | 'delegate_name' | 'delegate_email'
   >>,
   userId?: string
 ): Promise<OpenCourseDelegate> {
