@@ -883,7 +883,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
 
                                 let statusClass = 'bg-yellow-500/20 border-yellow-500/50';
                                 if (booking.is_open_course) {
-                                  statusClass = 'bg-gradient-to-r from-purple-600 to-pink-600 border-purple-400 text-white';
+                                  statusClass = 'bg-fuchsia-600 border-fuchsia-700 text-white';
                                 } else if (booking.status === 'confirmed') {
                                   if (booking.in_centre) {
                                     statusClass = 'bg-green-500 border-green-600 text-slate-950';
