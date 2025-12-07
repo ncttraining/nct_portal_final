@@ -527,7 +527,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
           session_id,
           attendance_status,
           created_at,
-          session:open_course_sessions!inner(
+          session:open_course_sessions!session_id(
             id,
             event_title,
             event_subtitle,
@@ -537,7 +537,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
             is_online,
             status,
             venue_id,
-            venues:training_venues(
+            venues:training_venues!venue_id(
               name,
               city
             )
