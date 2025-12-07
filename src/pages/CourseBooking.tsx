@@ -226,7 +226,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
           id,
           delegate_name,
           delegate_email,
-          delegate_telephone
+          delegate_phone
         )
       `)
       .gte('session_date', startDate)
@@ -257,7 +257,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       candidates: (session.delegates || []).map(delegate => ({
         candidate_name: delegate.delegate_name,
         email: delegate.delegate_email,
-        telephone: delegate.delegate_telephone,
+        telephone: delegate.delegate_phone,
         paid: true,
         outstanding_balance: 0
       })),
