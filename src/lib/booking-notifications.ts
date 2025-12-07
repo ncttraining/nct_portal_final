@@ -404,3 +404,81 @@ export async function sendBookingUpdatedNotification(
     { recipientName: trainer.name, priority: 4 }
   );
 }
+
+export async function sendOpenCourseAssignmentNotification(
+  sessionId: string,
+  trainerId: string
+): Promise<boolean> {
+  const canSend = await shouldSendNotification(trainerId);
+  if (!canSend) return false;
+
+  const trainer = await getTrainerForNotification(trainerId);
+  if (!trainer || !trainer.email) return false;
+
+  const { data: session, error } = await supabase
+    .from('open_course_sessions')
+    .select(`
+      *,
+      course_type:course_types(
+        id,
+        name
+      ),
+      venue:venues(
+        id,
+        name,
+        town,
+        address_line1,
+        city,
+        postcode
+      ),
+      delegates:open_course_delegates(
+        id,
+        delegate_name,
+        delegate_email
+      )
+    `)
+    .eq('id', sessionId)
+    .maybeSingle();
+
+  if (error || !session) {
+    console.error('Error fetching open course session:', error);
+    return false;
+  }
+
+  const location = session.is_online
+    ? 'Online'
+    : (session.venue
+      ? `${session.venue.name}, ${session.venue.town || session.venue.city}`
+      : 'TBA');
+
+  const delegatesList = session.delegates && session.delegates.length > 0
+    ? session.delegates.map(d => `<li>${d.delegate_name} (${d.delegate_email})</li>`).join('')
+    : '<li>No delegates registered yet</li>';
+
+  const delegatesText = session.delegates && session.delegates.length > 0
+    ? session.delegates.map(d => `- ${d.delegate_name} (${d.delegate_email})`).join('\n')
+    : '- No delegates registered yet';
+
+  const templateData = {
+    trainer_name: trainer.name,
+    course_title: session.event_title,
+    course_subtitle: session.event_subtitle || '',
+    course_type: session.course_type?.name || 'Not specified',
+    session_date: formatDate(session.session_date),
+    start_time: session.start_time || 'TBA',
+    end_time: session.end_time || 'TBA',
+    location: location,
+    capacity: `${session.delegates?.length || 0}/${session.capacity_limit}`,
+    delegates_list: delegatesList,
+    delegates_text: delegatesText,
+    is_online: session.is_online,
+  };
+
+  return sendTemplateEmail(
+    trainer.email,
+    'trainer_open_course_assignment',
+    templateData,
+    undefined,
+    { recipientName: trainer.name, priority: 5 }
+  );
+}

@@ -78,6 +78,8 @@ interface Booking {
     name: string;
     trainer_type_id: string | null;
   };
+  is_open_course?: boolean;
+  open_course_session_id?: string;
 }
 
 interface CourseBookingProps {
@@ -169,7 +171,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
     const endDate = new Date(currentYear, currentMonth, 0);
     const endDateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${endDate.getDate()}`;
 
-    const { data, error } = await supabase
+    const { data: bookingsData, error: bookingsError } = await supabase
       .from('bookings')
       .select(`
         *,
@@ -193,12 +195,79 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       .lte('booking_date', endDateStr)
       .order('booking_date', { ascending: true });
 
-    if (error) {
-      console.error('Error loading bookings:', error);
+    if (bookingsError) {
+      console.error('Error loading bookings:', bookingsError);
       return;
     }
 
-    setBookings(data || []);
+    const { data: openCoursesData, error: openCoursesError } = await supabase
+      .from('open_course_sessions')
+      .select(`
+        *,
+        course_type:course_types(
+          id,
+          name,
+          trainer_type_id
+        ),
+        venue:venues(
+          id,
+          name,
+          town,
+          address1,
+          address2,
+          postcode
+        ),
+        trainer:trainers(
+          id,
+          name,
+          email
+        ),
+        delegates:open_course_delegates!open_course_delegates_session_id_fkey(
+          id,
+          delegate_name,
+          delegate_email,
+          delegate_phone
+        )
+      `)
+      .gte('session_date', startDate)
+      .lte('session_date', endDateStr)
+      .not('trainer_id', 'is', null)
+      .eq('status', 'confirmed')
+      .order('session_date', { ascending: true });
+
+    if (openCoursesError) {
+      console.error('Error loading open courses:', openCoursesError);
+    }
+
+    const transformedOpenCourses = (openCoursesData || []).map(session => ({
+      id: `open-${session.id}`,
+      trainer_id: session.trainer_id,
+      booking_date: session.session_date,
+      start_time: session.start_time || '09:00',
+      title: `${session.event_title}${session.event_subtitle ? ` - ${session.event_subtitle}` : ''}`,
+      location: session.is_online ? 'Online' : (session.venue?.town || session.venue?.name || 'TBA'),
+      client_name: 'Open Course',
+      client_contact_name: '',
+      client_email: '',
+      client_telephone: '',
+      notes: `Open Course Session\nCapacity: ${session.delegates?.length || 0}/${session.capacity_limit}`,
+      status: 'confirmed' as const,
+      in_centre: false,
+      num_days: 1,
+      candidates: (session.delegates || []).map(delegate => ({
+        candidate_name: delegate.delegate_name,
+        email: delegate.delegate_email,
+        telephone: delegate.delegate_phone,
+        paid: true,
+        outstanding_balance: 0
+      })),
+      course_type_id: session.course_type_id,
+      course_type: session.course_type,
+      is_open_course: true,
+      open_course_session_id: session.id
+    }));
+
+    setBookings([...(bookingsData || []), ...transformedOpenCourses]);
   }
 
   async function loadClients() {
@@ -309,6 +378,14 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
   }
 
   function openBookingModal(trainer: Trainer, date: string, booking: Booking | null) {
+    if (booking?.is_open_course) {
+      setNotification({
+        message: 'Open course sessions cannot be edited from here. You can drag to reassign the trainer, or manage other details from the Open Courses Dashboard.',
+        type: 'info'
+      });
+      return;
+    }
+
     const unavailable = isTrainerUnavailable(trainer.id, date);
 
     if (unavailable && !booking) {
@@ -336,6 +413,11 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
 
   async function handleDeleteBooking(bookingId: string) {
     const bookingToDelete = bookings.find(b => b.id === bookingId);
+
+    if (bookingToDelete?.is_open_course) {
+      alert('Open course sessions cannot be deleted from here. Please manage them from the Open Courses Dashboard.');
+      return;
+    }
 
     const { error } = await supabase
       .from('bookings')
@@ -434,31 +516,75 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
     const oldTrainerId = booking.trainer_id;
     const trainerChanged = oldTrainerId !== trainerId;
 
-    let previousTrainerName: string | undefined;
-    if (trainerChanged) {
-      const oldTrainer = trainers.find(t => t.id === oldTrainerId);
-      previousTrainerName = oldTrainer?.name;
-    }
+    // Check if this is an open course session
+    const isOpenCourse = booking.id.startsWith('open-');
 
-    const { error } = await supabase
-      .from('bookings')
-      .update({
-        trainer_id: trainerId,
-        booking_date: date
-      })
-      .eq('id', draggedBooking);
+    if (isOpenCourse) {
+      // For open courses, only allow changing the trainer, not the date
+      if (booking.booking_date !== date) {
+        setNotification({
+          message: 'Open course dates cannot be changed from here. Please manage them from the Open Courses Dashboard.',
+          type: 'error'
+        });
+        setDraggedBooking(null);
+        return;
+      }
 
-    if (error) {
-      console.error('Error moving booking:', error);
-      return;
-    }
+      if (!trainerChanged) {
+        setDraggedBooking(null);
+        return;
+      }
 
-    if (trainerChanged) {
-      await sendBookingMovedNotification(
-        { ...booking, trainer_id: trainerId, booking_date: date } as any,
-        draggedBooking,
-        previousTrainerName
-      );
+      // Extract the actual session ID (remove 'open-' prefix)
+      const sessionId = booking.id.substring(5);
+
+      const { error } = await supabase
+        .from('open_course_sessions')
+        .update({ trainer_id: trainerId })
+        .eq('id', sessionId);
+
+      if (error) {
+        console.error('Error updating open course trainer:', error);
+        setNotification({
+          message: 'Failed to update trainer for open course session',
+          type: 'error'
+        });
+        setDraggedBooking(null);
+        return;
+      }
+
+      setNotification({
+        message: 'Trainer updated successfully for open course session',
+        type: 'success'
+      });
+    } else {
+      // Regular booking logic
+      let previousTrainerName: string | undefined;
+      if (trainerChanged) {
+        const oldTrainer = trainers.find(t => t.id === oldTrainerId);
+        previousTrainerName = oldTrainer?.name;
+      }
+
+      const { error } = await supabase
+        .from('bookings')
+        .update({
+          trainer_id: trainerId,
+          booking_date: date
+        })
+        .eq('id', draggedBooking);
+
+      if (error) {
+        console.error('Error moving booking:', error);
+        return;
+      }
+
+      if (trainerChanged) {
+        await sendBookingMovedNotification(
+          { ...booking, trainer_id: trainerId, booking_date: date } as any,
+          draggedBooking,
+          previousTrainerName
+        );
+      }
     }
 
     await loadBookings();
@@ -616,6 +742,10 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                   <span>Onsite</span>
                 </div>
                 <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-fuchsia-600 border-2 border-fuchsia-700 rounded-full"></div>
+                  <span>Open courses</span>
+                </div>
+                <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-slate-300 border-2 border-slate-500 rounded-full"></div>
                   <span>Provisional</span>
                 </div>
@@ -756,7 +886,9 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                   trainer.assigned_types?.some(t => t.id === courseRequiresType);
 
                                 let statusClass = 'bg-yellow-500/20 border-yellow-500/50';
-                                if (booking.status === 'confirmed') {
+                                if (booking.is_open_course) {
+                                  statusClass = 'bg-fuchsia-600 border-fuchsia-700 text-white';
+                                } else if (booking.status === 'confirmed') {
                                   if (booking.in_centre) {
                                     statusClass = 'bg-green-500 border-green-600 text-slate-950';
                                   } else {
@@ -807,6 +939,11 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                       </div>
                                     ) : null}
                                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                      {booking.is_open_course && (
+                                        <span className="px-1.5 py-0.5 bg-white/20 text-white rounded text-[10px] font-semibold">
+                                          OC
+                                        </span>
+                                      )}
                                       {hasClash && (
                                         <span className="px-1.5 py-0.5 bg-red-500 text-white rounded text-[10px] font-semibold">
                                           ⚠ TRAINER CLASH

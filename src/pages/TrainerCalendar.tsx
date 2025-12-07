@@ -4,6 +4,12 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getTrainerUnavailability, markDateUnavailable, removeDateUnavailability, TrainerUnavailability } from '../lib/trainer-availability';
 
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 interface Booking {
   id: string;
   booking_date: string;
@@ -19,6 +25,7 @@ interface Booking {
   in_centre: boolean;
   num_days: number;
   course_type_name?: string;
+  is_open_course?: boolean;
 }
 
 interface CalendarDay {
@@ -84,9 +91,57 @@ export default function TrainerCalendar() {
       const formattedBookings = (data || []).map((b: any) => ({
         ...b,
         course_type_name: b.course_type?.name,
+        is_open_course: false,
       }));
 
-      setBookings(formattedBookings);
+      // Fetch open course sessions for this trainer
+      const { data: openCoursesData, error: openCoursesError } = await supabase
+        .from('open_course_sessions')
+        .select(`
+          *,
+          course_type:course_types(
+            name
+          ),
+          venue:venues(
+            id,
+            name,
+            town
+          )
+        `)
+        .eq('trainer_id', profile.trainer_id)
+        .gte('session_date', extendedStart.toISOString().split('T')[0])
+        .lte('session_date', endOfMonth.toISOString().split('T')[0])
+        .eq('status', 'confirmed')
+        .order('session_date', { ascending: true });
+
+      if (openCoursesError) {
+        console.error('Error loading open courses:', openCoursesError);
+      }
+
+      // Transform open courses to match Booking interface
+      const transformedOpenCourses = (openCoursesData || []).map((session: any) => ({
+        id: `open-${session.id}`,
+        booking_date: session.session_date,
+        start_time: session.start_time || '09:00',
+        title: `${session.event_title}${session.event_subtitle ? ` - ${session.event_subtitle}` : ''}`,
+        location: session.is_online ? 'Online' : (session.venue?.town || session.venue?.name || 'TBA'),
+        client_name: 'Open Course',
+        client_contact_name: '',
+        client_email: '',
+        client_telephone: '',
+        notes: session.notes || '',
+        status: 'confirmed',
+        in_centre: false,
+        num_days: 1,
+        course_type_name: session.course_type?.name,
+        is_open_course: true,
+      }));
+
+      // Combine regular bookings and open courses
+      const allBookings = [...formattedBookings, ...transformedOpenCourses];
+      allBookings.sort((a, b) => a.booking_date.localeCompare(b.booking_date));
+
+      setBookings(allBookings);
     } catch (error) {
       console.error('Error loading bookings:', error);
     } finally {
@@ -365,9 +420,18 @@ export default function TrainerCalendar() {
                               e.stopPropagation();
                               setSelectedBooking(booking);
                             }}
-                            className={`w-full text-left px-2 py-1 rounded text-xs font-medium text-white truncate ${getBookingColor(bookingIndex)} hover:opacity-80 transition-opacity`}
+                            className={`w-full text-left px-2 py-1 rounded text-xs font-medium text-white hover:opacity-80 transition-opacity ${
+                              booking.is_open_course
+                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 border border-purple-400'
+                                : `${getBookingColor(bookingIndex)}`
+                            }`}
                           >
-                            {booking.title}
+                            <div className="flex items-center gap-1 truncate">
+                              {booking.is_open_course && (
+                                <span className="text-[10px] bg-white/20 px-1 rounded shrink-0">OC</span>
+                              )}
+                              <span className="truncate">{decodeHtmlEntities(booking.title)}</span>
+                            </div>
                           </button>
                         ))}
 
@@ -413,9 +477,18 @@ export default function TrainerCalendar() {
             </div>
 
             <div className="p-6 space-y-4">
+              {selectedBooking.is_open_course && (
+                <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/50 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold bg-purple-600 text-white px-2 py-1 rounded">OPEN COURSE</span>
+                    <span className="text-sm text-slate-300">This is an open course session</span>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="text-sm text-slate-400">Title</label>
-                <p className="text-white font-medium mt-1">{selectedBooking.title}</p>
+                <p className="text-white font-medium mt-1">{decodeHtmlEntities(selectedBooking.title)}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
