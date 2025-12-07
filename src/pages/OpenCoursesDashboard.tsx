@@ -2281,95 +2281,161 @@ The Training Team`,
                   </div>
                 </div>
               ) : (
-                <div>
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-400">
-                        Select the sessions you want to book {newDelegateData.delegate_name} for:
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {selectedSessions.size} session(s) selected
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                    {availableSessionsForBooking.map((session) => {
-                      const isSelected = selectedSessions.has(session.id);
-                      const delegateCount = sessionDelegates[session.id]?.length || 0;
-                      const isFull = delegateCount >= session.capacity_limit;
-                      const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
-
-                      return (
-                        <div
-                          key={session.id}
-                          onClick={() => !isFull && toggleSessionSelection(session.id)}
-                          className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-blue-500/10 border-blue-500'
-                              : isFull
-                              ? 'bg-slate-800/30 border-slate-700 opacity-50 cursor-not-allowed'
-                              : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${
-                              isSelected
-                                ? 'bg-blue-500 border-blue-500'
-                                : 'border-slate-600'
-                            }`}>
-                              {isSelected && (
-                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="font-medium">{session.event_title}</div>
-                              {session.event_subtitle && (
-                                <div className="text-xs text-slate-400 mt-1">{decodeHtmlEntities(session.event_subtitle)}</div>
-                              )}
-                              <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {formatDate(session.session_date)}
+                <div className={selectedExistingDelegateId ? "grid grid-cols-3 gap-6" : ""}>
+                  {/* Booking History Column - Only shown for existing delegates */}
+                  {selectedExistingDelegateId && (
+                    <div className="col-span-1 border-r border-slate-700 pr-6">
+                      <h3 className="text-lg font-semibold mb-4">Booking History</h3>
+                      <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                        {delegateBookingHistory.length === 0 ? (
+                          <p className="text-sm text-slate-400">No previous bookings</p>
+                        ) : (
+                          delegateBookingHistory.map((booking: any) => (
+                            <div
+                              key={booking.id}
+                              className="p-3 bg-slate-800 rounded border border-slate-700"
+                            >
+                              <div className="font-medium text-sm mb-1">
+                                {decodeHtmlEntities(booking.session.event_title)}
+                              </div>
+                              {booking.session.event_subtitle && (
+                                <div className="text-xs text-slate-400 mb-2">
+                                  {decodeHtmlEntities(booking.session.event_subtitle)}
                                 </div>
-                                {session.start_time && (
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    {formatTime(session.start_time)} - {formatTime(session.end_time || '')}
-                                  </div>
-                                )}
-                                {session.is_online ? (
-                                  <div className="flex items-center gap-1">
+                              )}
+                              <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(booking.session.session_date)} at {formatTime(booking.session.start_time)}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                                <MapPin className="w-3 h-3" />
+                                {booking.session.is_online ? (
+                                  <span className="flex items-center gap-1">
                                     <Video className="w-3 h-3" />
                                     Online
-                                  </div>
-                                ) : session.venue && (
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {session.venue.name}
-                                  </div>
+                                  </span>
+                                ) : booking.session.venues ? (
+                                  `${booking.session.venues.name}, ${booking.session.venues.town}`
+                                ) : (
+                                  'Location TBC'
                                 )}
-                                <div className={`flex items-center gap-1 ${capacityColor}`}>
-                                  <Users className="w-3 h-3" />
-                                  {delegateCount} / {session.capacity_limit}
-                                  {isFull && <span className="ml-1 font-semibold">FULL</span>}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                  booking.session.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                                  booking.session.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                                  'bg-slate-700 text-slate-400'
+                                }`}>
+                                  {booking.session.status}
+                                </span>
+                                {booking.attendance_status && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    booking.attendance_status === 'attended' ? 'bg-blue-500/20 text-blue-400' :
+                                    booking.attendance_status === 'no_show' ? 'bg-orange-500/20 text-orange-400' :
+                                    'bg-slate-700 text-slate-400'
+                                  }`}>
+                                    {booking.attendance_status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Session Selection Column */}
+                  <div className={selectedExistingDelegateId ? "col-span-2" : ""}>
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-slate-400">
+                          Select the sessions you want to book {newDelegateData.delegate_name} for:
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {selectedSessions.size} session(s) selected
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                      {availableSessionsForBooking.map((session) => {
+                        const isSelected = selectedSessions.has(session.id);
+                        const delegateCount = sessionDelegates[session.id]?.length || 0;
+                        const isFull = delegateCount >= session.capacity_limit;
+                        const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+
+                        return (
+                          <div
+                            key={session.id}
+                            onClick={() => !isFull && toggleSessionSelection(session.id)}
+                            className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-blue-500/10 border-blue-500'
+                                : isFull
+                                ? 'bg-slate-800/30 border-slate-700 opacity-50 cursor-not-allowed'
+                                : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                isSelected
+                                  ? 'bg-blue-500 border-blue-500'
+                                  : 'border-slate-600'
+                              }`}>
+                                {isSelected && (
+                                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </div>
+
+                              <div className="flex-1">
+                                <div className="font-medium">{session.event_title}</div>
+                                {session.event_subtitle && (
+                                  <div className="text-xs text-slate-400 mt-1">{decodeHtmlEntities(session.event_subtitle)}</div>
+                                )}
+                                <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {formatDate(session.session_date)}
+                                  </div>
+                                  {session.start_time && (
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {formatTime(session.start_time)} - {formatTime(session.end_time || '')}
+                                    </div>
+                                  )}
+                                  {session.is_online ? (
+                                    <div className="flex items-center gap-1">
+                                      <Video className="w-3 h-3" />
+                                      Online
+                                    </div>
+                                  ) : session.venue && (
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      {session.venue.name}
+                                    </div>
+                                  )}
+                                  <div className={`flex items-center gap-1 ${capacityColor}`}>
+                                    <Users className="w-3 h-3" />
+                                    {delegateCount} / {session.capacity_limit}
+                                    {isFull && <span className="ml-1 font-semibold">FULL</span>}
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {availableSessionsForBooking.length === 0 && (
-                    <div className="text-center py-12 text-slate-400">
-                      No upcoming sessions available
+                        );
+                      })}
                     </div>
-                  )}
+
+                    {availableSessionsForBooking.length === 0 && (
+                      <div className="text-center py-12 text-slate-400">
+                        No upcoming sessions available
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
