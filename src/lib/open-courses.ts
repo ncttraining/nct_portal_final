@@ -1119,7 +1119,7 @@ export async function getDelegatesForRegister(sessionId: string): Promise<OpenCo
     `)
     .eq('session_id', sessionId)
     .neq('attendance_status', 'cancelled')
-    .order('last_name', { ascending: true });
+    .order('created_at', { ascending: true });
 
   if (error) throw error;
   return data || [];
