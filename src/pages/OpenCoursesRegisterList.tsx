@@ -122,7 +122,7 @@ export default function OpenCoursesRegisterList({
           .from('open_course_delegates')
           .select('id, attendance_detail, id_checked, dvsa_uploaded, attendance_status')
           .eq('session_id', session.id)
-          .neq('attendance_status', 'cancelled');
+          .or('attendance_status.neq.cancelled,attendance_status.is.null');
 
         if (!error && data) {
           const presentStatuses = ['attended', 'late', 'left_early'];

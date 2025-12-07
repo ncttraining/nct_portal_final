@@ -1111,6 +1111,8 @@ export async function getSessionsForRegisters(filters?: {
  * Get delegates for a session with full details for register view
  */
 export async function getDelegatesForRegister(sessionId: string): Promise<OpenCourseDelegateWithDetails[]> {
+  // Note: We need to include delegates where attendance_status is NULL or not 'cancelled'
+  // Using .or() to handle NULL values properly since neq doesn't match NULLs
   const { data, error } = await supabase
     .from('open_course_delegates')
     .select(`
@@ -1118,7 +1120,7 @@ export async function getDelegatesForRegister(sessionId: string): Promise<OpenCo
       order:open_course_orders(*)
     `)
     .eq('session_id', sessionId)
-    .neq('attendance_status', 'cancelled')
+    .or('attendance_status.neq.cancelled,attendance_status.is.null')
     .order('created_at', { ascending: true });
 
   if (error) throw error;
