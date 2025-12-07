@@ -513,19 +513,19 @@ export default function OpenCoursesRegisterAdmin({
                         </td>
 
                         {/* ID Verified */}
-                        <td className="px-3 py-2 text-center">
+                        <td className="px-3 py-2">
                           <button
                             onClick={() =>
                               handleIdCheckedToggle(delegate.id, delegate.id_checked)
                             }
-                            className={`w-7 h-7 rounded flex items-center justify-center transition-colors ${
+                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
                               delegate.id_checked
                                 ? 'bg-green-500 text-white'
                                 : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
                             }`}
-                            title={delegate.id_checked ? 'ID Verified' : 'Mark ID as verified'}
                           >
-                            <Check className="w-4 h-4" />
+                            <Check className="w-3 h-3" />
+                            {delegate.id_checked ? 'Yes' : 'No'}
                           </button>
                         </td>
 
