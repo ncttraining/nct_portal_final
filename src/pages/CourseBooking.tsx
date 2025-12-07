@@ -380,8 +380,8 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
   function openBookingModal(trainer: Trainer, date: string, booking: Booking | null) {
     if (booking?.is_open_course) {
       setNotification({
-        message: 'Open course sessions cannot be edited from here. Please manage them from the Open Courses Dashboard.',
-        type: 'warning'
+        message: 'Open course sessions cannot be edited from here. You can drag to reassign the trainer, or manage other details from the Open Courses Dashboard.',
+        type: 'info'
       });
       return;
     }
@@ -516,31 +516,75 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
     const oldTrainerId = booking.trainer_id;
     const trainerChanged = oldTrainerId !== trainerId;
 
-    let previousTrainerName: string | undefined;
-    if (trainerChanged) {
-      const oldTrainer = trainers.find(t => t.id === oldTrainerId);
-      previousTrainerName = oldTrainer?.name;
-    }
+    // Check if this is an open course session
+    const isOpenCourse = booking.id.startsWith('open-');
 
-    const { error } = await supabase
-      .from('bookings')
-      .update({
-        trainer_id: trainerId,
-        booking_date: date
-      })
-      .eq('id', draggedBooking);
+    if (isOpenCourse) {
+      // For open courses, only allow changing the trainer, not the date
+      if (booking.booking_date !== date) {
+        setNotification({
+          message: 'Open course dates cannot be changed from here. Please manage them from the Open Courses Dashboard.',
+          type: 'error'
+        });
+        setDraggedBooking(null);
+        return;
+      }
 
-    if (error) {
-      console.error('Error moving booking:', error);
-      return;
-    }
+      if (!trainerChanged) {
+        setDraggedBooking(null);
+        return;
+      }
 
-    if (trainerChanged) {
-      await sendBookingMovedNotification(
-        { ...booking, trainer_id: trainerId, booking_date: date } as any,
-        draggedBooking,
-        previousTrainerName
-      );
+      // Extract the actual session ID (remove 'open-' prefix)
+      const sessionId = booking.id.substring(5);
+
+      const { error } = await supabase
+        .from('open_course_sessions')
+        .update({ trainer_id: trainerId })
+        .eq('id', sessionId);
+
+      if (error) {
+        console.error('Error updating open course trainer:', error);
+        setNotification({
+          message: 'Failed to update trainer for open course session',
+          type: 'error'
+        });
+        setDraggedBooking(null);
+        return;
+      }
+
+      setNotification({
+        message: 'Trainer updated successfully for open course session',
+        type: 'success'
+      });
+    } else {
+      // Regular booking logic
+      let previousTrainerName: string | undefined;
+      if (trainerChanged) {
+        const oldTrainer = trainers.find(t => t.id === oldTrainerId);
+        previousTrainerName = oldTrainer?.name;
+      }
+
+      const { error } = await supabase
+        .from('bookings')
+        .update({
+          trainer_id: trainerId,
+          booking_date: date
+        })
+        .eq('id', draggedBooking);
+
+      if (error) {
+        console.error('Error moving booking:', error);
+        return;
+      }
+
+      if (trainerChanged) {
+        await sendBookingMovedNotification(
+          { ...booking, trainer_id: trainerId, booking_date: date } as any,
+          draggedBooking,
+          previousTrainerName
+        );
+      }
     }
 
     await loadBookings();
