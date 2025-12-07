@@ -882,7 +882,9 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                   trainer.assigned_types?.some(t => t.id === courseRequiresType);
 
                                 let statusClass = 'bg-yellow-500/20 border-yellow-500/50';
-                                if (booking.status === 'confirmed') {
+                                if (booking.is_open_course) {
+                                  statusClass = 'bg-gradient-to-r from-purple-600 to-pink-600 border-purple-400 text-white';
+                                } else if (booking.status === 'confirmed') {
                                   if (booking.in_centre) {
                                     statusClass = 'bg-green-500 border-green-600 text-slate-950';
                                   } else {
@@ -933,6 +935,11 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                       </div>
                                     ) : null}
                                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                      {booking.is_open_course && (
+                                        <span className="px-1.5 py-0.5 bg-white/20 text-white rounded text-[10px] font-semibold">
+                                          OC
+                                        </span>
+                                      )}
                                       {hasClash && (
                                         <span className="px-1.5 py-0.5 bg-red-500 text-white rounded text-[10px] font-semibold">
                                           ⚠ TRAINER CLASH
