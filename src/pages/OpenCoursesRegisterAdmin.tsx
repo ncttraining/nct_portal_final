@@ -590,83 +590,60 @@ export default function OpenCoursesRegisterAdmin({
                             colSpan={isCPC ? 9 : 8}
                             className="px-4 py-4 border-b border-slate-800"
                           >
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-9">
-                              {/* Full Comments */}
-                              <div className="md:col-span-2">
+                            <div className="flex gap-6 flex-wrap pl-9">
+                              <div>
                                 <label className="block text-xs text-slate-400 mb-1">
-                                  Additional Comments
+                                  Licence Category
                                 </label>
-                                <textarea
-                                  value={delegate.additional_comments || ''}
+                                <select
+                                  value={delegate.licence_category || ''}
                                   onChange={(e) =>
                                     updateDelegate(
                                       delegate.id,
-                                      'additional_comments',
-                                      e.target.value
+                                      'licence_category',
+                                      e.target.value || null
                                     )
                                   }
-                                  placeholder="Add any notes about this delegate..."
-                                  rows={3}
-                                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 resize-none"
-                                />
+                                  className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-sm text-white focus:outline-none focus:border-blue-500"
+                                >
+                                  <option value="">Select Category</option>
+                                  {LICENCE_CATEGORIES.map((cat) => (
+                                    <option key={cat} value={cat}>
+                                      {cat}
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
 
-                              {/* Additional Info */}
-                              <div className="space-y-3">
-                                <div>
-                                  <label className="block text-xs text-slate-400 mb-1">
-                                    Licence Category
-                                  </label>
-                                  <select
-                                    value={delegate.licence_category || ''}
-                                    onChange={(e) =>
-                                      updateDelegate(
-                                        delegate.id,
-                                        'licence_category',
-                                        e.target.value || null
-                                      )
-                                    }
-                                    className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-sm text-white focus:outline-none focus:border-blue-500"
-                                  >
-                                    <option value="">Select Category</option>
-                                    {LICENCE_CATEGORIES.map((cat) => (
-                                      <option key={cat} value={cat}>
-                                        {cat}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="block text-xs text-slate-400 mb-1">
-                                    ID Checked
-                                  </label>
-                                  <button
-                                    onClick={() =>
-                                      handleIdCheckedToggle(delegate.id, delegate.id_checked)
-                                    }
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded transition-colors ${
-                                      delegate.id_checked
-                                        ? 'bg-green-500 text-white'
-                                        : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
-                                    }`}
-                                  >
-                                    <Check className="w-4 h-4" />
-                                    {delegate.id_checked ? 'Verified' : 'Not Verified'}
-                                  </button>
-                                </div>
-
-                                {delegate.delegate_company && (
-                                  <div>
-                                    <label className="block text-xs text-slate-400 mb-1">
-                                      Company
-                                    </label>
-                                    <p className="text-sm text-white">
-                                      {delegate.delegate_company}
-                                    </p>
-                                  </div>
-                                )}
+                              <div>
+                                <label className="block text-xs text-slate-400 mb-1">
+                                  ID Checked
+                                </label>
+                                <button
+                                  onClick={() =>
+                                    handleIdCheckedToggle(delegate.id, delegate.id_checked)
+                                  }
+                                  className={`flex items-center gap-2 px-3 py-1.5 rounded transition-colors ${
+                                    delegate.id_checked
+                                      ? 'bg-green-500 text-white'
+                                      : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                                  }`}
+                                >
+                                  <Check className="w-4 h-4" />
+                                  {delegate.id_checked ? 'Verified' : 'Not Verified'}
+                                </button>
                               </div>
+
+                              {delegate.delegate_company && (
+                                <div>
+                                  <label className="block text-xs text-slate-400 mb-1">
+                                    Company
+                                  </label>
+                                  <p className="text-sm text-white">
+                                    {delegate.delegate_company}
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           </td>
                         </tr>
