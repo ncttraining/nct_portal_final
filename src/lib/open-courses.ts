@@ -1151,10 +1151,16 @@ export async function getRegisterStats(sessionId: string): Promise<{
 }
 
 /**
- * Check if a course is a CPC course (has JAUPT code)
+ * Check if a course is a CPC course (has JAUPT code or name contains CPC)
  */
 export function isCPCCourse(session: OpenCourseSessionWithDetails): boolean {
-  return !!session.course_type?.jaupt_code;
+  // Check if course type has a JAUPT code
+  if (session.course_type?.jaupt_code) {
+    return true;
+  }
+  // Fallback: check if course name contains "CPC"
+  const courseName = session.course_type?.name?.toLowerCase() || '';
+  return courseName.includes('cpc') || courseName.includes('driver cpc');
 }
 
 /**
