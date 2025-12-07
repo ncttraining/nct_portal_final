@@ -756,14 +756,13 @@ The Training Team`,
       const { data: orderData, error: orderError } = await supabase
         .from('open_course_orders')
         .insert({
-          wp_order_id: null,
+          woocommerce_order_id: `MANUAL-${Date.now()}`,
           order_number: `MANUAL-${Date.now()}`,
+          order_date: new Date().toISOString(),
           customer_name: newDelegateData.delegate_name,
           customer_email: newDelegateData.delegate_email,
-          order_status: 'confirmed',
           payment_status: 'paid',
           total_amount: 0,
-          booking_source: 'manual',
         })
         .select()
         .single();
