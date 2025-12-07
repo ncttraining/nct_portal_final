@@ -544,7 +544,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
           )
         `)
         .eq('delegate_email', delegateEmail)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       setDelegateBookingHistory(data || []);
