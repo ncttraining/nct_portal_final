@@ -401,16 +401,16 @@ export default function OpenCoursesRegisterAdmin({
                     Driver Number
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                    Email
+                    Licence
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
                     ID Type
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                    Attend
+                    ID Ver
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                    Comments
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                    Attend
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">
                     Reg
@@ -472,17 +472,26 @@ export default function OpenCoursesRegisterAdmin({
                           />
                         </td>
 
-                        {/* Editable Email */}
+                        {/* Licence Category */}
                         <td className="px-3 py-2">
-                          <input
-                            type="email"
-                            value={delegate.delegate_email || ''}
+                          <select
+                            value={delegate.licence_category || ''}
                             onChange={(e) =>
-                              updateDelegate(delegate.id, 'delegate_email', e.target.value)
+                              updateDelegate(
+                                delegate.id,
+                                'licence_category',
+                                e.target.value || null
+                              )
                             }
-                            placeholder="email@example.com"
-                            className="w-36 px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
-                          />
+                            className="px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
+                          >
+                            <option value="">--</option>
+                            {LICENCE_CATEGORIES.map((cat) => (
+                              <option key={cat} value={cat}>
+                                {cat}
+                              </option>
+                            ))}
+                          </select>
                         </td>
 
                         {/* ID Type */}
@@ -503,6 +512,23 @@ export default function OpenCoursesRegisterAdmin({
                           </select>
                         </td>
 
+                        {/* ID Verified */}
+                        <td className="px-3 py-2 text-center">
+                          <button
+                            onClick={() =>
+                              handleIdCheckedToggle(delegate.id, delegate.id_checked)
+                            }
+                            className={`w-7 h-7 rounded flex items-center justify-center transition-colors ${
+                              delegate.id_checked
+                                ? 'bg-green-500 text-white'
+                                : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                            }`}
+                            title={delegate.id_checked ? 'ID Verified' : 'Mark ID as verified'}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        </td>
+
                         {/* Attendance */}
                         <td className="px-3 py-2">
                           <div className="flex justify-center">
@@ -514,19 +540,6 @@ export default function OpenCoursesRegisterAdmin({
                               size="sm"
                             />
                           </div>
-                        </td>
-
-                        {/* Comments (truncated) */}
-                        <td className="px-3 py-2">
-                          <input
-                            type="text"
-                            value={delegate.additional_comments || ''}
-                            onChange={(e) =>
-                              updateDelegate(delegate.id, 'additional_comments', e.target.value)
-                            }
-                            placeholder="Comments..."
-                            className="w-full px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
-                          />
                         </td>
 
                         {/* Registered By (Initials) */}
@@ -590,60 +603,54 @@ export default function OpenCoursesRegisterAdmin({
                             colSpan={isCPC ? 9 : 8}
                             className="px-4 py-4 border-b border-slate-800"
                           >
-                            <div className="flex gap-6 flex-wrap pl-9">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-9">
+                              {/* Email */}
                               <div>
                                 <label className="block text-xs text-slate-400 mb-1">
-                                  Licence Category
+                                  Email
                                 </label>
-                                <select
-                                  value={delegate.licence_category || ''}
+                                <input
+                                  type="email"
+                                  value={delegate.delegate_email || ''}
                                   onChange={(e) =>
-                                    updateDelegate(
-                                      delegate.id,
-                                      'licence_category',
-                                      e.target.value || null
-                                    )
+                                    updateDelegate(delegate.id, 'delegate_email', e.target.value)
                                   }
+                                  placeholder="email@example.com"
                                   className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-sm text-white focus:outline-none focus:border-blue-500"
-                                >
-                                  <option value="">Select Category</option>
-                                  {LICENCE_CATEGORIES.map((cat) => (
-                                    <option key={cat} value={cat}>
-                                      {cat}
-                                    </option>
-                                  ))}
-                                </select>
+                                />
                               </div>
 
-                              <div>
-                                <label className="block text-xs text-slate-400 mb-1">
-                                  ID Checked
-                                </label>
-                                <button
-                                  onClick={() =>
-                                    handleIdCheckedToggle(delegate.id, delegate.id_checked)
-                                  }
-                                  className={`flex items-center gap-2 px-3 py-1.5 rounded transition-colors ${
-                                    delegate.id_checked
-                                      ? 'bg-green-500 text-white'
-                                      : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
-                                  }`}
-                                >
-                                  <Check className="w-4 h-4" />
-                                  {delegate.id_checked ? 'Verified' : 'Not Verified'}
-                                </button>
-                              </div>
-
+                              {/* Company */}
                               {delegate.delegate_company && (
                                 <div>
                                   <label className="block text-xs text-slate-400 mb-1">
                                     Company
                                   </label>
-                                  <p className="text-sm text-white">
+                                  <p className="text-sm text-white py-1">
                                     {delegate.delegate_company}
                                   </p>
                                 </div>
                               )}
+
+                              {/* Additional Comments */}
+                              <div className="md:col-span-3">
+                                <label className="block text-xs text-slate-400 mb-1">
+                                  Additional Comments
+                                </label>
+                                <textarea
+                                  value={delegate.additional_comments || ''}
+                                  onChange={(e) =>
+                                    updateDelegate(
+                                      delegate.id,
+                                      'additional_comments',
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Add any notes about this delegate..."
+                                  rows={2}
+                                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 resize-none"
+                                />
+                              </div>
                             </div>
                           </td>
                         </tr>
