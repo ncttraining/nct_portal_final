@@ -153,6 +153,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [delegateSuggestions, setDelegateSuggestions] = useState<any[]>([]);
   const [showDelegateSuggestions, setShowDelegateSuggestions] = useState(false);
   const [selectedExistingDelegateId, setSelectedExistingDelegateId] = useState<string | null>(null);
+  const [delegateBookingHistory, setDelegateBookingHistory] = useState<any[]>([]);
 
   const [showResendModal, setShowResendModal] = useState(false);
   const [resendDelegate, setResendDelegate] = useState<any | null>(null);
@@ -516,8 +517,45 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     }
   }
 
+  // Fetch booking history for a delegate
+  async function fetchDelegateBookingHistory(delegateEmail: string) {
+    try {
+      const { data, error } = await supabase
+        .from('open_course_delegates')
+        .select(`
+          id,
+          session_id,
+          attendance_status,
+          created_at,
+          session:open_course_sessions!inner(
+            id,
+            event_title,
+            event_subtitle,
+            session_date,
+            start_time,
+            end_time,
+            is_online,
+            status,
+            venue_id,
+            venues:training_venues(
+              name,
+              city
+            )
+          )
+        `)
+        .eq('delegate_email', delegateEmail)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setDelegateBookingHistory(data || []);
+    } catch (error: any) {
+      console.error('Error fetching delegate booking history:', error);
+      setDelegateBookingHistory([]);
+    }
+  }
+
   // Handle selecting an existing delegate from suggestions
-  function handleSelectExistingDelegate(delegate: any) {
+  async function handleSelectExistingDelegate(delegate: any) {
     setNewDelegateData({
       delegate_name: delegate.delegate_name,
       delegate_email: delegate.delegate_email,
@@ -530,6 +568,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     setSelectedExistingDelegateId(delegate.id);
     setShowDelegateSuggestions(false);
     setDelegateSuggestions([]);
+    await fetchDelegateBookingHistory(delegate.delegate_email);
   }
 
   // Drag and Drop Handlers
@@ -853,6 +892,7 @@ The Training Team`,
       setDelegateSuggestions([]);
       setShowDelegateSuggestions(false);
       setSelectedExistingDelegateId(null);
+      setDelegateBookingHistory([]);
       setNewDelegateData({
         delegate_name: '',
         delegate_email: '',
@@ -2008,7 +2048,7 @@ The Training Team`,
       {/* Add Delegate Modal */}
       {showAddDelegateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+          <div className={`bg-slate-900 border border-slate-800 rounded-lg w-full ${selectedExistingDelegateId ? 'max-w-7xl' : 'max-w-4xl'} max-h-[90vh] flex flex-col`}>
             <div className="flex items-center justify-between p-6 border-b border-slate-800">
               <div>
                 <h2 className="text-xl font-semibold">Add New Delegate</h2>
@@ -2024,6 +2064,7 @@ The Training Team`,
                   setDelegateSuggestions([]);
                   setShowDelegateSuggestions(false);
                   setSelectedExistingDelegateId(null);
+                  setDelegateBookingHistory([]);
                   setNewDelegateData({
                     delegate_name: '',
                     delegate_email: '',
@@ -2042,7 +2083,72 @@ The Training Team`,
 
             <div className="flex-1 overflow-y-auto p-6">
               {addDelegateStep === 1 ? (
-                <div className="grid grid-cols-2 gap-4">
+                <div className={selectedExistingDelegateId ? "grid grid-cols-3 gap-6" : "grid grid-cols-2 gap-4"}>
+                  {/* Booking History Column - Only shown for existing delegates */}
+                  {selectedExistingDelegateId && (
+                    <div className="col-span-1 border-r border-slate-700 pr-6">
+                      <h3 className="text-lg font-semibold mb-4">Booking History</h3>
+                      <div className="space-y-3">
+                        {delegateBookingHistory.length === 0 ? (
+                          <p className="text-sm text-slate-400">No previous bookings</p>
+                        ) : (
+                          delegateBookingHistory.map((booking: any) => (
+                            <div
+                              key={booking.id}
+                              className="p-3 bg-slate-800 rounded border border-slate-700"
+                            >
+                              <div className="font-medium text-sm mb-1">
+                                {decodeHtmlEntities(booking.session.event_title)}
+                              </div>
+                              {booking.session.event_subtitle && (
+                                <div className="text-xs text-slate-400 mb-2">
+                                  {decodeHtmlEntities(booking.session.event_subtitle)}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(booking.session.session_date)} at {formatTime(booking.session.start_time)}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                                <MapPin className="w-3 h-3" />
+                                {booking.session.is_online ? (
+                                  <span className="flex items-center gap-1">
+                                    <Video className="w-3 h-3" />
+                                    Online
+                                  </span>
+                                ) : booking.session.venues ? (
+                                  `${booking.session.venues.name}, ${booking.session.venues.city}`
+                                ) : (
+                                  'Location TBC'
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                  booking.session.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                                  booking.session.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                                  'bg-slate-700 text-slate-400'
+                                }`}>
+                                  {booking.session.status}
+                                </span>
+                                {booking.attendance_status && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    booking.attendance_status === 'attended' ? 'bg-blue-500/20 text-blue-400' :
+                                    booking.attendance_status === 'no_show' ? 'bg-orange-500/20 text-orange-400' :
+                                    'bg-slate-700 text-slate-400'
+                                  }`}>
+                                    {booking.attendance_status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Form Content Column */}
+                  <div className={selectedExistingDelegateId ? "col-span-2 grid grid-cols-2 gap-4" : "col-span-2 grid grid-cols-2 gap-4"}>
                   <div className="col-span-2 relative">
                     <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
                       Name *
@@ -2054,6 +2160,7 @@ The Training Team`,
                         const value = e.target.value;
                         setNewDelegateData({ ...newDelegateData, delegate_name: value });
                         setSelectedExistingDelegateId(null);
+                        setDelegateBookingHistory([]);
                         searchDelegatesByName(value);
                       }}
                       onFocus={() => {
@@ -2171,6 +2278,7 @@ The Training Team`,
                       placeholder="Internal notes..."
                     />
                   </div>
+                  </div>
                 </div>
               ) : (
                 <div>
@@ -2277,6 +2385,7 @@ The Training Team`,
                       setDelegateSuggestions([]);
                       setShowDelegateSuggestions(false);
                       setSelectedExistingDelegateId(null);
+                      setDelegateBookingHistory([]);
                       setNewDelegateData({
                         delegate_name: '',
                         delegate_email: '',
