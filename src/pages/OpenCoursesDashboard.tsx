@@ -780,7 +780,6 @@ The Training Team`,
         special_requirements: newDelegateData.special_requirements || null,
         notes: newDelegateData.notes || null,
         status: 'confirmed',
-        attendance_status: 'registered',
         booking_source: 'manual',
       }));
 
