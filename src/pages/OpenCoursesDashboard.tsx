@@ -150,6 +150,9 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   });
   const [selectedSessions, setSelectedSessions] = useState<Set<string>>(new Set());
   const [availableSessionsForBooking, setAvailableSessionsForBooking] = useState<OpenCourseSessionWithDetails[]>([]);
+  const [delegateSuggestions, setDelegateSuggestions] = useState<any[]>([]);
+  const [showDelegateSuggestions, setShowDelegateSuggestions] = useState(false);
+  const [selectedExistingDelegateId, setSelectedExistingDelegateId] = useState<string | null>(null);
 
   const [showResendModal, setShowResendModal] = useState(false);
   const [resendDelegate, setResendDelegate] = useState<any | null>(null);
@@ -479,6 +482,56 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     }
   }
 
+  // Search for existing delegates by name
+  async function searchDelegatesByName(searchTerm: string) {
+    if (!searchTerm || searchTerm.length < 2) {
+      setDelegateSuggestions([]);
+      setShowDelegateSuggestions(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('open_course_delegates')
+        .select('id, delegate_name, delegate_email, delegate_phone, delegate_company, dietary_requirements, special_requirements')
+        .ilike('delegate_name', `%${searchTerm}%`)
+        .order('delegate_name')
+        .limit(10);
+
+      if (error) throw error;
+
+      // Group by unique delegate (by email)
+      const uniqueDelegates = data?.reduce((acc: any[], curr) => {
+        const existing = acc.find(d => d.delegate_email === curr.delegate_email);
+        if (!existing) {
+          acc.push(curr);
+        }
+        return acc;
+      }, []) || [];
+
+      setDelegateSuggestions(uniqueDelegates);
+      setShowDelegateSuggestions(uniqueDelegates.length > 0);
+    } catch (error: any) {
+      console.error('Error searching delegates:', error);
+    }
+  }
+
+  // Handle selecting an existing delegate from suggestions
+  function handleSelectExistingDelegate(delegate: any) {
+    setNewDelegateData({
+      delegate_name: delegate.delegate_name,
+      delegate_email: delegate.delegate_email,
+      delegate_phone: delegate.delegate_phone || '',
+      delegate_company: delegate.delegate_company || '',
+      dietary_requirements: delegate.dietary_requirements || '',
+      special_requirements: delegate.special_requirements || '',
+      notes: '',
+    });
+    setSelectedExistingDelegateId(delegate.id);
+    setShowDelegateSuggestions(false);
+    setDelegateSuggestions([]);
+  }
+
   // Drag and Drop Handlers
   function handleDragStart(delegate: OpenCourseDelegateWithDetails, fromSessionId: string) {
     setDraggedDelegate({ delegate, fromSessionId });
@@ -797,6 +850,18 @@ The Training Team`,
       setShowAddDelegateModal(false);
       setAddDelegateStep(1);
       setSelectedSessions(new Set());
+      setDelegateSuggestions([]);
+      setShowDelegateSuggestions(false);
+      setSelectedExistingDelegateId(null);
+      setNewDelegateData({
+        delegate_name: '',
+        delegate_email: '',
+        delegate_phone: '',
+        delegate_company: '',
+        dietary_requirements: '',
+        special_requirements: '',
+        notes: '',
+      });
       loadData();
     } catch (error: any) {
       setNotification({
@@ -1956,6 +2021,18 @@ The Training Team`,
                   setShowAddDelegateModal(false);
                   setAddDelegateStep(1);
                   setSelectedSessions(new Set());
+                  setDelegateSuggestions([]);
+                  setShowDelegateSuggestions(false);
+                  setSelectedExistingDelegateId(null);
+                  setNewDelegateData({
+                    delegate_name: '',
+                    delegate_email: '',
+                    delegate_phone: '',
+                    delegate_company: '',
+                    dietary_requirements: '',
+                    special_requirements: '',
+                    notes: '',
+                  });
                 }}
                 className="p-2 hover:bg-slate-800 rounded transition-colors"
               >
@@ -1966,18 +2043,54 @@ The Training Team`,
             <div className="flex-1 overflow-y-auto p-6">
               {addDelegateStep === 1 ? (
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
+                  <div className="col-span-2 relative">
                     <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
                       Name *
                     </label>
                     <input
                       type="text"
                       value={newDelegateData.delegate_name}
-                      onChange={(e) => setNewDelegateData({ ...newDelegateData, delegate_name: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setNewDelegateData({ ...newDelegateData, delegate_name: value });
+                        setSelectedExistingDelegateId(null);
+                        searchDelegatesByName(value);
+                      }}
+                      onFocus={() => {
+                        if (newDelegateData.delegate_name.length >= 2 && delegateSuggestions.length > 0) {
+                          setShowDelegateSuggestions(true);
+                        }
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setShowDelegateSuggestions(false), 200);
+                      }}
                       className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
                       placeholder="Full name"
                       required
                     />
+
+                    {/* Autocomplete Suggestions */}
+                    {showDelegateSuggestions && delegateSuggestions.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded shadow-lg max-h-60 overflow-y-auto">
+                        {delegateSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion.id}
+                            type="button"
+                            onClick={() => handleSelectExistingDelegate(suggestion)}
+                            className="w-full px-3 py-2 text-left hover:bg-slate-700 transition-colors flex justify-between items-center"
+                          >
+                            <span className="font-medium">{suggestion.delegate_name}</span>
+                            <span className="text-sm text-slate-400">{suggestion.delegate_email}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {selectedExistingDelegateId && (
+                      <p className="text-xs text-blue-400 mt-1">
+                        Using existing delegate - booking will be added to their profile
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -2160,6 +2273,19 @@ The Training Team`,
                     onClick={() => {
                       setShowAddDelegateModal(false);
                       setAddDelegateStep(1);
+                      setSelectedSessions(new Set());
+                      setDelegateSuggestions([]);
+                      setShowDelegateSuggestions(false);
+                      setSelectedExistingDelegateId(null);
+                      setNewDelegateData({
+                        delegate_name: '',
+                        delegate_email: '',
+                        delegate_phone: '',
+                        delegate_company: '',
+                        dietary_requirements: '',
+                        special_requirements: '',
+                        notes: '',
+                      });
                     }}
                     className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
                   >
