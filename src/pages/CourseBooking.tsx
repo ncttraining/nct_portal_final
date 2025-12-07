@@ -222,7 +222,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
           name,
           email
         ),
-        delegates:open_course_delegates(
+        delegates:open_course_delegates!open_course_delegates_session_id_fkey(
           id,
           delegate_name,
           delegate_email,
@@ -234,13 +234,6 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       .not('trainer_id', 'is', null)
       .eq('status', 'confirmed')
       .order('session_date', { ascending: true });
-
-    console.log('Open Courses Query Debug:', {
-      error: openCoursesError,
-      dataCount: openCoursesData?.length || 0,
-      dateRange: { startDate, endDateStr },
-      rawData: openCoursesData
-    });
 
     if (openCoursesError) {
       console.error('Error loading open courses:', openCoursesError);
@@ -274,15 +267,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       open_course_session_id: session.id
     }));
 
-    const combinedBookings = [...(bookingsData || []), ...transformedOpenCourses];
-    console.log('Combined Bookings:', {
-      regularBookings: bookingsData?.length || 0,
-      openCourses: transformedOpenCourses.length,
-      total: combinedBookings.length,
-      openCoursesDetails: transformedOpenCourses
-    });
-
-    setBookings(combinedBookings);
+    setBookings([...(bookingsData || []), ...transformedOpenCourses]);
   }
 
   async function loadClients() {
