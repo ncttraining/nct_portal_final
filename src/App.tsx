@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, Shield, Calendar, GraduationCap, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, ArrowRight, UserCog, Inbox, CalendarClock, DoorOpen, CalendarDays } from 'lucide-react';
+import { AlertCircle, Shield, Calendar, GraduationCap, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, ArrowRight, UserCog, Inbox, CalendarClock, DoorOpen, CalendarDays, ClipboardList } from 'lucide-react';
 import PageHeader from './components/PageHeader';
 import TrainerMap from './pages/TrainerMap';
 import TrainerTypes from './pages/TrainerTypes';
@@ -19,21 +19,30 @@ import TrainerCalendar from './pages/TrainerCalendar';
 import TrainerAvailability from './pages/TrainerAvailability';
 import CentreManagement from './pages/CentreManagement';
 import OpenCoursesDashboard from './pages/OpenCoursesDashboard';
+import OpenCoursesRegisterList from './pages/OpenCoursesRegisterList';
+import OpenCoursesRegisterTrainer from './pages/OpenCoursesRegisterTrainer';
+import OpenCoursesRegisterAdmin from './pages/OpenCoursesRegisterAdmin';
 import EditProfile from './components/EditProfile';
 import { useAuth } from './contexts/AuthContext';
 
-type PageType = 'home' | 'administration' | 'bookings-management' | 'course-management' | 'trainer-map' | 'trainer-types' | 'email-templates' | 'email-queue' | 'user-management' | 'trainer-management' | 'course-booking' | 'candidates-management' | 'client-management' | 'certificate-templates' | 'certificates' | 'course-types' | 'bookings-viewer' | 'trainer-expenses' | 'trainer-availability' | 'centre-management' | 'open-courses';
+type PageType = 'home' | 'administration' | 'bookings-management' | 'course-management' | 'trainer-map' | 'trainer-types' | 'email-templates' | 'email-queue' | 'user-management' | 'trainer-management' | 'course-booking' | 'candidates-management' | 'client-management' | 'certificate-templates' | 'certificates' | 'course-types' | 'bookings-viewer' | 'trainer-expenses' | 'trainer-availability' | 'centre-management' | 'open-courses' | 'open-courses-registers' | 'open-courses-register-trainer' | 'open-courses-register-admin';
+
+interface NavigationData {
+  sessionId?: string;
+}
 
 function App() {
   const { profile, reloadProfile } = useAuth();
   const [currentPage, setCurrentPage] = useState<PageType>('home');
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [navigationData, setNavigationData] = useState<NavigationData>({});
 
   const isAdmin = profile?.role === 'admin';
   const canManageBookings = isAdmin || profile?.can_manage_bookings;
   const canManageCourses = isAdmin || profile?.can_manage_courses;
   const canViewBookings = isAdmin || profile?.can_view_bookings;
   const canManageExpenses = isAdmin || profile?.can_manage_expenses;
+  const isTrainer = profile?.is_trainer;
 
   function hasAccess(page: string): boolean {
     switch (page) {
@@ -51,6 +60,13 @@ function App() {
       case 'centre-management':
       case 'open-courses':
         return canManageBookings;
+      case 'open-courses-registers':
+      case 'open-courses-register-trainer':
+        // Trainers can access their registers, admins and booking managers can access all
+        return isTrainer || canManageBookings;
+      case 'open-courses-register-admin':
+        // Admin view is only for admins
+        return isAdmin;
       case 'certificate-templates':
       case 'certificates':
       case 'course-types':
@@ -64,9 +80,14 @@ function App() {
     }
   }
 
-  function handleNavigate(page: string) {
+  function handleNavigate(page: string, data?: NavigationData) {
     if (page === 'home' || hasAccess(page)) {
       setCurrentPage(page as PageType);
+      if (data) {
+        setNavigationData(data);
+      } else {
+        setNavigationData({});
+      }
     }
   }
 
@@ -145,6 +166,15 @@ function App() {
         break;
       case 'open-courses':
         pageContent = <OpenCoursesDashboard currentPage={currentPage} onNavigate={handleNavigate} />;
+        break;
+      case 'open-courses-registers':
+        pageContent = <OpenCoursesRegisterList currentPage={currentPage} onNavigate={handleNavigate} />;
+        break;
+      case 'open-courses-register-trainer':
+        pageContent = <OpenCoursesRegisterTrainer currentPage={currentPage} onNavigate={handleNavigate} sessionId={navigationData.sessionId} />;
+        break;
+      case 'open-courses-register-admin':
+        pageContent = <OpenCoursesRegisterAdmin currentPage={currentPage} onNavigate={handleNavigate} sessionId={navigationData.sessionId} />;
         break;
     }
 
@@ -234,6 +264,12 @@ function App() {
           title: 'Open Courses Dashboard',
           description: 'Manage public course sessions and delegates',
           icon: CalendarDays,
+        },
+        {
+          id: 'open-courses-registers',
+          title: 'Open Courses Registers',
+          description: 'Manage attendance and DVSA compliance',
+          icon: ClipboardList,
         },
         {
           id: 'candidates-management',

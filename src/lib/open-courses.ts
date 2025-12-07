@@ -63,6 +63,20 @@ export interface OpenCourseSession {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Stage 3: Trainer declaration fields
+  trainer_declaration_signed: boolean;
+  trainer_declaration_at?: string;
+  trainer_declaration_by?: string;
+  break_time?: string;
+}
+
+export interface CourseType {
+  id: string;
+  name: string;
+  code: string;
+  jaupt_code?: string;
+  duration_days?: number;
+  duration_unit?: string;
 }
 
 export interface OpenCourseSessionWithDetails extends OpenCourseSession {
@@ -72,11 +86,7 @@ export interface OpenCourseSessionWithDetails extends OpenCourseSession {
     name: string;
     email: string | null;
   };
-  course_type?: {
-    id: string;
-    name: string;
-    code: string;
-  };
+  course_type?: CourseType;
   delegate_count?: number;
   order_count?: number;
 }
@@ -102,6 +112,15 @@ export interface OpenCourseOrder {
   synced_at: string | null;
 }
 
+// Attendance detail type for session attendance tracking
+export type AttendanceDetail = 'attended' | 'absent' | 'late' | 'left_early';
+
+// ID verification type options
+export type IdType = 'NONE' | 'DL' | 'DQC' | 'Digitaco' | 'Passport' | 'Other';
+
+// Licence category options for CPC courses
+export type LicenceCategory = 'C' | 'CE' | 'C1' | 'C1E' | 'D' | 'DE' | 'D1' | 'D1E' | 'C+E' | 'D+E';
+
 export interface OpenCourseDelegate {
   id: string;
   order_id: string;
@@ -121,6 +140,17 @@ export interface OpenCourseDelegate {
   created_at: string;
   updated_at: string;
   synced_at: string | null;
+  // Stage 3: DVSA compliance tracking fields
+  driver_number?: string;
+  licence_category?: LicenceCategory;
+  id_type?: IdType;
+  id_checked: boolean;
+  attendance_detail?: AttendanceDetail;
+  additional_comments?: string;
+  dvsa_uploaded: boolean;
+  dvsa_uploaded_at?: string;
+  dvsa_uploaded_by?: string;
+  attendance_marked_by?: string;
 }
 
 export interface OpenCourseDelegateWithDetails extends OpenCourseDelegate {
@@ -711,4 +741,532 @@ export function getCapacityBgColor(registeredCount: number, capacityLimit: numbe
   if (percentage >= 90) return 'bg-orange-500/10 border-orange-500/20';
   if (percentage >= 75) return 'bg-yellow-500/10 border-yellow-500/20';
   return 'bg-green-500/10 border-green-500/20';
+}
+
+// ============================================================================
+// Stage 3: Register Management Functions
+// ============================================================================
+
+/**
+ * Get user initials from user ID
+ */
+export async function getUserInitials(userId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('full_name, email')
+    .eq('id', userId)
+    .single();
+
+  if (error || !data) return '?';
+
+  if (data.full_name) {
+    const parts = data.full_name.trim().split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return data.full_name.substring(0, 2).toUpperCase();
+  }
+
+  // Fallback to email initials
+  if (data.email) {
+    const localPart = data.email.split('@')[0];
+    const parts = localPart.split('.');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return localPart.substring(0, 2).toUpperCase();
+  }
+
+  return '?';
+}
+
+/**
+ * Get multiple user initials in a batch
+ */
+export async function getUserInitialsBatch(userIds: string[]): Promise<Record<string, string>> {
+  if (userIds.length === 0) return {};
+
+  const uniqueIds = [...new Set(userIds.filter(id => id))];
+  if (uniqueIds.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, full_name, email')
+    .in('id', uniqueIds);
+
+  if (error || !data) return {};
+
+  const initials: Record<string, string> = {};
+  for (const user of data) {
+    if (user.full_name) {
+      const parts = user.full_name.trim().split(' ');
+      if (parts.length >= 2) {
+        initials[user.id] = `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+      } else {
+        initials[user.id] = user.full_name.substring(0, 2).toUpperCase();
+      }
+    } else if (user.email) {
+      const localPart = user.email.split('@')[0];
+      const parts = localPart.split('.');
+      if (parts.length >= 2) {
+        initials[user.id] = `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+      } else {
+        initials[user.id] = localPart.substring(0, 2).toUpperCase();
+      }
+    } else {
+      initials[user.id] = '?';
+    }
+  }
+
+  return initials;
+}
+
+/**
+ * Update delegate attendance
+ */
+export async function updateDelegateAttendance(
+  delegateId: string,
+  attendanceDetail: AttendanceDetail,
+  userId: string
+): Promise<OpenCourseDelegate> {
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      attendance_detail: attendanceDetail,
+      attendance_marked_by: userId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', delegateId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update delegate ID check status
+ */
+export async function updateDelegateIdCheck(
+  delegateId: string,
+  idChecked: boolean
+): Promise<OpenCourseDelegate> {
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      id_checked: idChecked,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', delegateId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update delegate ID type
+ */
+export async function updateDelegateIdType(
+  delegateId: string,
+  idType: IdType
+): Promise<OpenCourseDelegate> {
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      id_type: idType,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', delegateId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update delegate licence category
+ */
+export async function updateDelegateLicenceCategory(
+  delegateId: string,
+  licenceCategory: LicenceCategory | null
+): Promise<OpenCourseDelegate> {
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      licence_category: licenceCategory,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', delegateId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update delegate driver number
+ */
+export async function updateDelegateDriverNumber(
+  delegateId: string,
+  driverNumber: string
+): Promise<OpenCourseDelegate> {
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      driver_number: driverNumber,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', delegateId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update delegate additional comments
+ */
+export async function updateDelegateComments(
+  delegateId: string,
+  comments: string
+): Promise<OpenCourseDelegate> {
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      additional_comments: comments,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', delegateId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update delegate DVSA upload status (admin only)
+ */
+export async function updateDelegateDVSAUpload(
+  delegateId: string,
+  uploaded: boolean,
+  userId: string
+): Promise<OpenCourseDelegate> {
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      dvsa_uploaded: uploaded,
+      dvsa_uploaded_at: uploaded ? new Date().toISOString() : null,
+      dvsa_uploaded_by: uploaded ? userId : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', delegateId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Batch update delegate fields (for efficiency)
+ */
+export async function updateDelegateFields(
+  delegateId: string,
+  updates: Partial<Pick<OpenCourseDelegate,
+    'driver_number' | 'licence_category' | 'id_type' | 'id_checked' |
+    'attendance_detail' | 'additional_comments' | 'first_name' | 'last_name' | 'email'
+  >>,
+  userId?: string
+): Promise<OpenCourseDelegate> {
+  const updateData: any = {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Track who marked attendance if attendance_detail is being updated
+  if (updates.attendance_detail && userId) {
+    updateData.attendance_marked_by = userId;
+  }
+
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .update(updateData)
+    .eq('id', delegateId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Sign trainer declaration for a session
+ */
+export async function signTrainerDeclaration(
+  sessionId: string,
+  signed: boolean,
+  userId: string
+): Promise<OpenCourseSession> {
+  const { data, error } = await supabase
+    .from('open_course_sessions')
+    .update({
+      trainer_declaration_signed: signed,
+      trainer_declaration_at: signed ? new Date().toISOString() : null,
+      trainer_declaration_by: signed ? userId : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', sessionId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update session schedule details
+ */
+export async function updateSessionSchedule(
+  sessionId: string,
+  updates: Partial<Pick<OpenCourseSession, 'start_time' | 'end_time' | 'break_time'>>
+): Promise<OpenCourseSession> {
+  const { data, error } = await supabase
+    .from('open_course_sessions')
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', sessionId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Get sessions for register list with delegate counts
+ */
+export async function getSessionsForRegisters(filters?: {
+  startDate?: string;
+  endDate?: string;
+  courseTypeId?: string;
+  venueId?: string;
+  trainerId?: string;
+  searchTerm?: string;
+}): Promise<OpenCourseSessionWithDetails[]> {
+  let query = supabase
+    .from('open_course_sessions')
+    .select(`
+      *,
+      venue:venues(id, name, code, town, postcode),
+      trainer:trainers(id, name, email),
+      course_type:course_types(id, name, code, jaupt_code)
+    `)
+    .order('session_date', { ascending: false });
+
+  if (filters?.startDate) {
+    query = query.gte('session_date', filters.startDate);
+  }
+  if (filters?.endDate) {
+    query = query.lte('session_date', filters.endDate);
+  }
+  if (filters?.courseTypeId) {
+    query = query.eq('course_type_id', filters.courseTypeId);
+  }
+  if (filters?.venueId) {
+    query = query.eq('venue_id', filters.venueId);
+  }
+  if (filters?.trainerId) {
+    query = query.eq('trainer_id', filters.trainerId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  // Apply search filter if provided
+  let sessions = data || [];
+  if (filters?.searchTerm) {
+    const term = filters.searchTerm.toLowerCase();
+    sessions = sessions.filter(session =>
+      session.event_title?.toLowerCase().includes(term) ||
+      session.trainer?.name?.toLowerCase().includes(term) ||
+      session.venue?.name?.toLowerCase().includes(term) ||
+      session.course_type?.name?.toLowerCase().includes(term) ||
+      session.course_type?.jaupt_code?.toLowerCase().includes(term)
+    );
+  }
+
+  return sessions;
+}
+
+/**
+ * Get delegates for a session with full details for register view
+ */
+export async function getDelegatesForRegister(sessionId: string): Promise<OpenCourseDelegateWithDetails[]> {
+  const { data, error } = await supabase
+    .from('open_course_delegates')
+    .select(`
+      *,
+      order:open_course_orders(*)
+    `)
+    .eq('session_id', sessionId)
+    .neq('attendance_status', 'cancelled')
+    .order('last_name', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Get register statistics for a session
+ */
+export async function getRegisterStats(sessionId: string): Promise<{
+  totalDelegates: number;
+  presentDelegates: number;
+  absentDelegates: number;
+  idsChecked: number;
+  dvsaUploaded: number;
+}> {
+  const delegates = await getDelegatesForRegister(sessionId);
+
+  const presentStatuses: AttendanceDetail[] = ['attended', 'late', 'left_early'];
+
+  return {
+    totalDelegates: delegates.length,
+    presentDelegates: delegates.filter(d => d.attendance_detail && presentStatuses.includes(d.attendance_detail)).length,
+    absentDelegates: delegates.filter(d => d.attendance_detail === 'absent').length,
+    idsChecked: delegates.filter(d => d.id_checked).length,
+    dvsaUploaded: delegates.filter(d => d.dvsa_uploaded).length,
+  };
+}
+
+/**
+ * Check if a course is a CPC course (has JAUPT code)
+ */
+export function isCPCCourse(session: OpenCourseSessionWithDetails): boolean {
+  return !!session.course_type?.jaupt_code;
+}
+
+/**
+ * Get delegate row color based on attendance and ID check status
+ */
+export function getDelegateRowColor(delegate: OpenCourseDelegate): string {
+  const attendedStatuses: AttendanceDetail[] = ['attended', 'late', 'left_early'];
+  const isAttended = delegate.attendance_detail && attendedStatuses.includes(delegate.attendance_detail);
+
+  if (isAttended && delegate.id_checked) {
+    return 'bg-green-500/10'; // Green background
+  }
+
+  // If absent, show pink/red
+  if (delegate.attendance_detail === 'absent') {
+    return 'bg-red-500/10';
+  }
+
+  // Default - no attendance marked yet or attended but ID not checked
+  if (isAttended && !delegate.id_checked) {
+    return 'bg-yellow-500/10'; // Yellow - needs attention
+  }
+
+  return ''; // No special color for unprocessed
+}
+
+/**
+ * Get session with full register details
+ */
+export async function getSessionForRegister(sessionId: string): Promise<OpenCourseSessionWithDetails | null> {
+  const { data, error } = await supabase
+    .from('open_course_sessions')
+    .select(`
+      *,
+      venue:venues(id, name, code, town, postcode, address1, address2),
+      trainer:trainers(id, name, email),
+      course_type:course_types(id, name, code, jaupt_code)
+    `)
+    .eq('id', sessionId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Check if current user has access to a session's register
+ * (is the assigned trainer or an admin)
+ */
+export async function checkRegisterAccess(sessionId: string, userId: string): Promise<{
+  hasAccess: boolean;
+  isTrainer: boolean;
+  isAdmin: boolean;
+}> {
+  // Check if user is admin
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single();
+
+  if (userError) throw userError;
+
+  const isAdmin = userData?.role === 'admin';
+
+  // If admin, they have access
+  if (isAdmin) {
+    return { hasAccess: true, isTrainer: false, isAdmin: true };
+  }
+
+  // Check if user is the assigned trainer
+  const { data: sessionData, error: sessionError } = await supabase
+    .from('open_course_sessions')
+    .select(`
+      trainer_id,
+      trainer:trainers!inner(id, user_id)
+    `)
+    .eq('id', sessionId)
+    .single();
+
+  if (sessionError) throw sessionError;
+
+  const isTrainer = (sessionData?.trainer as any)?.user_id === userId;
+
+  return {
+    hasAccess: isTrainer,
+    isTrainer,
+    isAdmin: false,
+  };
+}
+
+/**
+ * Get trainers list for filtering
+ */
+export async function getTrainers(): Promise<Array<{ id: string; name: string }>> {
+  const { data, error } = await supabase
+    .from('trainers')
+    .select('id, name')
+    .eq('active', true)
+    .order('name');
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Get course types list for filtering
+ */
+export async function getCourseTypes(): Promise<CourseType[]> {
+  const { data, error } = await supabase
+    .from('course_types')
+    .select('id, name, code, jaupt_code')
+    .order('name');
+
+  if (error) throw error;
+  return data || [];
 }
