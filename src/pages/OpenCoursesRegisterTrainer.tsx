@@ -187,8 +187,8 @@ export default function OpenCoursesRegisterTrainer({
 
   // Handle schedule updates
   const handleScheduleUpdate = async (
-    field: 'start_time' | 'end_time' | 'break_time',
-    value: string
+    field: 'actual_start_time' | 'actual_end_time' | 'break_duration_minutes',
+    value: string | number | null
   ) => {
     if (!session) return;
 
@@ -267,9 +267,9 @@ export default function OpenCoursesRegisterTrainer({
         <RegisterHeader
           session={session}
           editable={true}
-          onStartTimeChange={(time) => handleScheduleUpdate('start_time', time)}
-          onEndTimeChange={(time) => handleScheduleUpdate('end_time', time)}
-          onBreakTimeChange={(time) => handleScheduleUpdate('break_time', time)}
+          onStartTimeChange={(time) => handleScheduleUpdate('actual_start_time', time)}
+          onEndTimeChange={(time) => handleScheduleUpdate('actual_end_time', time)}
+          onBreakTimeChange={(minutes) => handleScheduleUpdate('break_duration_minutes', minutes)}
           showStats={true}
           presentCount={presentCount}
           totalCount={delegates.length}

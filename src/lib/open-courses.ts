@@ -67,7 +67,10 @@ export interface OpenCourseSession {
   trainer_declaration_signed: boolean;
   trainer_declaration_at?: string;
   trainer_declaration_by?: string;
-  break_time?: string;
+  // Stage 3: Actual session times (recorded by trainer)
+  actual_start_time?: string;
+  actual_end_time?: string;
+  break_duration_minutes?: number;
 }
 
 export interface CourseType {
@@ -1034,7 +1037,7 @@ export async function signTrainerDeclaration(
  */
 export async function updateSessionSchedule(
   sessionId: string,
-  updates: Partial<Pick<OpenCourseSession, 'start_time' | 'end_time' | 'break_time'>>
+  updates: Partial<Pick<OpenCourseSession, 'actual_start_time' | 'actual_end_time' | 'break_duration_minutes'>>
 ): Promise<OpenCourseSession> {
   const { data, error } = await supabase
     .from('open_course_sessions')

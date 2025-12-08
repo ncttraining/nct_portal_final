@@ -97,9 +97,16 @@ ADD COLUMN IF NOT EXISTS trainer_declaration_at TIMESTAMPTZ;
 ALTER TABLE open_course_sessions
 ADD COLUMN IF NOT EXISTS trainer_declaration_by UUID REFERENCES auth.users(id);
 
--- Break time field for session schedule
+-- Actual session times (recorded by trainer during session)
 ALTER TABLE open_course_sessions
-ADD COLUMN IF NOT EXISTS break_time TEXT;
+ADD COLUMN IF NOT EXISTS actual_start_time TIME;
+
+ALTER TABLE open_course_sessions
+ADD COLUMN IF NOT EXISTS actual_end_time TIME;
+
+-- Break duration in minutes (input by trainer)
+ALTER TABLE open_course_sessions
+ADD COLUMN IF NOT EXISTS break_duration_minutes INTEGER;
 
 -- ============================================================================
 -- 4. Add JAUPT code to course_types table (for CPC course identification)
