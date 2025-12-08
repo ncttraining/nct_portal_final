@@ -1285,7 +1285,7 @@ The Training Team`,
 
                           {/* Delegates */}
                           {delegates.length > 0 && (
-                            <div className="space-y-1 mb-2 max-h-32 overflow-y-auto">
+                            <div className="space-y-1 mb-2 max-h-32 overflow-y-auto overflow-x-hidden">
                               {delegates.map((delegate) => (
                                 <div
                                   key={delegate.id}
