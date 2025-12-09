@@ -297,8 +297,59 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     return dates;
   }
 
+  // Check if a session is multi-day
+  function isMultiDaySession(session: OpenCourseSessionWithDetails): boolean {
+    return !!(session.end_date && session.end_date !== session.session_date);
+  }
+
+  // Get single-day sessions for a specific date
   function getSessionsForDate(date: string): OpenCourseSessionWithDetails[] {
-    return sessions.filter(session => session.session_date === date);
+    return sessions.filter(session =>
+      session.session_date === date && !isMultiDaySession(session)
+    );
+  }
+
+  // Get multi-day sessions that overlap with the current week
+  function getMultiDaySessions(): OpenCourseSessionWithDetails[] {
+    const weekStart = weekDates[0]?.toISOString().split('T')[0];
+    const weekEnd = weekDates[6]?.toISOString().split('T')[0];
+
+    if (!weekStart || !weekEnd) return [];
+
+    return sessions.filter(session => {
+      if (!isMultiDaySession(session)) return false;
+
+      const sessionStart = session.session_date;
+      const sessionEnd = session.end_date!;
+
+      // Check if the multi-day session overlaps with the current week
+      return sessionStart <= weekEnd && sessionEnd >= weekStart;
+    });
+  }
+
+  // Calculate the span of a multi-day session within the current week (returns column indices)
+  function getMultiDaySpan(session: OpenCourseSessionWithDetails): { startCol: number; endCol: number } {
+    const weekStart = weekDates[0]?.toISOString().split('T')[0] || '';
+    const weekEnd = weekDates[6]?.toISOString().split('T')[0] || '';
+
+    const sessionStart = session.session_date;
+    const sessionEnd = session.end_date || session.session_date;
+
+    // Clamp to week boundaries
+    const visibleStart = sessionStart < weekStart ? weekStart : sessionStart;
+    const visibleEnd = sessionEnd > weekEnd ? weekEnd : sessionEnd;
+
+    // Find column indices
+    let startCol = 0;
+    let endCol = 6;
+
+    weekDates.forEach((date, index) => {
+      const dateStr = date.toISOString().split('T')[0];
+      if (dateStr === visibleStart) startCol = index;
+      if (dateStr === visibleEnd) endCol = index;
+    });
+
+    return { startCol, endCol };
   }
 
   function handleCreateSession() {
@@ -1297,27 +1348,29 @@ The Training Team`,
           </div>
         </div>
 
-        {/* Week Grid */}
-        <div className="grid grid-cols-7 gap-4">
-          {weekDates.map((date, index) => {
-            const dateString = date.toISOString().split('T')[0];
-            const daySessions = getSessionsForDate(dateString);
-            const isToday = dateString === new Date().toISOString().split('T')[0];
+        {/* Week Grid Container */}
+        <div className="relative">
+          {/* Week Grid */}
+          <div className="grid grid-cols-7 gap-4">
+            {weekDates.map((date, index) => {
+              const dateString = date.toISOString().split('T')[0];
+              const daySessions = getSessionsForDate(dateString);
+              const isToday = dateString === new Date().toISOString().split('T')[0];
 
-            return (
-              <div
-                key={dateString}
-                className={`bg-slate-900 border rounded-lg overflow-hidden ${
-                  isToday ? 'border-blue-500' : 'border-slate-800'
-                }`}
-              >
-                {/* Day Header */}
-                <div className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
-                  <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              return (
+                <div
+                  key={dateString}
+                  className={`bg-slate-900 border rounded-lg overflow-hidden ${
+                    isToday ? 'border-blue-500' : 'border-slate-800'
+                  }`}
+                >
+                  {/* Day Header */}
+                  <div className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
+                    <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    </div>
                   </div>
-                </div>
 
                 {/* Sessions */}
                 <div className="p-2 space-y-2 min-h-[200px]">
@@ -1503,6 +1556,255 @@ The Training Team`,
               </div>
             );
           })}
+          </div>
+
+          {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
+          {getMultiDaySessions().length > 0 && (
+            <>
+              <div className="relative mt-4">
+                {/* Background columns */}
+                <div className="grid grid-cols-7 gap-4 absolute inset-0 pointer-events-none">
+                  {weekDates.map((date, index) => {
+                    const dateString = date.toISOString().split('T')[0];
+                    const isToday = dateString === new Date().toISOString().split('T')[0];
+                    return (
+                      <div
+                        key={`bg-${dateString}`}
+                        className={`bg-slate-900 border rounded-lg ${
+                          isToday ? 'border-blue-500' : 'border-slate-800'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Multi-day sessions overlay */}
+                <div className="grid grid-cols-7 gap-4 relative">
+                  {getMultiDaySessions().map((session) => {
+                  const { startCol, endCol } = getMultiDaySpan(session);
+                  const spanCols = endCol - startCol + 1;
+                  const delegates = sessionDelegates[session.id] || [];
+                  const delegateCount = delegates.length;
+                  const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+                  const capacityBg = getCapacityBgColor(delegateCount, session.capacity_limit);
+                  const isDragOver = dragOverSessionId === session.id;
+
+                  // Calculate days text
+                  const startDate = new Date(session.session_date);
+                  const endDate = new Date(session.end_date || session.session_date);
+                  const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+                  return (
+                  <div
+                    key={session.id}
+                    className={`border rounded p-2 text-xs transition-all ${capacityBg} ${
+                      isDragOver ? 'ring-2 ring-blue-500 scale-105' : ''
+                    }`}
+                    style={{
+                      gridColumn: `${startCol + 1} / span ${spanCols}`,
+                    }}
+                    onDragOver={(e) => handleDragOver(e, session.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, session.id)}
+                  >
+                    {/* Session Header */}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold truncate" title={decodeHtmlEntities(session.event_title)}>
+                          {decodeHtmlEntities(session.event_title)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {session.course_type && (
+                            <span className="text-slate-400 text-[10px] truncate">
+                              {session.course_type.code}
+                            </span>
+                          )}
+                          <span className="text-purple-400 text-[10px] font-medium">
+                            ({daysDiff} day{daysDiff > 1 ? 's' : ''})
+                          </span>
+                        </div>
+                      </div>
+                      {session.is_online && (
+                        <Video className="w-3 h-3 text-blue-400 ml-1 flex-shrink-0" />
+                      )}
+                    </div>
+
+                    {/* Session Details */}
+                    <div className="space-y-1 mb-2">
+                      {session.start_time && (
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatTime(session.start_time)} - {formatTime(session.end_time || '')}</span>
+                        </div>
+                      )}
+
+                      {session.venue && !session.is_online && (
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate" title={session.venue.name}>
+                            {session.venue.town || session.venue.name}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-1">
+                        <Users className={`w-3 h-3 ${capacityColor}`} />
+                        <span className={capacityColor}>
+                          {delegateCount} / {session.capacity_limit}
+                        </span>
+                        {delegateCount >= session.capacity_limit && (
+                          <span className="ml-1 text-red-400 font-semibold">FULL</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Delegates */}
+                    {delegates.length > 0 && (
+                      <div className="space-y-1 mb-2 max-h-32 overflow-y-auto overflow-x-hidden">
+                        {delegates.map((delegate) => (
+                          <div
+                            key={delegate.id}
+                            className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group"
+                          >
+                            <div className="flex items-center gap-1">
+                              <div
+                                draggable
+                                onDragStart={() => handleDragStart(delegate, session.id)}
+                                className="flex-1 cursor-move"
+                                title="Drag to transfer delegate"
+                              >
+                                <div className="text-[10px] font-medium truncate">
+                                  {delegate.delegate_name}
+                                </div>
+                                {delegate.delegate_company && (
+                                  <div className="text-[9px] text-slate-500 truncate">
+                                    {delegate.delegate_company}
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenResendModal(delegate, session);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Resend booking details"
+                              >
+                                <Mail className="w-3 h-3 text-slate-400" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEditDelegate(delegate);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Edit delegate details"
+                              >
+                                <Edit className="w-3 h-3 text-slate-400" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenMoveModal(delegate, session.id, session.course_type_id);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Move to different session"
+                              >
+                                <MoveRight className="w-3 h-3 text-slate-400" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 pt-2 border-t border-slate-700/50">
+                      <button
+                        onClick={() => handleEditSession(session)}
+                        className="p-1 hover:bg-slate-700 rounded transition-colors"
+                        title="Edit Session"
+                      >
+                        <Edit className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDuplicateSession(session)}
+                        className="p-1 hover:bg-slate-700 rounded transition-colors"
+                        title="Duplicate Session"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSession(session)}
+                        className="p-1 hover:bg-red-500/20 text-red-400 rounded transition-colors"
+                        title="Delete Session"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                  );
+                })}
+                </div>
+              </div>
+
+              {/* Assign Trainer Buttons - positioned below sessions */}
+              <div className="relative mt-2">
+                {/* Background columns */}
+                <div className="grid grid-cols-7 gap-4 absolute inset-0 pointer-events-none">
+                  {weekDates.map((date, index) => {
+                    const dateString = date.toISOString().split('T')[0];
+                    const isToday = dateString === new Date().toISOString().split('T')[0];
+                    return (
+                      <div
+                        key={`bg-assign-${dateString}`}
+                        className={`bg-slate-900 border rounded-lg ${
+                          isToday ? 'border-blue-500' : 'border-slate-800'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Assign trainer buttons overlay */}
+                <div className="grid grid-cols-7 gap-4 relative">
+                {getMultiDaySessions().map((session) => {
+                  const { startCol, endCol } = getMultiDaySpan(session);
+                  const spanCols = endCol - startCol + 1;
+
+                  return (
+                    <div
+                      key={`assign-${session.id}`}
+                      style={{
+                        gridColumn: `${startCol + 1} / span ${spanCols}`,
+                      }}
+                    >
+                      {session.trainer ? (
+                        <button
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          className="w-full p-3 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 rounded-lg transition-all text-sm flex items-center justify-center gap-2 text-slate-400 hover:text-slate-300"
+                          title="Click to change trainer"
+                        >
+                          <UserCog className="w-4 h-4" />
+                          <span className="font-medium">{session.trainer.name}</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          className="w-full p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/50 rounded-lg transition-all text-sm flex items-center justify-center gap-2 text-amber-400 hover:text-amber-300"
+                          title="Click to assign trainer"
+                        >
+                          <UserCog className="w-4 h-4" />
+                          <span className="font-semibold">ASSIGN TRAINER</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Legend */}
@@ -2491,24 +2793,31 @@ The Training Team`,
                         const isSelected = selectedSessions.has(session.id);
                         const delegateCount = sessionDelegates[session.id]?.length || 0;
                         const isFull = delegateCount >= session.capacity_limit;
+                        const isOverbooked = delegateCount > session.capacity_limit;
                         const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
 
                         return (
                           <div
                             key={session.id}
-                            onClick={() => !isFull && toggleSessionSelection(session.id)}
+                            onClick={() => toggleSessionSelection(session.id)}
                             className={`p-4 rounded-lg border transition-all cursor-pointer ${
                               isSelected
-                                ? 'bg-blue-500/10 border-blue-500'
+                                ? isFull
+                                  ? 'bg-red-500/20 border-red-500'
+                                  : 'bg-blue-500/10 border-blue-500'
                                 : isFull
-                                ? 'bg-slate-800/30 border-slate-700 opacity-50 cursor-not-allowed'
+                                ? 'bg-red-500/10 border-red-500/50 hover:border-red-500'
                                 : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
                             }`}
                           >
                             <div className="flex items-start gap-3">
                               <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${
                                 isSelected
-                                  ? 'bg-blue-500 border-blue-500'
+                                  ? isFull
+                                    ? 'bg-red-500 border-red-500'
+                                    : 'bg-blue-500 border-blue-500'
+                                  : isFull
+                                  ? 'border-red-500/50'
                                   : 'border-slate-600'
                               }`}>
                                 {isSelected && (
@@ -2519,7 +2828,10 @@ The Training Team`,
                               </div>
 
                               <div className="flex-1">
-                                <div className="font-medium">{session.event_title}</div>
+                                <div className={`font-medium ${isFull ? 'text-red-300' : ''}`}>
+                                  {session.event_title}
+                                  {isFull && <span className="ml-2 text-xs text-red-400 font-normal">(Overbook)</span>}
+                                </div>
                                 {session.event_subtitle && (
                                   <div className="text-xs text-slate-400 mt-1">{decodeHtmlEntities(session.event_subtitle)}</div>
                                 )}
@@ -2545,7 +2857,7 @@ The Training Team`,
                                       {session.venue.name}
                                     </div>
                                   )}
-                                  <div className={`flex items-center gap-1 ${capacityColor}`}>
+                                  <div className={`flex items-center gap-1 ${isFull ? 'text-red-400' : capacityColor}`}>
                                     <Users className="w-3 h-3" />
                                     {delegateCount} / {session.capacity_limit}
                                     {isFull && <span className="ml-1 font-semibold">FULL</span>}
