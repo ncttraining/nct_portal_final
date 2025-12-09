@@ -1647,6 +1647,28 @@ The Training Team`,
                         </div>
                       )}
 
+                      {session.trainer ? (
+                        <div
+                          className="flex items-center gap-1 text-slate-400 cursor-pointer hover:text-slate-300 transition-colors"
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          title="Click to change trainer"
+                        >
+                          <UserCog className="w-3 h-3" />
+                          <span className="truncate" title={session.trainer.name}>
+                            {session.trainer.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex items-center gap-1 text-amber-400 cursor-pointer hover:text-amber-300 transition-colors"
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          title="Click to assign trainer"
+                        >
+                          <UserCog className="w-3 h-3" />
+                          <span className="text-xs font-semibold">ASSIGN TRAINER</span>
+                        </div>
+                      )}
+
                       <div className="flex items-center gap-1">
                         <Users className={`w-3 h-3 ${capacityColor}`} />
                         <span className={capacityColor}>
@@ -1743,62 +1765,6 @@ The Training Team`,
                       </button>
                     </div>
                   </div>
-                  );
-                })}
-                </div>
-              </div>
-
-              {/* Assign Trainer Buttons - positioned below sessions */}
-              <div className="relative mt-2">
-                {/* Background columns */}
-                <div className="grid grid-cols-7 gap-4 absolute inset-0 pointer-events-none">
-                  {weekDates.map((date, index) => {
-                    const dateString = date.toISOString().split('T')[0];
-                    const isToday = dateString === new Date().toISOString().split('T')[0];
-                    return (
-                      <div
-                        key={`bg-assign-${dateString}`}
-                        className={`bg-slate-900 border rounded-lg ${
-                          isToday ? 'border-blue-500' : 'border-slate-800'
-                        }`}
-                      />
-                    );
-                  })}
-                </div>
-
-                {/* Assign trainer buttons overlay */}
-                <div className="grid grid-cols-7 gap-4 relative">
-                {getMultiDaySessions().map((session) => {
-                  const { startCol, endCol } = getMultiDaySpan(session);
-                  const spanCols = endCol - startCol + 1;
-
-                  return (
-                    <div
-                      key={`assign-${session.id}`}
-                      style={{
-                        gridColumn: `${startCol + 1} / span ${spanCols}`,
-                      }}
-                    >
-                      {session.trainer ? (
-                        <button
-                          onClick={() => handleOpenTrainerAssignModal(session)}
-                          className="w-full p-3 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 rounded-lg transition-all text-sm flex items-center justify-center gap-2 text-slate-400 hover:text-slate-300"
-                          title="Click to change trainer"
-                        >
-                          <UserCog className="w-4 h-4" />
-                          <span className="font-medium">{session.trainer.name}</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleOpenTrainerAssignModal(session)}
-                          className="w-full p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/50 rounded-lg transition-all text-sm flex items-center justify-center gap-2 text-amber-400 hover:text-amber-300"
-                          title="Click to assign trainer"
-                        >
-                          <UserCog className="w-4 h-4" />
-                          <span className="font-semibold">ASSIGN TRAINER</span>
-                        </button>
-                      )}
-                    </div>
                   );
                 })}
                 </div>
