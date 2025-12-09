@@ -2591,24 +2591,31 @@ The Training Team`,
                         const isSelected = selectedSessions.has(session.id);
                         const delegateCount = sessionDelegates[session.id]?.length || 0;
                         const isFull = delegateCount >= session.capacity_limit;
+                        const isOverbooked = delegateCount > session.capacity_limit;
                         const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
 
                         return (
                           <div
                             key={session.id}
-                            onClick={() => !isFull && toggleSessionSelection(session.id)}
+                            onClick={() => toggleSessionSelection(session.id)}
                             className={`p-4 rounded-lg border transition-all cursor-pointer ${
                               isSelected
-                                ? 'bg-blue-500/10 border-blue-500'
+                                ? isFull
+                                  ? 'bg-red-500/20 border-red-500'
+                                  : 'bg-blue-500/10 border-blue-500'
                                 : isFull
-                                ? 'bg-slate-800/30 border-slate-700 opacity-50 cursor-not-allowed'
+                                ? 'bg-red-500/10 border-red-500/50 hover:border-red-500'
                                 : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
                             }`}
                           >
                             <div className="flex items-start gap-3">
                               <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${
                                 isSelected
-                                  ? 'bg-blue-500 border-blue-500'
+                                  ? isFull
+                                    ? 'bg-red-500 border-red-500'
+                                    : 'bg-blue-500 border-blue-500'
+                                  : isFull
+                                  ? 'border-red-500/50'
                                   : 'border-slate-600'
                               }`}>
                                 {isSelected && (
@@ -2619,7 +2626,10 @@ The Training Team`,
                               </div>
 
                               <div className="flex-1">
-                                <div className="font-medium">{session.event_title}</div>
+                                <div className={`font-medium ${isFull ? 'text-red-300' : ''}`}>
+                                  {session.event_title}
+                                  {isFull && <span className="ml-2 text-xs text-red-400 font-normal">(Overbook)</span>}
+                                </div>
                                 {session.event_subtitle && (
                                   <div className="text-xs text-slate-400 mt-1">{decodeHtmlEntities(session.event_subtitle)}</div>
                                 )}
@@ -2645,7 +2655,7 @@ The Training Team`,
                                       {session.venue.name}
                                     </div>
                                   )}
-                                  <div className={`flex items-center gap-1 ${capacityColor}`}>
+                                  <div className={`flex items-center gap-1 ${isFull ? 'text-red-400' : capacityColor}`}>
                                     <Users className="w-3 h-3" />
                                     {delegateCount} / {session.capacity_limit}
                                     {isFull && <span className="ml-1 font-semibold">FULL</span>}
