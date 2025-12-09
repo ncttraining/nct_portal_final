@@ -162,6 +162,11 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [resendingSingle, setResendingSingle] = useState(false);
   const [resendingAll, setResendingAll] = useState(false);
 
+  const [showTrainerAssignModal, setShowTrainerAssignModal] = useState(false);
+  const [sessionToAssignTrainer, setSessionToAssignTrainer] = useState<OpenCourseSessionWithDetails | null>(null);
+  const [availableTrainers, setAvailableTrainers] = useState<any[]>([]);
+  const [assigningTrainer, setAssigningTrainer] = useState(false);
+
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'warning' | 'info';
     message: string;
@@ -1070,6 +1075,121 @@ The Training Team`,
     }
   }
 
+  async function handleOpenTrainerAssignModal(session: OpenCourseSessionWithDetails) {
+    setSessionToAssignTrainer(session);
+
+    try {
+      const { data: courseType } = await supabase
+        .from('course_types')
+        .select('trainer_type_id')
+        .eq('id', session.course_type_id)
+        .single();
+
+      if (!courseType?.trainer_type_id) {
+        setNotification({
+          type: 'error',
+          message: 'Course type has no trainer type assigned',
+        });
+        return;
+      }
+
+      const { data: trainerIds } = await supabase
+        .from('trainer_trainer_types')
+        .select('trainer_id')
+        .eq('trainer_type_id', courseType.trainer_type_id);
+
+      if (!trainerIds || trainerIds.length === 0) {
+        setNotification({
+          type: 'warning',
+          message: 'No trainers available for this course type',
+        });
+        setAvailableTrainers([]);
+        setShowTrainerAssignModal(true);
+        return;
+      }
+
+      const trainerIdsList = trainerIds.map(t => t.trainer_id);
+
+      const { data: trainersData, error } = await supabase
+        .from('trainers')
+        .select('id, name, email, active, suspended')
+        .in('id', trainerIdsList)
+        .eq('active', true)
+        .eq('suspended', false)
+        .order('name');
+
+      if (error) throw error;
+
+      setAvailableTrainers(trainersData || []);
+      setShowTrainerAssignModal(true);
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to load available trainers',
+      });
+    }
+  }
+
+  async function handleAssignTrainer(trainerId: string) {
+    if (!sessionToAssignTrainer) return;
+
+    setAssigningTrainer(true);
+    try {
+      const { error } = await supabase
+        .from('open_course_sessions')
+        .update({ trainer_id: trainerId, updated_at: new Date().toISOString() })
+        .eq('id', sessionToAssignTrainer.id);
+
+      if (error) throw error;
+
+      setNotification({
+        type: 'success',
+        message: 'Trainer assigned successfully',
+      });
+
+      setShowTrainerAssignModal(false);
+      setSessionToAssignTrainer(null);
+      loadWeekData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to assign trainer',
+      });
+    } finally {
+      setAssigningTrainer(false);
+    }
+  }
+
+  async function handleUnassignTrainer() {
+    if (!sessionToAssignTrainer) return;
+
+    setAssigningTrainer(true);
+    try {
+      const { error } = await supabase
+        .from('open_course_sessions')
+        .update({ trainer_id: null, updated_at: new Date().toISOString() })
+        .eq('id', sessionToAssignTrainer.id);
+
+      if (error) throw error;
+
+      setNotification({
+        type: 'success',
+        message: 'Trainer unassigned successfully',
+      });
+
+      setShowTrainerAssignModal(false);
+      setSessionToAssignTrainer(null);
+      loadWeekData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to unassign trainer',
+      });
+    } finally {
+      setAssigningTrainer(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white">
@@ -1259,14 +1379,22 @@ The Training Team`,
                             )}
 
                             {session.trainer ? (
-                              <div className="flex items-center gap-1 text-slate-400">
+                              <div
+                                className="flex items-center gap-1 text-slate-400 cursor-pointer hover:text-slate-300 transition-colors"
+                                onClick={() => handleOpenTrainerAssignModal(session)}
+                                title="Click to change trainer"
+                              >
                                 <UserCog className="w-3 h-3" />
                                 <span className="truncate" title={session.trainer.name}>
                                   {session.trainer.name}
                                 </span>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-1 text-amber-400">
+                              <div
+                                className="flex items-center gap-1 text-amber-400 cursor-pointer hover:text-amber-300 transition-colors"
+                                onClick={() => handleOpenTrainerAssignModal(session)}
+                                title="Click to assign trainer"
+                              >
                                 <UserCog className="w-3 h-3" />
                                 <span className="text-xs font-semibold">ASSIGN TRAINER</span>
                               </div>
@@ -2587,6 +2715,99 @@ The Training Team`,
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trainer Assignment Modal */}
+      {showTrainerAssignModal && sessionToAssignTrainer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+              <div>
+                <h2 className="text-xl font-semibold">Assign Trainer</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  {sessionToAssignTrainer.event_title}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {formatDate(sessionToAssignTrainer.session_date)} at {formatTime(sessionToAssignTrainer.start_time)}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowTrainerAssignModal(false);
+                  setSessionToAssignTrainer(null);
+                }}
+                className="p-2 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {availableTrainers.length === 0 ? (
+                <div className="text-center py-8">
+                  <UserCog className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-400">No trainers available for this course type</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-400 mb-4">
+                    Select a trainer qualified to deliver this course:
+                  </p>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {availableTrainers.map((trainer) => (
+                      <button
+                        key={trainer.id}
+                        onClick={() => handleAssignTrainer(trainer.id)}
+                        disabled={assigningTrainer}
+                        className={`w-full text-left p-4 rounded-lg border transition-all ${
+                          sessionToAssignTrainer.trainer_id === trainer.id
+                            ? 'bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/50'
+                            : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <UserCog className="w-5 h-5 text-slate-400" />
+                          <div className="flex-1">
+                            <div className="font-medium">{trainer.name}</div>
+                            {trainer.email && (
+                              <div className="text-xs text-slate-400 mt-1">{trainer.email}</div>
+                            )}
+                          </div>
+                          {sessionToAssignTrainer.trainer_id === trainer.id && (
+                            <div className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
+                              Current
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex items-center justify-end gap-3 rounded-b-lg">
+              <button
+                onClick={() => {
+                  setShowTrainerAssignModal(false);
+                  setSessionToAssignTrainer(null);
+                }}
+                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              {sessionToAssignTrainer.trainer_id && (
+                <button
+                  onClick={handleUnassignTrainer}
+                  disabled={assigningTrainer}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {assigningTrainer ? 'Unassigning...' : 'Unassign Trainer'}
+                </button>
+              )}
             </div>
           </div>
         </div>
