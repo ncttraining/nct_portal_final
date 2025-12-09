@@ -297,8 +297,59 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     return dates;
   }
 
+  // Check if a session is multi-day
+  function isMultiDaySession(session: OpenCourseSessionWithDetails): boolean {
+    return !!(session.end_date && session.end_date !== session.session_date);
+  }
+
+  // Get single-day sessions for a specific date
   function getSessionsForDate(date: string): OpenCourseSessionWithDetails[] {
-    return sessions.filter(session => session.session_date === date);
+    return sessions.filter(session =>
+      session.session_date === date && !isMultiDaySession(session)
+    );
+  }
+
+  // Get multi-day sessions that overlap with the current week
+  function getMultiDaySessions(): OpenCourseSessionWithDetails[] {
+    const weekStart = weekDates[0]?.toISOString().split('T')[0];
+    const weekEnd = weekDates[6]?.toISOString().split('T')[0];
+
+    if (!weekStart || !weekEnd) return [];
+
+    return sessions.filter(session => {
+      if (!isMultiDaySession(session)) return false;
+
+      const sessionStart = session.session_date;
+      const sessionEnd = session.end_date!;
+
+      // Check if the multi-day session overlaps with the current week
+      return sessionStart <= weekEnd && sessionEnd >= weekStart;
+    });
+  }
+
+  // Calculate the span of a multi-day session within the current week (returns column indices)
+  function getMultiDaySpan(session: OpenCourseSessionWithDetails): { startCol: number; endCol: number } {
+    const weekStart = weekDates[0]?.toISOString().split('T')[0] || '';
+    const weekEnd = weekDates[6]?.toISOString().split('T')[0] || '';
+
+    const sessionStart = session.session_date;
+    const sessionEnd = session.end_date || session.session_date;
+
+    // Clamp to week boundaries
+    const visibleStart = sessionStart < weekStart ? weekStart : sessionStart;
+    const visibleEnd = sessionEnd > weekEnd ? weekEnd : sessionEnd;
+
+    // Find column indices
+    let startCol = 0;
+    let endCol = 6;
+
+    weekDates.forEach((date, index) => {
+      const dateStr = date.toISOString().split('T')[0];
+      if (dateStr === visibleStart) startCol = index;
+      if (dateStr === visibleEnd) endCol = index;
+    });
+
+    return { startCol, endCol };
   }
 
   function handleCreateSession() {
@@ -1296,6 +1347,73 @@ The Training Team`,
             </div>
           </div>
         </div>
+
+        {/* Multi-Day Events Section */}
+        {getMultiDaySessions().length > 0 && (
+          <div className="mb-4">
+            <div className="text-xs text-slate-400 uppercase tracking-wide mb-2 font-semibold">
+              Multi-Day Courses
+            </div>
+            {/* Week Day Headers for Multi-Day Grid */}
+            <div className="grid grid-cols-7 gap-1 mb-1">
+              {weekDates.map((date, index) => (
+                <div key={index} className="text-center text-[10px] text-slate-500">
+                  {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                </div>
+              ))}
+            </div>
+            {/* Multi-Day Event Bars */}
+            <div className="relative bg-slate-900 border border-slate-800 rounded-lg p-2">
+              <div className="grid grid-cols-7 gap-1">
+                {/* Background grid cells */}
+                {weekDates.map((date, index) => (
+                  <div
+                    key={index}
+                    className="h-8 border-r border-slate-800 last:border-r-0"
+                  />
+                ))}
+              </div>
+              {/* Multi-day event bars */}
+              <div className="absolute inset-0 p-2">
+                {getMultiDaySessions().map((session, sessionIndex) => {
+                  const { startCol, endCol } = getMultiDaySpan(session);
+                  const spanCols = endCol - startCol + 1;
+                  const delegates = sessionDelegates[session.id] || [];
+                  const delegateCount = delegates.length;
+                  const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+
+                  // Calculate position and width
+                  const leftPercent = (startCol / 7) * 100;
+                  const widthPercent = (spanCols / 7) * 100;
+
+                  return (
+                    <div
+                      key={session.id}
+                      className="absolute h-7 bg-purple-500/20 border border-purple-500/40 rounded px-2 flex items-center gap-2 cursor-pointer hover:bg-purple-500/30 transition-colors overflow-hidden"
+                      style={{
+                        left: `calc(${leftPercent}% + 4px)`,
+                        width: `calc(${widthPercent}% - 8px)`,
+                        top: `${8 + sessionIndex * 32}px`,
+                      }}
+                      onClick={() => handleEditSession(session)}
+                      title={`${decodeHtmlEntities(session.event_title)} (${session.session_date} - ${session.end_date})`}
+                    >
+                      <Calendar className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                      <span className="text-xs font-medium truncate text-purple-200">
+                        {decodeHtmlEntities(session.event_title)}
+                      </span>
+                      <span className={`text-[10px] ml-auto flex-shrink-0 ${capacityColor}`}>
+                        {delegateCount}/{session.capacity_limit}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Expand height based on number of multi-day events */}
+              <div style={{ height: `${Math.max(32, getMultiDaySessions().length * 32 + 8)}px` }} />
+            </div>
+          </div>
+        )}
 
         {/* Week Grid */}
         <div className="grid grid-cols-7 gap-4">
