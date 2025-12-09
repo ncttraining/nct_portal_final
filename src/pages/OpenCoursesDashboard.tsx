@@ -1348,94 +1348,75 @@ The Training Team`,
           </div>
         </div>
 
-        {/* Multi-Day Events Section */}
-        {getMultiDaySessions().length > 0 && (
-          <div className="mb-4">
-            <div className="text-xs text-slate-400 uppercase tracking-wide mb-2 font-semibold">
-              Multi-Day Courses
-            </div>
-            {/* Week Day Headers for Multi-Day Grid */}
-            <div className="grid grid-cols-7 gap-1 mb-1">
-              {weekDates.map((date, index) => (
-                <div key={index} className="text-center text-[10px] text-slate-500">
-                  {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                </div>
-              ))}
-            </div>
-            {/* Multi-Day Event Bars */}
-            <div className="relative bg-slate-900 border border-slate-800 rounded-lg p-2">
-              <div className="grid grid-cols-7 gap-1">
-                {/* Background grid cells */}
-                {weekDates.map((date, index) => (
+        {/* Week Grid Container */}
+        <div className="relative">
+          {/* Multi-Day Event Bars - positioned above the grid */}
+          {getMultiDaySessions().length > 0 && (
+            <div
+              className="relative mb-2"
+              style={{ height: `${getMultiDaySessions().length * 28 + 4}px` }}
+            >
+              {getMultiDaySessions().map((session, sessionIndex) => {
+                const { startCol, endCol } = getMultiDaySpan(session);
+                const spanCols = endCol - startCol + 1;
+                const delegates = sessionDelegates[session.id] || [];
+                const delegateCount = delegates.length;
+                const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+
+                // Calculate position based on 7 columns with gap-4 (16px)
+                // Each column is (100% - 6*16px) / 7 wide
+                const gapSize = 16; // gap-4 = 16px
+                const totalGaps = 6 * gapSize;
+                const colWidthPercent = (100 - (totalGaps / 10)) / 7; // approximate
+                const leftPercent = startCol * (100 / 7);
+                const widthPercent = spanCols * (100 / 7);
+
+                return (
                   <div
-                    key={index}
-                    className="h-8 border-r border-slate-800 last:border-r-0"
-                  />
-                ))}
-              </div>
-              {/* Multi-day event bars */}
-              <div className="absolute inset-0 p-2">
-                {getMultiDaySessions().map((session, sessionIndex) => {
-                  const { startCol, endCol } = getMultiDaySpan(session);
-                  const spanCols = endCol - startCol + 1;
-                  const delegates = sessionDelegates[session.id] || [];
-                  const delegateCount = delegates.length;
-                  const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
-
-                  // Calculate position and width
-                  const leftPercent = (startCol / 7) * 100;
-                  const widthPercent = (spanCols / 7) * 100;
-
-                  return (
-                    <div
-                      key={session.id}
-                      className="absolute h-7 bg-purple-500/20 border border-purple-500/40 rounded px-2 flex items-center gap-2 cursor-pointer hover:bg-purple-500/30 transition-colors overflow-hidden"
-                      style={{
-                        left: `calc(${leftPercent}% + 4px)`,
-                        width: `calc(${widthPercent}% - 8px)`,
-                        top: `${8 + sessionIndex * 32}px`,
-                      }}
-                      onClick={() => handleEditSession(session)}
-                      title={`${decodeHtmlEntities(session.event_title)} (${session.session_date} - ${session.end_date})`}
-                    >
-                      <Calendar className="w-3 h-3 text-purple-400 flex-shrink-0" />
-                      <span className="text-xs font-medium truncate text-purple-200">
-                        {decodeHtmlEntities(session.event_title)}
-                      </span>
-                      <span className={`text-[10px] ml-auto flex-shrink-0 ${capacityColor}`}>
-                        {delegateCount}/{session.capacity_limit}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Expand height based on number of multi-day events */}
-              <div style={{ height: `${Math.max(32, getMultiDaySessions().length * 32 + 8)}px` }} />
-            </div>
-          </div>
-        )}
-
-        {/* Week Grid */}
-        <div className="grid grid-cols-7 gap-4">
-          {weekDates.map((date, index) => {
-            const dateString = date.toISOString().split('T')[0];
-            const daySessions = getSessionsForDate(dateString);
-            const isToday = dateString === new Date().toISOString().split('T')[0];
-
-            return (
-              <div
-                key={dateString}
-                className={`bg-slate-900 border rounded-lg overflow-hidden ${
-                  isToday ? 'border-blue-500' : 'border-slate-800'
-                }`}
-              >
-                {/* Day Header */}
-                <div className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
-                  <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    key={session.id}
+                    className="absolute h-6 bg-purple-500/20 border border-purple-500/40 rounded px-2 flex items-center gap-2 cursor-pointer hover:bg-purple-500/30 transition-colors overflow-hidden"
+                    style={{
+                      left: `calc(${leftPercent}% + ${startCol * gapSize / 7}px)`,
+                      width: `calc(${widthPercent}% - ${(7 - spanCols) * gapSize / 7}px)`,
+                      top: `${sessionIndex * 28}px`,
+                    }}
+                    onClick={() => handleEditSession(session)}
+                    title={`${decodeHtmlEntities(session.event_title)} (${session.session_date} - ${session.end_date})`}
+                  >
+                    <Calendar className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                    <span className="text-xs font-medium truncate text-purple-200">
+                      {decodeHtmlEntities(session.event_title)}
+                    </span>
+                    <span className={`text-[10px] ml-auto flex-shrink-0 ${capacityColor}`}>
+                      {delegateCount}/{session.capacity_limit}
+                    </span>
                   </div>
-                </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Week Grid */}
+          <div className="grid grid-cols-7 gap-4">
+            {weekDates.map((date, index) => {
+              const dateString = date.toISOString().split('T')[0];
+              const daySessions = getSessionsForDate(dateString);
+              const isToday = dateString === new Date().toISOString().split('T')[0];
+
+              return (
+                <div
+                  key={dateString}
+                  className={`bg-slate-900 border rounded-lg overflow-hidden ${
+                    isToday ? 'border-blue-500' : 'border-slate-800'
+                  }`}
+                >
+                  {/* Day Header */}
+                  <div className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
+                    <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    </div>
+                  </div>
 
                 {/* Sessions */}
                 <div className="p-2 space-y-2 min-h-[200px]">
@@ -1621,6 +1602,7 @@ The Training Team`,
               </div>
             );
           })}
+          </div>
         </div>
 
         {/* Legend */}
