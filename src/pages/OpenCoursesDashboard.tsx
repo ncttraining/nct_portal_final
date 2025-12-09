@@ -1558,43 +1558,193 @@ The Training Team`,
           })}
           </div>
 
-          {/* Multi-Day Event Bars - positioned below single-day sessions */}
+          {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
           {getMultiDaySessions().length > 0 && (
-            <div
-              className="relative mt-4"
-              style={{ height: `${getMultiDaySessions().length * 28 + 4}px` }}
-            >
-              {getMultiDaySessions().map((session, sessionIndex) => {
+            <div className="grid grid-cols-7 gap-4 mt-4">
+              {getMultiDaySessions().map((session) => {
                 const { startCol, endCol } = getMultiDaySpan(session);
                 const spanCols = endCol - startCol + 1;
                 const delegates = sessionDelegates[session.id] || [];
                 const delegateCount = delegates.length;
                 const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+                const capacityBg = getCapacityBgColor(delegateCount, session.capacity_limit);
+                const isDragOver = dragOverSessionId === session.id;
 
-                // Calculate position based on 7 columns with gap-4 (16px)
-                const gapSize = 16; // gap-4 = 16px
-                const leftPercent = startCol * (100 / 7);
-                const widthPercent = spanCols * (100 / 7);
+                // Calculate days text
+                const startDate = new Date(session.session_date);
+                const endDate = new Date(session.end_date || session.session_date);
+                const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
                 return (
                   <div
                     key={session.id}
-                    className="absolute h-6 bg-purple-500/20 border border-purple-500/40 rounded px-2 flex items-center gap-2 cursor-pointer hover:bg-purple-500/30 transition-colors overflow-hidden"
+                    className={`border rounded p-2 text-xs transition-all ${capacityBg} ${
+                      isDragOver ? 'ring-2 ring-blue-500 scale-105' : ''
+                    }`}
                     style={{
-                      left: `calc(${leftPercent}% + ${startCol * gapSize / 7}px)`,
-                      width: `calc(${widthPercent}% - ${(7 - spanCols) * gapSize / 7}px)`,
-                      top: `${sessionIndex * 28}px`,
+                      gridColumn: `${startCol + 1} / span ${spanCols}`,
                     }}
-                    onClick={() => handleEditSession(session)}
-                    title={`${decodeHtmlEntities(session.event_title)} (${session.session_date} - ${session.end_date})`}
+                    onDragOver={(e) => handleDragOver(e, session.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, session.id)}
                   >
-                    <Calendar className="w-3 h-3 text-purple-400 flex-shrink-0" />
-                    <span className="text-xs font-medium truncate text-purple-200">
-                      {decodeHtmlEntities(session.event_title)}
-                    </span>
-                    <span className={`text-[10px] ml-auto flex-shrink-0 ${capacityColor}`}>
-                      {delegateCount}/{session.capacity_limit}
-                    </span>
+                    {/* Session Header */}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold truncate" title={decodeHtmlEntities(session.event_title)}>
+                          {decodeHtmlEntities(session.event_title)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {session.course_type && (
+                            <span className="text-slate-400 text-[10px] truncate">
+                              {session.course_type.code}
+                            </span>
+                          )}
+                          <span className="text-purple-400 text-[10px] font-medium">
+                            ({daysDiff} day{daysDiff > 1 ? 's' : ''})
+                          </span>
+                        </div>
+                      </div>
+                      {session.is_online && (
+                        <Video className="w-3 h-3 text-blue-400 ml-1 flex-shrink-0" />
+                      )}
+                    </div>
+
+                    {/* Session Details */}
+                    <div className="space-y-1 mb-2">
+                      {session.start_time && (
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatTime(session.start_time)} - {formatTime(session.end_time || '')}</span>
+                        </div>
+                      )}
+
+                      {session.venue && !session.is_online && (
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate" title={session.venue.name}>
+                            {session.venue.town || session.venue.name}
+                          </span>
+                        </div>
+                      )}
+
+                      {session.trainer ? (
+                        <div
+                          className="flex items-center gap-1 text-slate-400 cursor-pointer hover:text-slate-300 transition-colors"
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          title="Click to change trainer"
+                        >
+                          <UserCog className="w-3 h-3" />
+                          <span className="truncate" title={session.trainer.name}>
+                            {session.trainer.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex items-center gap-1 text-amber-400 cursor-pointer hover:text-amber-300 transition-colors"
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          title="Click to assign trainer"
+                        >
+                          <UserCog className="w-3 h-3" />
+                          <span className="text-xs font-semibold">ASSIGN TRAINER</span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-1">
+                        <Users className={`w-3 h-3 ${capacityColor}`} />
+                        <span className={capacityColor}>
+                          {delegateCount} / {session.capacity_limit}
+                        </span>
+                        {delegateCount >= session.capacity_limit && (
+                          <span className="ml-1 text-red-400 font-semibold">FULL</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Delegates */}
+                    {delegates.length > 0 && (
+                      <div className="space-y-1 mb-2 max-h-32 overflow-y-auto overflow-x-hidden">
+                        {delegates.map((delegate) => (
+                          <div
+                            key={delegate.id}
+                            className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group"
+                          >
+                            <div className="flex items-center gap-1">
+                              <div
+                                draggable
+                                onDragStart={() => handleDragStart(delegate, session.id)}
+                                className="flex-1 cursor-move"
+                                title="Drag to transfer delegate"
+                              >
+                                <div className="text-[10px] font-medium truncate">
+                                  {delegate.delegate_name}
+                                </div>
+                                {delegate.delegate_company && (
+                                  <div className="text-[9px] text-slate-500 truncate">
+                                    {delegate.delegate_company}
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenResendModal(delegate, session);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Resend booking details"
+                              >
+                                <Mail className="w-3 h-3 text-slate-400" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEditDelegate(delegate);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Edit delegate details"
+                              >
+                                <Edit className="w-3 h-3 text-slate-400" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenMoveModal(delegate, session.id, session.course_type_id);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Move to different session"
+                              >
+                                <MoveRight className="w-3 h-3 text-slate-400" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 pt-2 border-t border-slate-700/50">
+                      <button
+                        onClick={() => handleEditSession(session)}
+                        className="p-1 hover:bg-slate-700 rounded transition-colors"
+                        title="Edit Session"
+                      >
+                        <Edit className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDuplicateSession(session)}
+                        className="p-1 hover:bg-slate-700 rounded transition-colors"
+                        title="Duplicate Session"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSession(session)}
+                        className="p-1 hover:bg-red-500/20 text-red-400 rounded transition-colors"
+                        title="Delete Session"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
