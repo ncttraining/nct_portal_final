@@ -1561,26 +1561,8 @@ The Training Team`,
           {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
           {getMultiDaySessions().length > 0 && (
             <>
-              <div className="relative mt-4">
-                {/* Background columns */}
-                <div className="grid grid-cols-7 gap-4 absolute inset-0 pointer-events-none">
-                  {weekDates.map((date, index) => {
-                    const dateString = date.toISOString().split('T')[0];
-                    const isToday = dateString === new Date().toISOString().split('T')[0];
-                    return (
-                      <div
-                        key={`bg-${dateString}`}
-                        className={`bg-slate-900 border rounded-lg ${
-                          isToday ? 'border-blue-500' : 'border-slate-800'
-                        }`}
-                      />
-                    );
-                  })}
-                </div>
-
-                {/* Multi-day sessions overlay */}
-                <div className="grid grid-cols-7 gap-4 relative">
-                  {getMultiDaySessions().map((session) => {
+              <div className="grid grid-cols-7 gap-4 mt-4">
+                {getMultiDaySessions().map((session) => {
                   const { startCol, endCol } = getMultiDaySpan(session);
                   const spanCols = endCol - startCol + 1;
                   const delegates = sessionDelegates[session.id] || [];
@@ -1745,29 +1727,10 @@ The Training Team`,
                   </div>
                   );
                 })}
-                </div>
               </div>
 
               {/* Assign Trainer Buttons - positioned below sessions */}
-              <div className="relative mt-2">
-                {/* Background columns */}
-                <div className="grid grid-cols-7 gap-4 absolute inset-0 pointer-events-none">
-                  {weekDates.map((date, index) => {
-                    const dateString = date.toISOString().split('T')[0];
-                    const isToday = dateString === new Date().toISOString().split('T')[0];
-                    return (
-                      <div
-                        key={`bg-assign-${dateString}`}
-                        className={`bg-slate-900 border rounded-lg ${
-                          isToday ? 'border-blue-500' : 'border-slate-800'
-                        }`}
-                      />
-                    );
-                  })}
-                </div>
-
-                {/* Assign trainer buttons overlay */}
-                <div className="grid grid-cols-7 gap-4 relative">
+              <div className="grid grid-cols-7 gap-4 mt-2">
                 {getMultiDaySessions().map((session) => {
                   const { startCol, endCol } = getMultiDaySpan(session);
                   const spanCols = endCol - startCol + 1;
@@ -1801,7 +1764,6 @@ The Training Team`,
                     </div>
                   );
                 })}
-                </div>
               </div>
             </>
           )}
