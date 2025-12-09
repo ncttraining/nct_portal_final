@@ -1560,22 +1560,23 @@ The Training Team`,
 
           {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
           {getMultiDaySessions().length > 0 && (
-            <div className="grid grid-cols-7 gap-4 mt-4">
-              {getMultiDaySessions().map((session) => {
-                const { startCol, endCol } = getMultiDaySpan(session);
-                const spanCols = endCol - startCol + 1;
-                const delegates = sessionDelegates[session.id] || [];
-                const delegateCount = delegates.length;
-                const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
-                const capacityBg = getCapacityBgColor(delegateCount, session.capacity_limit);
-                const isDragOver = dragOverSessionId === session.id;
+            <>
+              <div className="grid grid-cols-7 gap-4 mt-4">
+                {getMultiDaySessions().map((session) => {
+                  const { startCol, endCol } = getMultiDaySpan(session);
+                  const spanCols = endCol - startCol + 1;
+                  const delegates = sessionDelegates[session.id] || [];
+                  const delegateCount = delegates.length;
+                  const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+                  const capacityBg = getCapacityBgColor(delegateCount, session.capacity_limit);
+                  const isDragOver = dragOverSessionId === session.id;
 
-                // Calculate days text
-                const startDate = new Date(session.session_date);
-                const endDate = new Date(session.end_date || session.session_date);
-                const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                  // Calculate days text
+                  const startDate = new Date(session.session_date);
+                  const endDate = new Date(session.end_date || session.session_date);
+                  const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-                return (
+                  return (
                   <div
                     key={session.id}
                     className={`border rounded p-2 text-xs transition-all ${capacityBg} ${
@@ -1625,28 +1626,6 @@ The Training Team`,
                           <span className="truncate" title={session.venue.name}>
                             {session.venue.town || session.venue.name}
                           </span>
-                        </div>
-                      )}
-
-                      {session.trainer ? (
-                        <div
-                          className="flex items-center gap-1 text-slate-400 cursor-pointer hover:text-slate-300 transition-colors"
-                          onClick={() => handleOpenTrainerAssignModal(session)}
-                          title="Click to change trainer"
-                        >
-                          <UserCog className="w-3 h-3" />
-                          <span className="truncate" title={session.trainer.name}>
-                            {session.trainer.name}
-                          </span>
-                        </div>
-                      ) : (
-                        <div
-                          className="flex items-center gap-1 text-amber-400 cursor-pointer hover:text-amber-300 transition-colors"
-                          onClick={() => handleOpenTrainerAssignModal(session)}
-                          title="Click to assign trainer"
-                        >
-                          <UserCog className="w-3 h-3" />
-                          <span className="text-xs font-semibold">ASSIGN TRAINER</span>
                         </div>
                       )}
 
@@ -1746,9 +1725,47 @@ The Training Team`,
                       </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+
+              {/* Assign Trainer Buttons - positioned below sessions */}
+              <div className="grid grid-cols-7 gap-4 mt-2">
+                {getMultiDaySessions().map((session) => {
+                  const { startCol, endCol } = getMultiDaySpan(session);
+                  const spanCols = endCol - startCol + 1;
+
+                  return (
+                    <div
+                      key={`assign-${session.id}`}
+                      style={{
+                        gridColumn: `${startCol + 1} / span ${spanCols}`,
+                      }}
+                    >
+                      {session.trainer ? (
+                        <button
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          className="w-full p-3 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 rounded-lg transition-all text-sm flex items-center justify-center gap-2 text-slate-400 hover:text-slate-300"
+                          title="Click to change trainer"
+                        >
+                          <UserCog className="w-4 h-4" />
+                          <span className="font-medium">{session.trainer.name}</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          className="w-full p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/50 rounded-lg transition-all text-sm flex items-center justify-center gap-2 text-amber-400 hover:text-amber-300"
+                          title="Click to assign trainer"
+                        >
+                          <UserCog className="w-4 h-4" />
+                          <span className="font-semibold">ASSIGN TRAINER</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
 
