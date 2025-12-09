@@ -30,12 +30,10 @@ export interface OpenCourseSession {
   id: string;
   wp_event_id: number | null;
   wp_repeat_interval: number | null;
-  course_id: string | null;
   course_type_id: string | null;
   venue_id: string | null;
   trainer_id: string | null;
   session_date: string;
-  end_date: string | null; // For multi-day events
   start_time: string | null;
   end_time: string | null;
   capacity_limit: number;
