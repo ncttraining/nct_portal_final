@@ -1350,52 +1350,6 @@ The Training Team`,
 
         {/* Week Grid Container */}
         <div className="relative">
-          {/* Multi-Day Event Bars - positioned above the grid */}
-          {getMultiDaySessions().length > 0 && (
-            <div
-              className="relative mb-2"
-              style={{ height: `${getMultiDaySessions().length * 28 + 4}px` }}
-            >
-              {getMultiDaySessions().map((session, sessionIndex) => {
-                const { startCol, endCol } = getMultiDaySpan(session);
-                const spanCols = endCol - startCol + 1;
-                const delegates = sessionDelegates[session.id] || [];
-                const delegateCount = delegates.length;
-                const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
-
-                // Calculate position based on 7 columns with gap-4 (16px)
-                // Each column is (100% - 6*16px) / 7 wide
-                const gapSize = 16; // gap-4 = 16px
-                const totalGaps = 6 * gapSize;
-                const colWidthPercent = (100 - (totalGaps / 10)) / 7; // approximate
-                const leftPercent = startCol * (100 / 7);
-                const widthPercent = spanCols * (100 / 7);
-
-                return (
-                  <div
-                    key={session.id}
-                    className="absolute h-6 bg-purple-500/20 border border-purple-500/40 rounded px-2 flex items-center gap-2 cursor-pointer hover:bg-purple-500/30 transition-colors overflow-hidden"
-                    style={{
-                      left: `calc(${leftPercent}% + ${startCol * gapSize / 7}px)`,
-                      width: `calc(${widthPercent}% - ${(7 - spanCols) * gapSize / 7}px)`,
-                      top: `${sessionIndex * 28}px`,
-                    }}
-                    onClick={() => handleEditSession(session)}
-                    title={`${decodeHtmlEntities(session.event_title)} (${session.session_date} - ${session.end_date})`}
-                  >
-                    <Calendar className="w-3 h-3 text-purple-400 flex-shrink-0" />
-                    <span className="text-xs font-medium truncate text-purple-200">
-                      {decodeHtmlEntities(session.event_title)}
-                    </span>
-                    <span className={`text-[10px] ml-auto flex-shrink-0 ${capacityColor}`}>
-                      {delegateCount}/{session.capacity_limit}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
           {/* Week Grid */}
           <div className="grid grid-cols-7 gap-4">
             {weekDates.map((date, index) => {
@@ -1603,6 +1557,49 @@ The Training Team`,
             );
           })}
           </div>
+
+          {/* Multi-Day Event Bars - positioned below single-day sessions */}
+          {getMultiDaySessions().length > 0 && (
+            <div
+              className="relative mt-4"
+              style={{ height: `${getMultiDaySessions().length * 28 + 4}px` }}
+            >
+              {getMultiDaySessions().map((session, sessionIndex) => {
+                const { startCol, endCol } = getMultiDaySpan(session);
+                const spanCols = endCol - startCol + 1;
+                const delegates = sessionDelegates[session.id] || [];
+                const delegateCount = delegates.length;
+                const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+
+                // Calculate position based on 7 columns with gap-4 (16px)
+                const gapSize = 16; // gap-4 = 16px
+                const leftPercent = startCol * (100 / 7);
+                const widthPercent = spanCols * (100 / 7);
+
+                return (
+                  <div
+                    key={session.id}
+                    className="absolute h-6 bg-purple-500/20 border border-purple-500/40 rounded px-2 flex items-center gap-2 cursor-pointer hover:bg-purple-500/30 transition-colors overflow-hidden"
+                    style={{
+                      left: `calc(${leftPercent}% + ${startCol * gapSize / 7}px)`,
+                      width: `calc(${widthPercent}% - ${(7 - spanCols) * gapSize / 7}px)`,
+                      top: `${sessionIndex * 28}px`,
+                    }}
+                    onClick={() => handleEditSession(session)}
+                    title={`${decodeHtmlEntities(session.event_title)} (${session.session_date} - ${session.end_date})`}
+                  >
+                    <Calendar className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                    <span className="text-xs font-medium truncate text-purple-200">
+                      {decodeHtmlEntities(session.event_title)}
+                    </span>
+                    <span className={`text-[10px] ml-auto flex-shrink-0 ${capacityColor}`}>
+                      {delegateCount}/{session.capacity_limit}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Legend */}
