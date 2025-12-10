@@ -12,6 +12,7 @@ export async function generateCertificatePDF(
     certificate_number: string;
     candidate_name: string;
     trainer_name: string;
+    course_name?: string;
     course_date_start: string;
     course_date_end: string;
     issue_date: string;
@@ -73,6 +74,7 @@ export async function generateCertificatePDF(
     certificate_number: certificateData.certificate_number,
     candidate_name: certificateData.candidate_name,
     trainer_name: certificateData.trainer_name,
+    course_name: certificateData.course_name || '',
     course_date_start: formatDate(certificateData.course_date_start),
     course_date_end: formatDate(certificateData.course_date_end),
     course_date: courseDateRange,

@@ -385,6 +385,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
     const systemFields = [
       { name: 'candidate_name', label: 'Candidate Name' },
       { name: 'certificate_number', label: 'Certificate Number' },
+      { name: 'course_name', label: 'Course Name' },
       { name: 'course_date', label: 'Course Date' },
       { name: 'course_duration', label: 'Course Duration' },
       { name: 'trainer_name', label: 'Trainer Name' }
@@ -402,6 +403,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
     const defaultConfigs: Record<string, Partial<CertificateField>> = {
       candidate_name: { x: 840, y: 1400, width: 800, height: 80, fontSize: 64, bold: true },
       certificate_number: { x: 100, y: 100, width: 600, height: 50, fontSize: 24 },
+      course_name: { x: 840, y: 1200, width: 800, height: 60, fontSize: 48, bold: true },
       course_date: { x: 840, y: 2000, width: 800, height: 60, fontSize: 36 },
       course_duration: { x: 840, y: 2400, width: 800, height: 60, fontSize: 32 },
       trainer_name: { x: 840, y: 2800, width: 800, height: 50, fontSize: 32 }
@@ -434,7 +436,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
   }
 
   function getFieldType(fieldName: string): 'system' | 'course' | 'custom' {
-    const systemFields = ['candidate_name', 'certificate_number', 'course_date', 'course_duration', 'trainer_name'];
+    const systemFields = ['candidate_name', 'certificate_number', 'course_name', 'course_date', 'course_duration', 'trainer_name'];
     if (systemFields.includes(fieldName)) return 'system';
 
     const courseTypeId = editingTemplate?.course_type_id || selectedCourseType;

@@ -523,6 +523,7 @@ export async function issueCertificate({
         certificate_number: certificateNumber,
         candidate_name: candidateName,
         trainer_name: trainerName,
+        course_name: courseType.name,
         course_date_start: courseStartDate,
         course_date_end: courseEndDate,
         issue_date: issueDate,
@@ -551,12 +552,15 @@ export async function regenerateCertificatePDF(certificateId: string) {
     throw new Error('Certificate template not found');
   }
 
+  const courseName = (certificate as any).course_types?.name || '';
+
   const pdfUrl = await generateCertificatePDF(
     certificate.id,
     {
       certificate_number: certificate.certificate_number,
       candidate_name: certificate.candidate_name,
       trainer_name: certificate.trainer_name,
+      course_name: courseName,
       course_date_start: certificate.course_date_start,
       course_date_end: certificate.course_date_end,
       issue_date: certificate.issue_date,
@@ -1007,6 +1011,7 @@ export async function issueOpenCourseCertificate({
         certificate_number: certificateNumber,
         candidate_name: delegateName,
         trainer_name: trainerName,
+        course_name: courseType.name,
         course_date_start: courseStartDate,
         course_date_end: courseEndDate,
         issue_date: issueDate,
