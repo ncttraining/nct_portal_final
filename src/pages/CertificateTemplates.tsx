@@ -984,6 +984,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                       cursor: dragging ? 'grabbing' : 'grab'
                     }}
                     onMouseDown={(e) => handleFieldMouseDown(e, field.id)}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div
                       className="w-full h-full bg-blue-500/10 border-2 border-blue-500 flex items-center justify-center"
