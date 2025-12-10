@@ -65,7 +65,7 @@ export default function RegisterHeader({
       </div>
 
       {/* Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
         {/* Centre/Venue */}
         <div className="flex items-start gap-3">
           <Building className="w-5 h-5 text-slate-400 mt-0.5" />
@@ -98,6 +98,17 @@ export default function RegisterHeader({
             <p className="text-xs text-slate-500 uppercase tracking-wide">Trainer</p>
             <p className="text-sm text-white">
               {session.trainer?.name || 'Not assigned'}
+            </p>
+          </div>
+        </div>
+
+        {/* Course Code */}
+        <div className="flex items-start gap-3">
+          <FileText className="w-5 h-5 text-slate-400 mt-0.5" />
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wide">Course Code</p>
+            <p className="text-sm text-white">
+              {session.course_type?.code || 'N/A'}
             </p>
           </div>
         </div>
@@ -163,7 +174,6 @@ export default function RegisterHeader({
               max="120"
               value={session.break_duration_minutes ?? ''}
               onChange={(e) => onBreakTimeChange(e.target.value ? parseInt(e.target.value) : null)}
-              placeholder="60"
               className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-sm text-white focus:outline-none focus:border-blue-500 w-16 text-center"
             />
           ) : (
