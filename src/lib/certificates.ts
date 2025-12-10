@@ -814,7 +814,6 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
       trainers(name),
       venue:venues(name)
     `)
-    .not('course_type_id', 'is', null)
     .order('session_date', { ascending: true });
 
   if (filters?.courseTypeId) {
@@ -844,21 +843,25 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
     return [];
   }
 
-  // Get all delegates for these sessions
+  // Get all delegates for these sessions (exclude only cancelled/no_show)
   const sessionIds = sessions.map(s => s.id);
   const { data: delegates, error: delegatesError } = await supabase
     .from('open_course_delegates')
     .select('*')
-    .in('session_id', sessionIds)
-    .in('attendance_status', ['registered', 'confirmed', 'attended']);
+    .in('session_id', sessionIds);
 
   if (delegatesError) {
     console.error('Error loading delegates:', delegatesError);
     return [];
   }
 
+  // Filter out cancelled/no_show delegates in JavaScript (more reliable than PostgREST filter)
+  const filteredDelegates = (delegates || []).filter(d =>
+    !d.attendance_status || !['cancelled', 'no_show'].includes(d.attendance_status)
+  );
+
   // Get certificates for these delegates
-  const delegateIds = (delegates || []).map(d => d.id);
+  const delegateIds = filteredDelegates.map(d => d.id);
   const { data: certificates } = await supabase
     .from('certificates')
     .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status')
@@ -870,7 +873,7 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
 
   // Map delegates to their sessions
   const delegatesBySession = new Map<string, any[]>();
-  (delegates || []).forEach(delegate => {
+  filteredDelegates.forEach(delegate => {
     if (!delegatesBySession.has(delegate.session_id)) {
       delegatesBySession.set(delegate.session_id, []);
     }
@@ -907,7 +910,7 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
       trainers: (session as any).trainers,
       venue: (session as any).venue
     };
-  }).filter(session => session.delegates.length > 0);
+  });
 }
 
 export async function issueOpenCourseCertificate({
