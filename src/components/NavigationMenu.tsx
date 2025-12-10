@@ -1,4 +1,4 @@
-import { Shield, Calendar, GraduationCap, Eye, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, Home, DollarSign, UserCog, ChevronDown, Inbox, Menu, X, CalendarClock, DoorOpen, CalendarDays } from 'lucide-react';
+import { Shield, Calendar, GraduationCap, Eye, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, Home, DollarSign, UserCog, ChevronDown, Inbox, Menu, X, CalendarClock, DoorOpen, CalendarDays, ClipboardList } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 
@@ -26,7 +26,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
 
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'admin' || profile?.super_admin;
   const canManageBookings = isAdmin || profile?.can_manage_bookings;
   const canManageCourses = isAdmin || profile?.can_manage_courses;
   const canViewBookings = isAdmin || profile?.can_view_bookings;
@@ -53,6 +53,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
       items: [
         { id: 'course-booking', label: 'Course Booking & Scheduling', icon: BookOpen },
         { id: 'open-courses', label: 'Open Courses Dashboard', icon: CalendarDays },
+        { id: 'open-courses-registers', label: 'Open Courses Registers', icon: ClipboardList },
         { id: 'candidates-management', label: 'Candidates', icon: Users },
         { id: 'trainer-map', label: 'Trainer Map', icon: MapPin },
         { id: 'client-management', label: 'Clients', icon: Building },
