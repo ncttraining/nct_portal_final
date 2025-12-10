@@ -1200,7 +1200,7 @@ The Training Team`,
 
       setShowTrainerAssignModal(false);
       setSessionToAssignTrainer(null);
-      loadWeekData();
+      loadData();
     } catch (error: any) {
       setNotification({
         type: 'error',
@@ -1230,7 +1230,7 @@ The Training Team`,
 
       setShowTrainerAssignModal(false);
       setSessionToAssignTrainer(null);
-      loadWeekData();
+      loadData();
     } catch (error: any) {
       setNotification({
         type: 'error',
