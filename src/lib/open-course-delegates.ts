@@ -143,17 +143,20 @@ export async function getAllDelegates(filters?: {
   // Get all delegate IDs for certificate lookup
   const allDelegateIds = (data || []).map(d => d.id);
 
-  // Fetch certificates for all delegates in one query
-  let certificateMap = new Map<string, any>();
-  if (allDelegateIds.length > 0) {
+  // Fetch certificates for all delegates in batches to avoid URL length limits
+  const certificateMap = new Map<string, any>();
+  const BATCH_SIZE = 50; // Fetch certificates in batches of 50 to keep URL short
+
+  for (let i = 0; i < allDelegateIds.length; i += BATCH_SIZE) {
+    const batchIds = allDelegateIds.slice(i, i + BATCH_SIZE);
     const { data: certificates } = await supabase
       .from('certificates')
       .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status, issue_date, expiry_date')
-      .in('open_course_delegate_id', allDelegateIds);
+      .in('open_course_delegate_id', batchIds);
 
-    certificateMap = new Map(
-      (certificates || []).map(c => [c.open_course_delegate_id, c])
-    );
+    (certificates || []).forEach(c => {
+      certificateMap.set(c.open_course_delegate_id, c);
+    });
   }
 
   // Transform the data
@@ -477,17 +480,19 @@ export async function getDelegateStats(): Promise<{
     d.attendance_detail === 'left_early'
   ).length || 0;
 
-  // Get certificate count from certificates table
+  // Get certificate count from certificates table in batches to avoid URL length limits
   const delegateIds = (data || []).map(d => d.id);
   let certificatesIssued = 0;
+  const BATCH_SIZE = 50;
 
-  if (delegateIds.length > 0) {
+  for (let i = 0; i < delegateIds.length; i += BATCH_SIZE) {
+    const batchIds = delegateIds.slice(i, i + BATCH_SIZE);
     const { count } = await supabase
       .from('certificates')
       .select('*', { count: 'exact', head: true })
-      .in('open_course_delegate_id', delegateIds);
+      .in('open_course_delegate_id', batchIds);
 
-    certificatesIssued = count || 0;
+    certificatesIssued += count || 0;
   }
 
   return { total, withCompany, attended, certificatesIssued };
