@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Building2, Search, Plus, Edit2, Trash2, Users, Award, Eye, X, Save } from 'lucide-react';
+import { Building2, Search, Plus, Edit2, Trash2, Users, Award, Eye, X, Save, Merge, CheckSquare, Square, AlertTriangle } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
+import { useAuth } from '../contexts/AuthContext';
 import {
   getOpenCourseCompanies,
   createOpenCourseCompany,
   updateOpenCourseCompany,
   deleteOpenCourseCompany,
+  getMergePreview,
+  mergeCompanies,
   OpenCourseCompanyWithStats,
+  MergePreview,
 } from '../lib/open-course-companies';
 
 interface OpenCourseCompaniesListProps {
@@ -24,6 +28,7 @@ type SortField = 'name' | 'delegates' | 'certificates';
 type SortDirection = 'asc' | 'desc';
 
 export default function OpenCourseCompaniesList({ currentPage, onNavigate }: OpenCourseCompaniesListProps) {
+  const { profile } = useAuth();
   const [companies, setCompanies] = useState<OpenCourseCompanyWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<NotificationState>(null);
@@ -56,6 +61,18 @@ export default function OpenCourseCompaniesList({ currentPage, onNavigate }: Ope
   // Delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingCompany, setDeletingCompany] = useState<OpenCourseCompanyWithStats | null>(null);
+
+  // Multi-select and merge
+  const [selectedCompanyIds, setSelectedCompanyIds] = useState<Set<string>>(new Set());
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  const [mergePreview, setMergePreview] = useState<MergePreview | null>(null);
+  const [mergeTargetId, setMergeTargetId] = useState<string>('');
+  const [mergeFieldSelections, setMergeFieldSelections] = useState<Record<string, string>>({});
+  const [merging, setMerging] = useState(false);
+  const [loadingMergePreview, setLoadingMergePreview] = useState(false);
+
+  // Check if user can merge (admin or super admin)
+  const canMerge = profile?.role === 'admin' || profile?.super_admin;
 
   useEffect(() => {
     loadCompanies();
@@ -183,6 +200,130 @@ export default function OpenCourseCompaniesList({ currentPage, onNavigate }: Ope
     }
   }
 
+  // Multi-select handlers
+  function toggleCompanySelection(companyId: string) {
+    setSelectedCompanyIds(prev => {
+      const next = new Set(prev);
+      if (next.has(companyId)) {
+        next.delete(companyId);
+      } else {
+        next.add(companyId);
+      }
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    const filteredIds = filteredCompanies.map(c => c.id);
+    const allSelected = filteredIds.every(id => selectedCompanyIds.has(id));
+
+    if (allSelected) {
+      setSelectedCompanyIds(new Set());
+    } else {
+      setSelectedCompanyIds(new Set(filteredIds));
+    }
+  }
+
+  function clearSelection() {
+    setSelectedCompanyIds(new Set());
+  }
+
+  // Merge handlers
+  async function handleStartMerge() {
+    if (selectedCompanyIds.size < 2) {
+      setNotification({ type: 'warning', message: 'Select at least 2 companies to merge' });
+      return;
+    }
+
+    setLoadingMergePreview(true);
+
+    try {
+      const preview = await getMergePreview(Array.from(selectedCompanyIds));
+
+      if (!preview) {
+        setNotification({ type: 'error', message: 'Failed to generate merge preview' });
+        return;
+      }
+
+      setMergePreview(preview);
+      setMergeTargetId(preview.targetCompany.id);
+
+      // Initialize field selections with target company values
+      const initialSelections: Record<string, string> = {};
+      for (const conflict of preview.conflictingFields) {
+        // Default to target company's value if it has one, otherwise first non-null value
+        const targetValue = conflict.values.find(v => v.companyId === preview.targetCompany.id);
+        if (targetValue) {
+          initialSelections[conflict.field] = preview.targetCompany.id;
+        } else {
+          initialSelections[conflict.field] = conflict.values[0].companyId;
+        }
+      }
+      setMergeFieldSelections(initialSelections);
+
+      setShowMergeModal(true);
+    } catch (error) {
+      console.error('Error generating merge preview:', error);
+      setNotification({ type: 'error', message: 'Failed to generate merge preview' });
+    } finally {
+      setLoadingMergePreview(false);
+    }
+  }
+
+  async function handleConfirmMerge() {
+    if (!mergePreview || !mergeTargetId) return;
+
+    setMerging(true);
+
+    try {
+      const sourceCompanyIds = Array.from(selectedCompanyIds).filter(id => id !== mergeTargetId);
+
+      await mergeCompanies({
+        targetCompanyId: mergeTargetId,
+        sourceCompanyIds,
+        fieldSelections: mergeFieldSelections,
+      });
+
+      setNotification({
+        type: 'success',
+        message: `Successfully merged ${sourceCompanyIds.length + 1} companies into "${mergePreview.targetCompany.name}"`,
+      });
+
+      setShowMergeModal(false);
+      setMergePreview(null);
+      setSelectedCompanyIds(new Set());
+      loadCompanies();
+    } catch (error) {
+      console.error('Error merging companies:', error);
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to merge companies',
+      });
+    } finally {
+      setMerging(false);
+    }
+  }
+
+  function handleMergeTargetChange(newTargetId: string) {
+    if (!mergePreview) return;
+
+    setMergeTargetId(newTargetId);
+
+    // Re-evaluate field selections when target changes
+    const newSelections: Record<string, string> = {};
+    for (const conflict of mergePreview.conflictingFields) {
+      const currentSelection = mergeFieldSelections[conflict.field];
+      // Keep current selection if still valid, otherwise default to new target or first value
+      if (conflict.values.some(v => v.companyId === currentSelection)) {
+        newSelections[conflict.field] = currentSelection;
+      } else {
+        const targetValue = conflict.values.find(v => v.companyId === newTargetId);
+        newSelections[conflict.field] = targetValue ? newTargetId : conflict.values[0].companyId;
+      }
+    }
+    setMergeFieldSelections(newSelections);
+  }
+
   function getFilteredAndSortedCompanies() {
     let filtered = companies;
 
@@ -277,6 +418,40 @@ export default function OpenCourseCompaniesList({ currentPage, onNavigate }: Ope
           </button>
         </div>
 
+        {/* Selection Bar */}
+        {selectedCompanyIds.size > 0 && (
+          <div className="flex items-center justify-between bg-blue-500/10 border border-blue-500/30 rounded-lg px-4 py-3 mb-6">
+            <div className="flex items-center gap-4">
+              <span className="text-blue-400 font-medium">
+                {selectedCompanyIds.size} company{selectedCompanyIds.size !== 1 ? 'ies' : ''} selected
+              </span>
+              <button
+                onClick={clearSelection}
+                className="text-sm text-slate-400 hover:text-white transition-colors"
+              >
+                Clear selection
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              {canMerge && selectedCompanyIds.size >= 2 && (
+                <button
+                  onClick={handleStartMerge}
+                  disabled={loadingMergePreview}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded transition-colors"
+                >
+                  <Merge className="w-4 h-4" />
+                  {loadingMergePreview ? 'Loading...' : 'Merge Companies'}
+                </button>
+              )}
+              {!canMerge && selectedCompanyIds.size >= 2 && (
+                <span className="text-sm text-slate-500">
+                  Admin access required to merge
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-slate-900/50 rounded-lg border border-slate-800 p-4">
@@ -340,6 +515,19 @@ export default function OpenCourseCompaniesList({ currentPage, onNavigate }: Ope
               <table className="w-full">
                 <thead className="bg-slate-900 border-b border-slate-800">
                   <tr>
+                    <th className="px-4 py-3 w-12">
+                      <button
+                        onClick={toggleSelectAll}
+                        className="text-slate-400 hover:text-white transition-colors"
+                        title={filteredCompanies.every(c => selectedCompanyIds.has(c.id)) ? 'Deselect all' : 'Select all'}
+                      >
+                        {filteredCompanies.length > 0 && filteredCompanies.every(c => selectedCompanyIds.has(c.id)) ? (
+                          <CheckSquare className="w-5 h-5 text-blue-400" />
+                        ) : (
+                          <Square className="w-5 h-5" />
+                        )}
+                      </button>
+                    </th>
                     <th
                       className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white"
                       onClick={() => handleSort('name')}
@@ -376,9 +564,21 @@ export default function OpenCourseCompaniesList({ currentPage, onNavigate }: Ope
                   {filteredCompanies.map((company) => (
                     <tr
                       key={company.id}
-                      className="hover:bg-slate-800/50 cursor-pointer"
+                      className={`hover:bg-slate-800/50 cursor-pointer ${selectedCompanyIds.has(company.id) ? 'bg-blue-500/10' : ''}`}
                       onClick={() => handleViewCompany(company)}
                     >
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => toggleCompanySelection(company.id)}
+                          className="text-slate-400 hover:text-white transition-colors"
+                        >
+                          {selectedCompanyIds.has(company.id) ? (
+                            <CheckSquare className="w-5 h-5 text-blue-400" />
+                          ) : (
+                            <Square className="w-5 h-5" />
+                          )}
+                        </button>
+                      </td>
                       <td className="px-4 py-3">
                         <div className="text-white font-medium">{company.name}</div>
                         {company.town && (
@@ -637,6 +837,203 @@ export default function OpenCourseCompaniesList({ currentPage, onNavigate }: Ope
                     setDeletingCompany(null);
                   }}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Merge Companies Modal */}
+      {showMergeModal && mergePreview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded">
+                  <Merge className="w-5 h-5 text-purple-400" />
+                </div>
+                <h2 className="text-xl font-semibold text-white">Merge Companies</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowMergeModal(false);
+                  setMergePreview(null);
+                }}
+                className="p-2 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Warning Banner */}
+              <div className="flex items-start gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-yellow-400 font-medium">This action cannot be undone</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Merging will move all delegates to the target company and permanently delete the other companies.
+                  </p>
+                </div>
+              </div>
+
+              {/* Delegate Impact Summary */}
+              <div className="bg-slate-800/50 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+                  Delegates Affected
+                </h3>
+                <div className="text-3xl font-bold text-white mb-2">
+                  {mergePreview.totalDelegatesAffected}
+                </div>
+                <p className="text-sm text-slate-400">
+                  delegates will be assigned to the merged company
+                </p>
+              </div>
+
+              {/* Target Company Selection */}
+              <div>
+                <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+                  Select Target Company
+                </h3>
+                <p className="text-sm text-slate-500 mb-3">
+                  All delegates will be moved to this company. Other companies will be deleted.
+                </p>
+                <div className="space-y-2">
+                  {[mergePreview.targetCompany, ...mergePreview.sourceCompanies].map(company => (
+                    <label
+                      key={company.id}
+                      className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${
+                        mergeTargetId === company.id
+                          ? 'bg-purple-500/20 border-purple-500/50'
+                          : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="mergeTarget"
+                          checked={mergeTargetId === company.id}
+                          onChange={() => handleMergeTargetChange(company.id)}
+                          className="text-purple-500 focus:ring-purple-500"
+                        />
+                        <div>
+                          <div className="text-white font-medium">{company.name}</div>
+                          {company.town && (
+                            <div className="text-sm text-slate-400">{company.town}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-blue-400">
+                          <Users className="w-4 h-4 inline mr-1" />
+                          {company.delegate_count}
+                        </span>
+                        <span className="text-green-400">
+                          <Award className="w-4 h-4 inline mr-1" />
+                          {company.certificates_issued}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Conflicting Fields Resolution */}
+              {mergePreview.conflictingFields.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+                    Resolve Conflicting Information
+                  </h3>
+                  <p className="text-sm text-slate-500 mb-3">
+                    These fields have different values across the selected companies. Choose which value to keep.
+                  </p>
+                  <div className="space-y-4">
+                    {mergePreview.conflictingFields.map(conflict => (
+                      <div key={conflict.field} className="bg-slate-800/50 rounded-lg p-4">
+                        <label className="block text-sm font-medium text-white mb-2">
+                          {conflict.label}
+                        </label>
+                        <div className="space-y-2">
+                          {conflict.values.map(value => (
+                            <label
+                              key={value.companyId}
+                              className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition-colors ${
+                                mergeFieldSelections[conflict.field] === value.companyId
+                                  ? 'bg-blue-500/20 border-blue-500/50'
+                                  : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={`field-${conflict.field}`}
+                                checked={mergeFieldSelections[conflict.field] === value.companyId}
+                                onChange={() => setMergeFieldSelections(prev => ({
+                                  ...prev,
+                                  [conflict.field]: value.companyId,
+                                }))}
+                                className="text-blue-500 focus:ring-blue-500"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-white truncate">{value.value}</div>
+                                <div className="text-xs text-slate-500">from {value.companyName}</div>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Summary */}
+              <div className="bg-slate-800/50 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+                  Summary
+                </h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2 text-slate-300">
+                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                    Keep: <strong className="text-white">
+                      {[mergePreview.targetCompany, ...mergePreview.sourceCompanies].find(c => c.id === mergeTargetId)?.name}
+                    </strong>
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-300">
+                    <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+                    Delete: <strong className="text-white">
+                      {[mergePreview.targetCompany, ...mergePreview.sourceCompanies]
+                        .filter(c => c.id !== mergeTargetId)
+                        .map(c => c.name)
+                        .join(', ')}
+                    </strong>
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-300">
+                    <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                    Move: <strong className="text-white">{mergePreview.totalDelegatesAffected} delegates</strong>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-slate-800">
+                <button
+                  onClick={handleConfirmMerge}
+                  disabled={merging}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded transition-colors"
+                >
+                  <Merge className="w-4 h-4" />
+                  {merging ? 'Merging...' : 'Confirm Merge'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMergeModal(false);
+                    setMergePreview(null);
+                  }}
+                  disabled={merging}
+                  className="px-4 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white rounded transition-colors"
                 >
                   Cancel
                 </button>

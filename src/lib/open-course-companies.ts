@@ -496,3 +496,187 @@ export async function getCompaniesForDropdown(): Promise<Array<{ id: string; nam
 
   return data || [];
 }
+
+// ============================================================================
+// Company Merge Functions
+// ============================================================================
+
+export interface MergePreview {
+  targetCompany: OpenCourseCompanyWithStats;
+  sourceCompanies: OpenCourseCompanyWithStats[];
+  totalDelegatesAffected: number;
+  delegatesByCompany: Map<string, number>;
+  conflictingFields: MergeConflict[];
+}
+
+export interface MergeConflict {
+  field: keyof OpenCourseCompany;
+  label: string;
+  values: Array<{ companyId: string; companyName: string; value: string | null }>;
+}
+
+export interface MergeOptions {
+  targetCompanyId: string;
+  sourceCompanyIds: string[];
+  fieldSelections: Record<string, string>; // field -> companyId to use value from
+}
+
+/**
+ * Get a preview of the merge operation showing affected delegates and conflicting fields
+ */
+export async function getMergePreview(companyIds: string[]): Promise<MergePreview | null> {
+  if (companyIds.length < 2) {
+    return null;
+  }
+
+  // Fetch all selected companies with their stats
+  const companies: OpenCourseCompanyWithStats[] = [];
+  for (const id of companyIds) {
+    const company = await getOpenCourseCompanyById(id);
+    if (company) {
+      companies.push(company);
+    }
+  }
+
+  if (companies.length < 2) {
+    return null;
+  }
+
+  // Get delegate counts per company
+  const delegatesByCompany = new Map<string, number>();
+  let totalDelegatesAffected = 0;
+
+  for (const company of companies) {
+    delegatesByCompany.set(company.id, company.delegate_count);
+    totalDelegatesAffected += company.delegate_count;
+  }
+
+  // Default target is the company with the most delegates
+  const sortedByDelegates = [...companies].sort((a, b) => b.delegate_count - a.delegate_count);
+  const targetCompany = sortedByDelegates[0];
+  const sourceCompanies = sortedByDelegates.slice(1);
+
+  // Find conflicting fields (fields where companies have different non-null values)
+  const contactFields: Array<{ key: keyof OpenCourseCompany; label: string }> = [
+    { key: 'contact_name', label: 'Contact Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'telephone', label: 'Telephone' },
+    { key: 'address1', label: 'Address Line 1' },
+    { key: 'address2', label: 'Address Line 2' },
+    { key: 'town', label: 'Town/City' },
+    { key: 'postcode', label: 'Postcode' },
+    { key: 'notes', label: 'Notes' },
+  ];
+
+  const conflictingFields: MergeConflict[] = [];
+
+  for (const field of contactFields) {
+    const values = companies
+      .filter(c => c[field.key] != null && String(c[field.key]).trim() !== '')
+      .map(c => ({
+        companyId: c.id,
+        companyName: c.name,
+        value: c[field.key] as string | null,
+      }));
+
+    // Check if there are different non-null values
+    const uniqueValues = new Set(values.map(v => v.value));
+    if (uniqueValues.size > 1) {
+      conflictingFields.push({
+        field: field.key,
+        label: field.label,
+        values,
+      });
+    }
+  }
+
+  return {
+    targetCompany,
+    sourceCompanies,
+    totalDelegatesAffected,
+    delegatesByCompany,
+    conflictingFields,
+  };
+}
+
+/**
+ * Execute the merge operation
+ * - Updates all delegates from source companies to point to target company
+ * - Optionally updates target company fields based on user selections
+ * - Deletes source companies
+ */
+export async function mergeCompanies(options: MergeOptions): Promise<void> {
+  const { targetCompanyId, sourceCompanyIds, fieldSelections } = options;
+
+  if (sourceCompanyIds.length === 0) {
+    throw new Error('No source companies selected for merge');
+  }
+
+  if (sourceCompanyIds.includes(targetCompanyId)) {
+    throw new Error('Target company cannot be in source companies list');
+  }
+
+  // Get all companies involved
+  const allCompanyIds = [targetCompanyId, ...sourceCompanyIds];
+  const { data: companies, error: companiesError } = await supabase
+    .from('open_course_companies')
+    .select('*')
+    .in('id', allCompanyIds);
+
+  if (companiesError || !companies) {
+    throw new Error('Failed to load companies for merge');
+  }
+
+  const companyMap = new Map(companies.map(c => [c.id, c]));
+  const targetCompany = companyMap.get(targetCompanyId);
+
+  if (!targetCompany) {
+    throw new Error('Target company not found');
+  }
+
+  // Build updates for target company from field selections
+  const targetUpdates: Partial<OpenCourseCompany> = {};
+
+  for (const [field, selectedCompanyId] of Object.entries(fieldSelections)) {
+    if (selectedCompanyId !== targetCompanyId) {
+      const sourceCompany = companyMap.get(selectedCompanyId);
+      if (sourceCompany) {
+        targetUpdates[field as keyof OpenCourseCompany] = sourceCompany[field as keyof OpenCourseCompany] as any;
+      }
+    }
+  }
+
+  // Start merge operation
+
+  // 1. Update target company with selected field values
+  if (Object.keys(targetUpdates).length > 0) {
+    const { error: updateError } = await supabase
+      .from('open_course_companies')
+      .update(targetUpdates)
+      .eq('id', targetCompanyId);
+
+    if (updateError) {
+      throw new Error('Failed to update target company: ' + updateError.message);
+    }
+  }
+
+  // 2. Move all delegates from source companies to target company
+  const { error: delegateUpdateError } = await supabase
+    .from('open_course_delegates')
+    .update({ company_id: targetCompanyId })
+    .in('company_id', sourceCompanyIds);
+
+  if (delegateUpdateError) {
+    throw new Error('Failed to reassign delegates: ' + delegateUpdateError.message);
+  }
+
+  // 3. Delete source companies
+  const { error: deleteError } = await supabase
+    .from('open_course_companies')
+    .delete()
+    .in('id', sourceCompanyIds);
+
+  if (deleteError) {
+    throw new Error('Failed to delete source companies: ' + deleteError.message);
+  }
+}
