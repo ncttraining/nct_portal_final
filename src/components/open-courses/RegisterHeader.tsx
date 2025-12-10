@@ -91,24 +91,16 @@ export default function RegisterHeader({
           </div>
         </div>
 
-        {/* Trainer */}
+        {/* Trainer with Course Code */}
         <div className="flex items-start gap-3">
           <User className="w-5 h-5 text-slate-400 mt-0.5" />
           <div>
             <p className="text-xs text-slate-500 uppercase tracking-wide">Trainer</p>
             <p className="text-sm text-white">
               {session.trainer?.name || 'Not assigned'}
-            </p>
-          </div>
-        </div>
-
-        {/* Course Code */}
-        <div className="flex items-start gap-3">
-          <FileText className="w-5 h-5 text-slate-400 mt-0.5" />
-          <div>
-            <p className="text-xs text-slate-500 uppercase tracking-wide">Course Code</p>
-            <p className="text-sm text-white">
-              {session.course_type?.code || 'N/A'}
+              {session.course_type?.code && (
+                <span className="text-slate-400 ml-2">({session.course_type.code})</span>
+              )}
             </p>
           </div>
         </div>
