@@ -239,33 +239,43 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       console.error('Error loading open courses:', openCoursesError);
     }
 
-    const transformedOpenCourses = (openCoursesData || []).map(session => ({
-      id: `open-${session.id}`,
-      trainer_id: session.trainer_id,
-      booking_date: session.session_date,
-      start_time: session.start_time || '09:00',
-      title: `${session.event_title}${session.event_subtitle ? ` - ${session.event_subtitle}` : ''}`,
-      location: session.is_online ? 'Online' : (session.venue?.town || session.venue?.name || 'TBA'),
-      client_name: 'Open Course',
-      client_contact_name: '',
-      client_email: '',
-      client_telephone: '',
-      notes: `Open Course Session\nCapacity: ${session.delegates?.length || 0}/${session.capacity_limit}`,
-      status: 'confirmed' as const,
-      in_centre: false,
-      num_days: 1,
-      candidates: (session.delegates || []).map(delegate => ({
-        candidate_name: delegate.delegate_name,
-        email: delegate.delegate_email,
-        telephone: delegate.delegate_phone,
-        paid: true,
-        outstanding_balance: 0
-      })),
-      course_type_id: session.course_type_id,
-      course_type: session.course_type,
-      is_open_course: true,
-      open_course_session_id: session.id
-    }));
+    const transformedOpenCourses = (openCoursesData || []).map(session => {
+      // Calculate number of days for multi-day events
+      let numDays = 1;
+      if (session.end_date) {
+        const startDate = new Date(session.session_date);
+        const endDate = new Date(session.end_date);
+        numDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      }
+
+      return {
+        id: `open-${session.id}`,
+        trainer_id: session.trainer_id,
+        booking_date: session.session_date,
+        start_time: session.start_time || '09:00',
+        title: `${session.event_title}${session.event_subtitle ? ` - ${session.event_subtitle}` : ''}`,
+        location: session.is_online ? 'Online' : (session.venue?.town || session.venue?.name || 'TBA'),
+        client_name: 'Open Course',
+        client_contact_name: '',
+        client_email: '',
+        client_telephone: '',
+        notes: `Open Course Session\nCapacity: ${session.delegates?.length || 0}/${session.capacity_limit}`,
+        status: 'confirmed' as const,
+        in_centre: false,
+        num_days: numDays,
+        candidates: (session.delegates || []).map(delegate => ({
+          candidate_name: delegate.delegate_name,
+          email: delegate.delegate_email,
+          telephone: delegate.delegate_phone,
+          paid: true,
+          outstanding_balance: 0
+        })),
+        course_type_id: session.course_type_id,
+        course_type: session.course_type,
+        is_open_course: true,
+        open_course_session_id: session.id
+      };
+    });
 
     setBookings([...(bookingsData || []), ...transformedOpenCourses]);
   }
