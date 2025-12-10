@@ -90,7 +90,7 @@ export async function getAllDelegates(filters?: {
   dateFrom?: string;
   dateTo?: string;
 }): Promise<DelegateWithDetails[]> {
-  // Query delegates without columns that may not exist in DB yet
+  // Query delegates with company relationship
   let query = supabase
     .from('open_course_delegates')
     .select(`
@@ -99,10 +99,15 @@ export async function getAllDelegates(filters?: {
       delegate_email,
       delegate_phone,
       delegate_company,
+      company_id,
       session_id,
       attendance_status,
       attendance_detail,
       created_at,
+      open_course_companies (
+        id,
+        name
+      ),
       open_course_sessions!session_id (
         id,
         session_date,
@@ -162,6 +167,7 @@ export async function getAllDelegates(filters?: {
   // Transform the data
   let delegates: DelegateWithDetails[] = (data || []).map(delegate => {
     const session = (delegate as any).open_course_sessions;
+    const company = (delegate as any).open_course_companies;
     const cert = certificateMap.get(delegate.id);
 
     return {
@@ -170,8 +176,8 @@ export async function getAllDelegates(filters?: {
       delegate_email: delegate.delegate_email,
       delegate_phone: delegate.delegate_phone,
       delegate_company: delegate.delegate_company,
-      company_id: null, // Column doesn't exist yet
-      company_name: delegate.delegate_company || null,
+      company_id: (delegate as any).company_id || null,
+      company_name: company?.name || delegate.delegate_company || null,
       session_id: delegate.session_id,
       session_date: session?.session_date || '',
       session_end_date: session?.end_date || session?.session_date || null,
@@ -254,10 +260,9 @@ export async function getAllDelegates(filters?: {
     });
   }
 
-  // Apply company filter (by delegate_company text for now)
+  // Apply company filter
   if (filters?.companyId) {
-    // For now, companyId filter won't work until migration is applied
-    // This is a placeholder
+    delegates = delegates.filter(d => d.company_id === filters.companyId);
   }
 
   return delegates;
@@ -272,10 +277,15 @@ export async function getDelegateById(delegateId: string): Promise<DelegateWithD
       delegate_email,
       delegate_phone,
       delegate_company,
+      company_id,
       session_id,
       attendance_status,
       attendance_detail,
       created_at,
+      open_course_companies (
+        id,
+        name
+      ),
       open_course_sessions!session_id (
         id,
         session_date,
@@ -307,6 +317,7 @@ export async function getDelegateById(delegateId: string): Promise<DelegateWithD
   }
 
   const session = (data as any).open_course_sessions;
+  const company = (data as any).open_course_companies;
 
   // Get certificate if exists
   const { data: certificate } = await supabase
@@ -321,8 +332,8 @@ export async function getDelegateById(delegateId: string): Promise<DelegateWithD
     delegate_email: data.delegate_email,
     delegate_phone: data.delegate_phone,
     delegate_company: data.delegate_company,
-    company_id: null,
-    company_name: data.delegate_company || null,
+    company_id: (data as any).company_id || null,
+    company_name: company?.name || data.delegate_company || null,
     session_id: data.session_id,
     session_date: session?.session_date || '',
     session_end_date: session?.end_date || session?.session_date || null,
@@ -358,9 +369,14 @@ export async function getDelegateHistory(delegateEmail: string, delegateName: st
       delegate_email,
       delegate_phone,
       delegate_company,
+      company_id,
       session_id,
       attendance_status,
       attendance_detail,
+      open_course_companies (
+        id,
+        name
+      ),
       open_course_sessions!session_id (
         id,
         session_date,
@@ -397,6 +413,7 @@ export async function getDelegateHistory(delegateEmail: string, delegateName: st
   );
 
   const firstRecord = data[0];
+  const firstCompany = (firstRecord as any).open_course_companies;
 
   const courses: DelegateCourse[] = data.map(d => {
     const session = (d as any).open_course_sessions;
@@ -428,7 +445,7 @@ export async function getDelegateHistory(delegateEmail: string, delegateName: st
     delegate_name: firstRecord.delegate_name,
     delegate_email: firstRecord.delegate_email,
     delegate_phone: firstRecord.delegate_phone,
-    company_name: firstRecord.delegate_company || null,
+    company_name: firstCompany?.name || firstRecord.delegate_company || null,
     courses,
   };
 }
@@ -465,7 +482,7 @@ export async function getDelegateStats(): Promise<{
 }> {
   const { data, error } = await supabase
     .from('open_course_delegates')
-    .select('id, delegate_company, attendance_detail');
+    .select('id, delegate_company, company_id, attendance_detail');
 
   if (error) {
     console.error('Error loading delegate stats:', error);
@@ -473,7 +490,8 @@ export async function getDelegateStats(): Promise<{
   }
 
   const total = data?.length || 0;
-  const withCompany = data?.filter(d => d.delegate_company).length || 0;
+  // Count as "with company" if they have a linked company_id OR a delegate_company text value
+  const withCompany = data?.filter(d => (d as any).company_id || d.delegate_company).length || 0;
   const attended = data?.filter(d =>
     d.attendance_detail === 'attended' ||
     d.attendance_detail === 'late' ||

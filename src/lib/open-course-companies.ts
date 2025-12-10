@@ -101,11 +101,27 @@ export async function getOpenCourseCompanies(filters?: {
     return [];
   }
 
-  // Get delegate counts and certificate stats
+  // Get delegate counts and attendance stats
   const { data: delegates } = await supabase
     .from('open_course_delegates')
-    .select('company_id, certificate_issued, attendance_detail')
+    .select('id, company_id, attendance_detail')
     .in('company_id', companyIds);
+
+  // Get certificate counts from certificates table
+  const delegateIds = (delegates || []).map(d => d.id);
+  let certificateDelegateIds = new Set<string>();
+
+  // Batch certificate queries to avoid URL length limits
+  const BATCH_SIZE = 50;
+  for (let i = 0; i < delegateIds.length; i += BATCH_SIZE) {
+    const batchIds = delegateIds.slice(i, i + BATCH_SIZE);
+    const { data: certs } = await supabase
+      .from('certificates')
+      .select('open_course_delegate_id')
+      .in('open_course_delegate_id', batchIds);
+
+    (certs || []).forEach(c => certificateDelegateIds.add(c.open_course_delegate_id));
+  }
 
   const delegateStats = new Map<string, { delegates: number; completed: number; certificates: number }>();
 
@@ -120,7 +136,7 @@ export async function getOpenCourseCompanies(filters?: {
       stats.completed++;
     }
 
-    if (d.certificate_issued) {
+    if (certificateDelegateIds.has(d.id)) {
       stats.certificates++;
     }
 
@@ -150,20 +166,29 @@ export async function getOpenCourseCompanyById(id: string): Promise<OpenCourseCo
   // Get delegate stats for this company
   const { data: delegates } = await supabase
     .from('open_course_delegates')
-    .select('certificate_issued, attendance_detail')
+    .select('id, attendance_detail')
     .eq('company_id', id);
+
+  // Get certificate count from certificates table
+  const delegateIds = (delegates || []).map(d => d.id);
+  let certificatesIssued = 0;
+
+  if (delegateIds.length > 0) {
+    const { count } = await supabase
+      .from('certificates')
+      .select('*', { count: 'exact', head: true })
+      .in('open_course_delegate_id', delegateIds);
+
+    certificatesIssued = count || 0;
+  }
 
   let delegateCount = 0;
   let coursesCompleted = 0;
-  let certificatesIssued = 0;
 
   (delegates || []).forEach(d => {
     delegateCount++;
     if (d.attendance_detail === 'attended' || d.attendance_detail === 'late' || d.attendance_detail === 'left_early') {
       coursesCompleted++;
-    }
-    if (d.certificate_issued) {
-      certificatesIssued++;
     }
   });
 
@@ -244,8 +269,6 @@ export async function getCompanyDelegates(companyId: string): Promise<CompanyDel
       session_id,
       attendance_status,
       attendance_detail,
-      certificate_issued,
-      certificate_number,
       open_course_sessions!session_id (
         session_date,
         course_types (
@@ -267,14 +290,18 @@ export async function getCompanyDelegates(companyId: string): Promise<CompanyDel
 
   // Get certificates for these delegates
   const delegateIds = (data || []).map(d => d.id);
-  const { data: certificates } = await supabase
-    .from('certificates')
-    .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status, issue_date, expiry_date')
-    .in('open_course_delegate_id', delegateIds.length > 0 ? delegateIds : ['00000000-0000-0000-0000-000000000000']);
+  let certificateMap = new Map<string, any>();
 
-  const certificateMap = new Map(
-    (certificates || []).map(c => [c.open_course_delegate_id, c])
-  );
+  if (delegateIds.length > 0) {
+    const { data: certificates } = await supabase
+      .from('certificates')
+      .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status, issue_date, expiry_date')
+      .in('open_course_delegate_id', delegateIds);
+
+    certificateMap = new Map(
+      (certificates || []).map(c => [c.open_course_delegate_id, c])
+    );
+  }
 
   return (data || []).map(delegate => {
     const session = (delegate as any).open_course_sessions;
@@ -292,8 +319,8 @@ export async function getCompanyDelegates(companyId: string): Promise<CompanyDel
       venue_name: session?.venues?.name || null,
       attendance_status: delegate.attendance_status,
       attendance_detail: delegate.attendance_detail,
-      certificate_issued: delegate.certificate_issued || !!cert,
-      certificate_number: delegate.certificate_number || cert?.certificate_number || null,
+      certificate_issued: !!cert,
+      certificate_number: cert?.certificate_number || null,
       certificate: cert ? {
         id: cert.id,
         certificate_number: cert.certificate_number,
@@ -310,7 +337,7 @@ export async function getCompanyCourseSummary(companyId: string): Promise<Compan
   const { data, error } = await supabase
     .from('open_course_delegates')
     .select(`
-      certificate_issued,
+      id,
       open_course_sessions!session_id (
         course_type_id,
         course_types (
@@ -325,6 +352,19 @@ export async function getCompanyCourseSummary(companyId: string): Promise<Compan
   if (error) {
     console.error('Error loading company course summary:', error);
     return [];
+  }
+
+  // Get certificates for delegates
+  const delegateIds = (data || []).map(d => d.id);
+  let certificateDelegateIds = new Set<string>();
+
+  if (delegateIds.length > 0) {
+    const { data: certs } = await supabase
+      .from('certificates')
+      .select('open_course_delegate_id')
+      .in('open_course_delegate_id', delegateIds);
+
+    (certs || []).forEach(c => certificateDelegateIds.add(c.open_course_delegate_id));
   }
 
   const courseMap = new Map<string, CompanyCourseSummary>();
@@ -345,7 +385,7 @@ export async function getCompanyCourseSummary(companyId: string): Promise<Compan
     };
 
     existing.delegates_count++;
-    if (delegate.certificate_issued) {
+    if (certificateDelegateIds.has(delegate.id)) {
       existing.certificates_issued++;
     }
 
