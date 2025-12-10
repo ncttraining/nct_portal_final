@@ -835,7 +835,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                       }}
                     >
                       <div
-                        className="w-40 px-3 py-2 border-r border-b border-slate-800 text-sm sticky left-0 bg-inherit cursor-move"
+                        className="w-40 px-3 py-2 border-r border-b border-slate-800 text-sm sticky left-0 bg-slate-900 cursor-move"
                         draggable
                         onDragStart={(e) => {
                           e.stopPropagation();
