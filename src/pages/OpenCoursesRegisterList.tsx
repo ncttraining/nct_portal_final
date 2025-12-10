@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ClipboardList,
   Search,
@@ -8,6 +8,7 @@ import {
   User,
   Users,
   ChevronRight,
+  ChevronLeft,
   CheckCircle,
   AlertCircle,
   Upload,
@@ -44,6 +45,22 @@ interface DelegateCounts {
   };
 }
 
+// Helper to format date as YYYY-MM-DD
+function formatDateString(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+// Get default date range (today to 6 days from now = 7 days)
+function getDefaultDateRange(): { start: string; end: string } {
+  const today = new Date();
+  const endDate = new Date(today);
+  endDate.setDate(today.getDate() + 6);
+  return {
+    start: formatDateString(today),
+    end: formatDateString(endDate),
+  };
+}
+
 export default function OpenCoursesRegisterList({
   currentPage,
   onNavigate,
@@ -57,14 +74,54 @@ export default function OpenCoursesRegisterList({
     message: string;
   } | null>(null);
 
+  // Date range state - default to 7 days from today
+  const defaultRange = useMemo(() => getDefaultDateRange(), []);
+  const [weekStart, setWeekStart] = useState<Date>(() => new Date());
+
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(defaultRange.start);
+  const [endDate, setEndDate] = useState(defaultRange.end);
   const [selectedVenue, setSelectedVenue] = useState('');
   const [selectedTrainer, setSelectedTrainer] = useState('');
   const [selectedCourseType, setSelectedCourseType] = useState('');
+
+  // Update date range when weekStart changes
+  useEffect(() => {
+    const start = new Date(weekStart);
+    const end = new Date(weekStart);
+    end.setDate(start.getDate() + 6);
+    setStartDate(formatDateString(start));
+    setEndDate(formatDateString(end));
+  }, [weekStart]);
+
+  // Navigation functions
+  const goToPreviousWeek = () => {
+    const newStart = new Date(weekStart);
+    newStart.setDate(newStart.getDate() - 7);
+    setWeekStart(newStart);
+  };
+
+  const goToNextWeek = () => {
+    const newStart = new Date(weekStart);
+    newStart.setDate(newStart.getDate() + 7);
+    setWeekStart(newStart);
+  };
+
+  const goToToday = () => {
+    setWeekStart(new Date());
+  };
+
+  // Format the date range for display
+  const dateRangeDisplay = useMemo(() => {
+    if (!startDate || !endDate) return '';
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const startStr = start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    const endStr = end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return `${startStr} - ${endStr}`;
+  }, [startDate, endDate]);
 
   // Filter options
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -100,6 +157,7 @@ export default function OpenCoursesRegisterList({
         searchTerm: searchTerm || undefined,
       };
 
+      // Always apply date range filter for performance
       if (startDate) filters.startDate = startDate;
       if (endDate) filters.endDate = endDate;
       if (selectedVenue) filters.venueId = selectedVenue;
@@ -115,26 +173,47 @@ export default function OpenCoursesRegisterList({
       const sessionsData = await getSessionsForRegisters(filters);
       setSessions(sessionsData);
 
-      // Load delegate counts for each session
-      const counts: DelegateCounts = {};
-      for (const session of sessionsData) {
-        const { data, error } = await supabase
+      // Batch load delegate counts for all sessions in one query
+      if (sessionsData.length > 0) {
+        const sessionIds = sessionsData.map(s => s.id);
+        const { data: allDelegates, error } = await supabase
           .from('open_course_delegates')
-          .select('id, attendance_detail, id_checked, dvsa_uploaded, attendance_status')
-          .eq('session_id', session.id)
+          .select('session_id, attendance_detail, id_checked, dvsa_uploaded, attendance_status')
+          .in('session_id', sessionIds)
           .or('attendance_status.neq.cancelled,attendance_status.is.null');
 
-        if (!error && data) {
+        if (!error && allDelegates) {
+          const counts: DelegateCounts = {};
           const presentStatuses = ['attended', 'late', 'left_early'];
-          counts[session.id] = {
-            total: data.length,
-            present: data.filter(d => d.attendance_detail && presentStatuses.includes(d.attendance_detail)).length,
-            idsChecked: data.filter(d => d.id_checked).length,
-            dvsaUploaded: data.filter(d => d.dvsa_uploaded).length,
-          };
+
+          // Initialize counts for all sessions
+          for (const session of sessionsData) {
+            counts[session.id] = { total: 0, present: 0, idsChecked: 0, dvsaUploaded: 0 };
+          }
+
+          // Aggregate counts from all delegates
+          for (const delegate of allDelegates) {
+            const sessionCounts = counts[delegate.session_id];
+            if (sessionCounts) {
+              sessionCounts.total++;
+              if (delegate.attendance_detail && presentStatuses.includes(delegate.attendance_detail)) {
+                sessionCounts.present++;
+              }
+              if (delegate.id_checked) {
+                sessionCounts.idsChecked++;
+              }
+              if (delegate.dvsa_uploaded) {
+                sessionCounts.dvsaUploaded++;
+              }
+            }
+          }
+          setDelegateCounts(counts);
+        } else {
+          setDelegateCounts({});
         }
+      } else {
+        setDelegateCounts({});
       }
-      setDelegateCounts(counts);
     } catch (error: any) {
       setNotification({
         type: 'error',
@@ -170,14 +249,14 @@ export default function OpenCoursesRegisterList({
 
   const clearFilters = () => {
     setSearchTerm('');
-    setStartDate('');
-    setEndDate('');
+    setWeekStart(new Date()); // Reset to today
     setSelectedVenue('');
     setSelectedTrainer('');
     setSelectedCourseType('');
   };
 
-  const hasActiveFilters = searchTerm || startDate || endDate || selectedVenue || selectedTrainer || selectedCourseType;
+  // Only count non-date filters as "active" since date range is always set
+  const hasActiveFilters = searchTerm || selectedVenue || selectedTrainer || selectedCourseType;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -220,6 +299,38 @@ export default function OpenCoursesRegisterList({
           </button>
         </div>
 
+        {/* Week Navigation */}
+        <div className="flex items-center justify-between mb-6 bg-slate-900 border border-slate-800 rounded-lg p-3">
+          <button
+            onClick={goToPreviousWeek}
+            className="flex items-center gap-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded transition-colors text-sm"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-blue-400" />
+              <span className="text-white font-medium">{dateRangeDisplay}</span>
+            </div>
+            <button
+              onClick={goToToday}
+              className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded transition-colors"
+            >
+              Today
+            </button>
+          </div>
+
+          <button
+            onClick={goToNextWeek}
+            className="flex items-center gap-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded transition-colors text-sm"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* Search and Filters */}
         <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-6">
           {/* Search Bar */}
@@ -236,27 +347,7 @@ export default function OpenCoursesRegisterList({
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 border-t border-slate-800">
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Start Date</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">End Date</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-800">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Course Type</label>
                 <select
