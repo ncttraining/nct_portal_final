@@ -166,6 +166,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [showTrainerAssignModal, setShowTrainerAssignModal] = useState(false);
   const [sessionToAssignTrainer, setSessionToAssignTrainer] = useState<OpenCourseSessionWithDetails | null>(null);
   const [availableTrainers, setAvailableTrainers] = useState<any[]>([]);
+  const [unavailableTrainerIds, setUnavailableTrainerIds] = useState<Set<string>>(new Set());
   const [assigningTrainer, setAssigningTrainer] = useState(false);
 
   const [notification, setNotification] = useState<{
@@ -1172,6 +1173,48 @@ The Training Team`,
 
       if (error) throw error;
 
+      // Check for trainer conflicts on the session date
+      const sessionDate = session.session_date;
+      const unavailableIds = new Set<string>();
+
+      // Check regular bookings
+      const { data: bookingConflicts } = await supabase
+        .from('bookings')
+        .select('trainer_id')
+        .in('trainer_id', trainerIdsList)
+        .eq('booking_date', sessionDate);
+
+      if (bookingConflicts) {
+        bookingConflicts.forEach(b => unavailableIds.add(b.trainer_id));
+      }
+
+      // Check other open course sessions on the same date
+      const { data: sessionConflicts } = await supabase
+        .from('open_course_sessions')
+        .select('trainer_id')
+        .in('trainer_id', trainerIdsList)
+        .eq('session_date', sessionDate)
+        .neq('id', session.id)
+        .not('trainer_id', 'is', null);
+
+      if (sessionConflicts) {
+        sessionConflicts.forEach(s => {
+          if (s.trainer_id) unavailableIds.add(s.trainer_id);
+        });
+      }
+
+      // Check trainer unavailability
+      const { data: unavailabilityConflicts } = await supabase
+        .from('trainer_unavailability')
+        .select('trainer_id')
+        .in('trainer_id', trainerIdsList)
+        .eq('unavailable_date', sessionDate);
+
+      if (unavailabilityConflicts) {
+        unavailabilityConflicts.forEach(u => unavailableIds.add(u.trainer_id));
+      }
+
+      setUnavailableTrainerIds(unavailableIds);
       setAvailableTrainers(trainersData || []);
       setShowTrainerAssignModal(true);
     } catch (error: any) {
@@ -1250,6 +1293,7 @@ The Training Team`,
 
       setShowTrainerAssignModal(false);
       setSessionToAssignTrainer(null);
+      setUnavailableTrainerIds(new Set());
       loadData();
     } catch (error: any) {
       setNotification({
@@ -1280,6 +1324,7 @@ The Training Team`,
 
       setShowTrainerAssignModal(false);
       setSessionToAssignTrainer(null);
+      setUnavailableTrainerIds(new Set());
       loadData();
     } catch (error: any) {
       setNotification({
@@ -3087,6 +3132,7 @@ The Training Team`,
                 onClick={() => {
                   setShowTrainerAssignModal(false);
                   setSessionToAssignTrainer(null);
+                  setUnavailableTrainerIds(new Set());
                 }}
                 className="p-2 hover:bg-slate-800 rounded transition-colors"
               >
@@ -3106,33 +3152,49 @@ The Training Team`,
                     Select a trainer qualified to deliver this course:
                   </p>
                   <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {availableTrainers.map((trainer) => (
-                      <button
-                        key={trainer.id}
-                        onClick={() => handleAssignTrainer(trainer.id)}
-                        disabled={assigningTrainer}
-                        className={`w-full text-left p-4 rounded-lg border transition-all ${
-                          sessionToAssignTrainer.trainer_id === trainer.id
-                            ? 'bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/50'
-                            : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600'
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <UserCog className="w-5 h-5 text-slate-400" />
-                          <div className="flex-1">
-                            <div className="font-medium">{trainer.name}</div>
-                            {trainer.email && (
-                              <div className="text-xs text-slate-400 mt-1">{trainer.email}</div>
+                    {availableTrainers.map((trainer) => {
+                      const isUnavailable = unavailableTrainerIds.has(trainer.id);
+                      const isCurrent = sessionToAssignTrainer.trainer_id === trainer.id;
+
+                      return (
+                        <button
+                          key={trainer.id}
+                          onClick={() => !isUnavailable && handleAssignTrainer(trainer.id)}
+                          disabled={assigningTrainer || isUnavailable}
+                          className={`w-full text-left p-4 rounded-lg border transition-all ${
+                            isUnavailable
+                              ? 'bg-red-950/30 border-red-900/50 cursor-not-allowed opacity-60'
+                              : isCurrent
+                              ? 'bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/50'
+                              : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <UserCog className={`w-5 h-5 ${isUnavailable ? 'text-red-400' : 'text-slate-400'}`} />
+                            <div className="flex-1">
+                              <div className={`font-medium ${isUnavailable ? 'text-red-300' : ''}`}>
+                                {trainer.name}
+                              </div>
+                              {trainer.email && (
+                                <div className={`text-xs mt-1 ${isUnavailable ? 'text-red-400/70' : 'text-slate-400'}`}>
+                                  {trainer.email}
+                                </div>
+                              )}
+                              {isUnavailable && (
+                                <div className="text-xs text-red-400 mt-1 font-medium">
+                                  Already booked or unavailable
+                                </div>
+                              )}
+                            </div>
+                            {isCurrent && !isUnavailable && (
+                              <div className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
+                                Current
+                              </div>
                             )}
                           </div>
-                          {sessionToAssignTrainer.trainer_id === trainer.id && (
-                            <div className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
-                              Current
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                 </>
               )}
@@ -3143,6 +3205,7 @@ The Training Team`,
                 onClick={() => {
                   setShowTrainerAssignModal(false);
                   setSessionToAssignTrainer(null);
+                  setUnavailableTrainerIds(new Set());
                 }}
                 className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
               >
