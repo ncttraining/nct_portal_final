@@ -30,8 +30,6 @@ import {
   Calendar,
   Mail,
   Send,
-  Building,
-  FileText,
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
@@ -1700,38 +1698,6 @@ The Training Team`,
                         {delegateCount >= session.capacity_limit && (
                           <span className="ml-1 text-red-400 font-semibold">FULL</span>
                         )}
-                      </div>
-                    </div>
-
-                    {/* Summary Info Bar */}
-                    <div className="bg-black rounded px-2 py-2 mb-2 grid grid-cols-4 gap-2 text-[10px]">
-                      <div className="flex items-center gap-1">
-                        <Building className="w-3 h-3 text-slate-400" />
-                        <div>
-                          <div className="text-slate-500 uppercase text-[9px]">Centre</div>
-                          <div className="text-white truncate">{session.venue?.name ? session.venue.name.split(' ')[0] : 'Not'}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        <div>
-                          <div className="text-slate-500 uppercase text-[9px]">Location</div>
-                          <div className="text-white truncate">{session.is_online ? 'ONLINE' : (session.venue?.town || 'TBC')}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <UserCog className="w-3 h-3 text-slate-400" />
-                        <div>
-                          <div className="text-slate-500 uppercase text-[9px]">Trainer</div>
-                          <div className="text-white truncate">{session.trainer?.name || 'TBC'}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <FileText className="w-3 h-3 text-slate-400" />
-                        <div>
-                          <div className="text-slate-500 uppercase text-[9px]">Code</div>
-                          <div className="text-white truncate">{session.course_type?.code || 'N/A'}</div>
-                        </div>
                       </div>
                     </div>
 
