@@ -843,20 +843,30 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
     return [];
   }
 
-  // Get all delegates for these sessions (exclude only cancelled/no_show)
+  // Get all delegates for these sessions in batches to avoid URL length limits
   const sessionIds = sessions.map(s => s.id);
-  const { data: delegates, error: delegatesError } = await supabase
-    .from('open_course_delegates')
-    .select('*')
-    .in('session_id', sessionIds);
+  const BATCH_SIZE = 30;
+  let allDelegates: any[] = [];
 
-  if (delegatesError) {
-    console.error('Error loading delegates:', delegatesError);
-    return [];
+  for (let i = 0; i < sessionIds.length; i += BATCH_SIZE) {
+    const batchIds = sessionIds.slice(i, i + BATCH_SIZE);
+    const { data: batchDelegates, error: delegatesError } = await supabase
+      .from('open_course_delegates')
+      .select('*')
+      .in('session_id', batchIds);
+
+    if (delegatesError) {
+      console.error('Error loading delegates batch:', delegatesError);
+      continue;
+    }
+
+    if (batchDelegates) {
+      allDelegates = allDelegates.concat(batchDelegates);
+    }
   }
 
   // Filter out cancelled/no_show delegates in JavaScript (more reliable than PostgREST filter)
-  const filteredDelegates = (delegates || []).filter(d =>
+  const filteredDelegates = allDelegates.filter(d =>
     !d.attendance_status || !['cancelled', 'no_show'].includes(d.attendance_status)
   );
 
