@@ -865,9 +865,9 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
     }
   }
 
-  // Filter out cancelled/no_show delegates in JavaScript (more reliable than PostgREST filter)
+  // Filter to only show delegates marked as attended (awaiting certification)
   const filteredDelegates = allDelegates.filter(d =>
-    !d.attendance_status || !['cancelled', 'no_show'].includes(d.attendance_status)
+    d.attendance_status === 'attended'
   );
 
   // Get certificates for these delegates
@@ -899,28 +899,30 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
     });
   });
 
-  // Build the final result
-  return sessions.map(session => {
-    const startDate = new Date(session.session_date);
-    const endDate = session.end_date ? new Date(session.end_date) : startDate;
+  // Build the final result - only include sessions with attended delegates
+  return sessions
+    .map(session => {
+      const startDate = new Date(session.session_date);
+      const endDate = session.end_date ? new Date(session.end_date) : startDate;
 
-    return {
-      id: session.id,
-      event_title: session.event_title,
-      session_date: session.session_date,
-      end_date: session.end_date,
-      course_type_id: session.course_type_id,
-      trainer_id: session.trainer_id,
-      trainer_name: (session as any).trainers?.name || 'Unknown',
-      venue_name: (session as any).venue?.name || null,
-      status: session.status,
-      session_end_date: endDate.toISOString().split('T')[0],
-      delegates: delegatesBySession.get(session.id) || [],
-      course_types: (session as any).course_types,
-      trainers: (session as any).trainers,
-      venue: (session as any).venue
-    };
-  });
+      return {
+        id: session.id,
+        event_title: session.event_title,
+        session_date: session.session_date,
+        end_date: session.end_date,
+        course_type_id: session.course_type_id,
+        trainer_id: session.trainer_id,
+        trainer_name: (session as any).trainers?.name || 'Unknown',
+        venue_name: (session as any).venue?.name || null,
+        status: session.status,
+        session_end_date: endDate.toISOString().split('T')[0],
+        delegates: delegatesBySession.get(session.id) || [],
+        course_types: (session as any).course_types,
+        trainers: (session as any).trainers,
+        venue: (session as any).venue
+      };
+    })
+    .filter(session => session.delegates.length > 0);
 }
 
 export async function issueOpenCourseCertificate({

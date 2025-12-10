@@ -44,7 +44,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
   const [courseTypes, setCourseTypes] = useState<CourseType[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'issue' | 'view'>('issue');
-  const [issueSubTab, setIssueSubTab] = useState<'private' | 'open'>('private');
+  const [issueSubTab, setIssueSubTab] = useState<'private' | 'open'>('open');
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
   const [generatingFor, setGeneratingFor] = useState<string | null>(null);
   const [regeneratingPdf, setRegeneratingPdf] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
     setLoading(true);
     const types = await getCourseTypes();
     setCourseTypes(types);
-    await loadBookings();
+    await loadOpenCourseSessions();
     setLoading(false);
   }
 
