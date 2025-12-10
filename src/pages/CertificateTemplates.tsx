@@ -34,8 +34,9 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
   const [loading, setLoading] = useState(true);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [resizing, setResizing] = useState(false);
+  const [resizing, setResizing] = useState<'se' | 'sw' | 'ne' | 'nw' | 'e' | 'w' | 'n' | 's' | false>(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [initialFieldState, setInitialFieldState] = useState<{ width: number; height: number; x: number; y: number; fontSize: number } | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'warning' | 'info'; message: string } | null>(null);
   const [showCourseTypeChanger, setShowCourseTypeChanger] = useState(false);
@@ -500,14 +501,27 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
     });
   }
 
-  function handleResizeMouseDown(e: React.MouseEvent, fieldId: string) {
+  function handleResizeMouseDown(e: React.MouseEvent, fieldId: string, direction: 'se' | 'sw' | 'ne' | 'nw' | 'e' | 'w' | 'n' | 's') {
     e.stopPropagation();
     setSelectedFieldId(fieldId);
-    setResizing(true);
+    setResizing(direction);
     setDragStart({
       x: e.clientX,
       y: e.clientY
     });
+
+    // Capture initial field state for proportional resizing
+    const fields = (editingTemplate?.fields_config || []) as CertificateField[];
+    const field = fields.find(f => f.id === fieldId);
+    if (field) {
+      setInitialFieldState({
+        width: field.width,
+        height: field.height,
+        x: field.x,
+        y: field.y,
+        fontSize: field.fontSize
+      });
+    }
   }
 
   useEffect(() => {
@@ -527,19 +541,77 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
           x: Math.max(0, Math.min(A4_WIDTH - field.width, field.x + deltaX)),
           y: Math.max(0, Math.min(A4_HEIGHT - field.height, field.y + deltaY))
         });
-      } else if (resizing) {
+        setDragStart({ x: e.clientX, y: e.clientY });
+      } else if (resizing && initialFieldState) {
+        // Calculate total delta from start of resize
+        const totalDeltaX = (e.clientX - dragStart.x) / PREVIEW_SCALE;
+        const totalDeltaY = (e.clientY - dragStart.y) / PREVIEW_SCALE;
+
+        let newWidth = initialFieldState.width;
+        let newHeight = initialFieldState.height;
+        let newX = initialFieldState.x;
+        let newY = initialFieldState.y;
+
+        // Handle different resize directions
+        switch (resizing) {
+          case 'se': // Southeast - drag bottom-right
+            newWidth = Math.max(50, initialFieldState.width + totalDeltaX);
+            newHeight = Math.max(20, initialFieldState.height + totalDeltaY);
+            break;
+          case 'sw': // Southwest - drag bottom-left
+            newWidth = Math.max(50, initialFieldState.width - totalDeltaX);
+            newHeight = Math.max(20, initialFieldState.height + totalDeltaY);
+            newX = initialFieldState.x + (initialFieldState.width - newWidth);
+            break;
+          case 'ne': // Northeast - drag top-right
+            newWidth = Math.max(50, initialFieldState.width + totalDeltaX);
+            newHeight = Math.max(20, initialFieldState.height - totalDeltaY);
+            newY = initialFieldState.y + (initialFieldState.height - newHeight);
+            break;
+          case 'nw': // Northwest - drag top-left
+            newWidth = Math.max(50, initialFieldState.width - totalDeltaX);
+            newHeight = Math.max(20, initialFieldState.height - totalDeltaY);
+            newX = initialFieldState.x + (initialFieldState.width - newWidth);
+            newY = initialFieldState.y + (initialFieldState.height - newHeight);
+            break;
+          case 'e': // East - drag right edge
+            newWidth = Math.max(50, initialFieldState.width + totalDeltaX);
+            break;
+          case 'w': // West - drag left edge
+            newWidth = Math.max(50, initialFieldState.width - totalDeltaX);
+            newX = initialFieldState.x + (initialFieldState.width - newWidth);
+            break;
+          case 'n': // North - drag top edge
+            newHeight = Math.max(20, initialFieldState.height - totalDeltaY);
+            newY = initialFieldState.y + (initialFieldState.height - newHeight);
+            break;
+          case 's': // South - drag bottom edge
+            newHeight = Math.max(20, initialFieldState.height + totalDeltaY);
+            break;
+        }
+
+        // Constrain to canvas
+        newX = Math.max(0, Math.min(A4_WIDTH - newWidth, newX));
+        newY = Math.max(0, Math.min(A4_HEIGHT - newHeight, newY));
+
+        // Scale font size proportionally with height change
+        const heightRatio = newHeight / initialFieldState.height;
+        const newFontSize = Math.round(Math.max(8, Math.min(200, initialFieldState.fontSize * heightRatio)));
+
         updateField(selectedFieldId, {
-          width: Math.max(50, field.width + deltaX),
-          height: Math.max(20, field.height + deltaY)
+          width: newWidth,
+          height: newHeight,
+          x: newX,
+          y: newY,
+          fontSize: newFontSize
         });
       }
-
-      setDragStart({ x: e.clientX, y: e.clientY });
     }
 
     function handleMouseUp() {
       setDragging(false);
       setResizing(false);
+      setInitialFieldState(null);
     }
 
     if (dragging || resizing) {
@@ -550,7 +622,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [dragging, resizing, selectedFieldId, dragStart, editingTemplate]);
+  }, [dragging, resizing, selectedFieldId, dragStart, editingTemplate, initialFieldState]);
 
   const selectedField = selectedFieldId
     ? ((editingTemplate?.fields_config || []) as CertificateField[]).find(f => f.id === selectedFieldId)
@@ -929,10 +1001,42 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                       </span>
                     </div>
                     {selectedFieldId === field.id && (
-                      <div
-                        className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 border border-white cursor-nwse-resize"
-                        onMouseDown={(e) => handleResizeMouseDown(e, field.id)}
-                      />
+                      <>
+                        {/* Corner handles */}
+                        <div
+                          className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-blue-500 border border-white cursor-nwse-resize rounded-sm"
+                          onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'nw')}
+                        />
+                        <div
+                          className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-blue-500 border border-white cursor-nesw-resize rounded-sm"
+                          onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'ne')}
+                        />
+                        <div
+                          className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-blue-500 border border-white cursor-nesw-resize rounded-sm"
+                          onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'sw')}
+                        />
+                        <div
+                          className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-blue-500 border border-white cursor-nwse-resize rounded-sm"
+                          onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'se')}
+                        />
+                        {/* Edge handles */}
+                        <div
+                          className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-2 bg-blue-500 border border-white cursor-ns-resize rounded-sm"
+                          onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'n')}
+                        />
+                        <div
+                          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-2 bg-blue-500 border border-white cursor-ns-resize rounded-sm"
+                          onMouseDown={(e) => handleResizeMouseDown(e, field.id, 's')}
+                        />
+                        <div
+                          className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-4 bg-blue-500 border border-white cursor-ew-resize rounded-sm"
+                          onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'w')}
+                        />
+                        <div
+                          className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-4 bg-blue-500 border border-white cursor-ew-resize rounded-sm"
+                          onMouseDown={(e) => handleResizeMouseDown(e, field.id, 'e')}
+                        />
+                      </>
                     )}
                   </div>
                 ))}
