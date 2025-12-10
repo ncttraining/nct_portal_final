@@ -866,8 +866,9 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
   }
 
   // Filter to only show delegates marked as attended (awaiting certification)
+  // Attendance can be in either attendance_status or attendance_detail field
   const filteredDelegates = allDelegates.filter(d =>
-    d.attendance_status === 'attended'
+    d.attendance_status === 'attended' || d.attendance_detail === 'attended'
   );
 
   // Get certificates for these delegates
