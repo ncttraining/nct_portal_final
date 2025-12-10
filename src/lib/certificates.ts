@@ -64,8 +64,10 @@ export type Certificate = {
   id: string;
   certificate_number: string;
   course_type_id: string;
-  booking_id: string;
-  candidate_id: string;
+  booking_id: string | null;
+  candidate_id: string | null;
+  open_course_session_id: string | null;
+  open_course_delegate_id: string | null;
   candidate_name: string;
   candidate_email: string;
   trainer_id: string | null;
@@ -103,6 +105,36 @@ export type BookingWithCandidates = {
   }[];
   course_types?: CourseType;
   trainers?: { name: string };
+};
+
+export type OpenCourseSessionWithDelegates = {
+  id: string;
+  event_title: string;
+  session_date: string;
+  end_date: string | null;
+  course_type_id: string | null;
+  trainer_id: string | null;
+  trainer_name: string;
+  venue_name: string | null;
+  status: string;
+  session_end_date: string;
+  delegates: {
+    id: string;
+    delegate_name: string;
+    delegate_email: string;
+    attendance_status: string | null;
+    attendance_detail: string | null;
+    certificate_issued: boolean;
+    certificate?: {
+      id: string;
+      certificate_number: string;
+      certificate_pdf_url: string;
+      status: string;
+    } | null;
+  }[];
+  course_types?: CourseType;
+  trainers?: { name: string };
+  venue?: { name: string };
 };
 
 export async function getCourseTypes() {
@@ -756,4 +788,255 @@ export function getDaysUntilExpiry(expiryDate: string | null): number | null {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   return diffDays > 0 ? diffDays : 0;
+}
+
+// ============================================================================
+// Open Course Certificate Functions
+// ============================================================================
+
+export async function getOpenCourseSessionsWithDelegates(filters?: {
+  courseTypeId?: string;
+  trainerId?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<OpenCourseSessionWithDelegates[]> {
+  let query = supabase
+    .from('open_course_sessions')
+    .select(`
+      id,
+      event_title,
+      session_date,
+      end_date,
+      course_type_id,
+      trainer_id,
+      status,
+      course_types(id, name, code, required_fields, certificate_validity_months, duration_days, duration_unit, default_course_data),
+      trainers(name),
+      venue:venues(name)
+    `)
+    .not('course_type_id', 'is', null)
+    .order('session_date', { ascending: true });
+
+  if (filters?.courseTypeId) {
+    query = query.eq('course_type_id', filters.courseTypeId);
+  }
+
+  if (filters?.trainerId) {
+    query = query.eq('trainer_id', filters.trainerId);
+  }
+
+  if (filters?.startDate) {
+    query = query.gte('session_date', filters.startDate);
+  }
+
+  if (filters?.endDate) {
+    query = query.lte('session_date', filters.endDate);
+  }
+
+  const { data: sessions, error: sessionsError } = await query;
+
+  if (sessionsError) {
+    console.error('Error loading open course sessions:', sessionsError);
+    return [];
+  }
+
+  if (!sessions || sessions.length === 0) {
+    return [];
+  }
+
+  // Get all delegates for these sessions
+  const sessionIds = sessions.map(s => s.id);
+  const { data: delegates, error: delegatesError } = await supabase
+    .from('open_course_delegates')
+    .select('*')
+    .in('session_id', sessionIds)
+    .in('attendance_status', ['registered', 'confirmed', 'attended']);
+
+  if (delegatesError) {
+    console.error('Error loading delegates:', delegatesError);
+    return [];
+  }
+
+  // Get certificates for these delegates
+  const delegateIds = (delegates || []).map(d => d.id);
+  const { data: certificates } = await supabase
+    .from('certificates')
+    .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status')
+    .in('open_course_delegate_id', delegateIds.length > 0 ? delegateIds : ['00000000-0000-0000-0000-000000000000']);
+
+  const certificateMap = new Map(
+    (certificates || []).map(c => [c.open_course_delegate_id, c])
+  );
+
+  // Map delegates to their sessions
+  const delegatesBySession = new Map<string, any[]>();
+  (delegates || []).forEach(delegate => {
+    if (!delegatesBySession.has(delegate.session_id)) {
+      delegatesBySession.set(delegate.session_id, []);
+    }
+    const cert = certificateMap.get(delegate.id);
+    delegatesBySession.get(delegate.session_id)!.push({
+      id: delegate.id,
+      delegate_name: delegate.delegate_name,
+      delegate_email: delegate.delegate_email,
+      attendance_status: delegate.attendance_status,
+      attendance_detail: delegate.attendance_detail,
+      certificate_issued: delegate.certificate_issued || !!cert,
+      certificate: cert || null
+    });
+  });
+
+  // Build the final result
+  return sessions.map(session => {
+    const startDate = new Date(session.session_date);
+    const endDate = session.end_date ? new Date(session.end_date) : startDate;
+
+    return {
+      id: session.id,
+      event_title: session.event_title,
+      session_date: session.session_date,
+      end_date: session.end_date,
+      course_type_id: session.course_type_id,
+      trainer_id: session.trainer_id,
+      trainer_name: (session as any).trainers?.name || 'Unknown',
+      venue_name: (session as any).venue?.name || null,
+      status: session.status,
+      session_end_date: endDate.toISOString().split('T')[0],
+      delegates: delegatesBySession.get(session.id) || [],
+      course_types: (session as any).course_types,
+      trainers: (session as any).trainers,
+      venue: (session as any).venue
+    };
+  }).filter(session => session.delegates.length > 0);
+}
+
+export async function issueOpenCourseCertificate({
+  sessionId,
+  delegateId,
+  delegateName,
+  delegateEmail,
+  courseTypeId,
+  trainerId,
+  trainerName,
+  courseStartDate,
+  courseEndDate,
+  courseSpecificData,
+  templateId,
+}: {
+  sessionId: string;
+  delegateId: string;
+  delegateName: string;
+  delegateEmail: string;
+  courseTypeId: string;
+  trainerId: string | null;
+  trainerName: string;
+  courseStartDate: string;
+  courseEndDate: string;
+  courseSpecificData: Record<string, any>;
+  templateId: string;
+}) {
+  const courseType = await getCourseType(courseTypeId);
+  if (!courseType) {
+    throw new Error('Course type not found');
+  }
+
+  const certificateNumber = await generateCertificateNumber(courseType.code);
+  const issueDate = new Date().toISOString().split('T')[0];
+  const expiryDate = calculateExpiryDate(issueDate, courseType.certificate_validity_months);
+
+  const { data: certificate, error } = await supabase
+    .from('certificates')
+    .insert([{
+      certificate_number: certificateNumber,
+      course_type_id: courseTypeId,
+      open_course_session_id: sessionId,
+      open_course_delegate_id: delegateId,
+      booking_id: null,
+      candidate_id: null,
+      candidate_name: delegateName,
+      candidate_email: delegateEmail,
+      trainer_id: trainerId,
+      trainer_name: trainerName,
+      course_date_start: courseStartDate,
+      course_date_end: courseEndDate,
+      issue_date: issueDate,
+      expiry_date: expiryDate,
+      certificate_pdf_url: '',
+      status: 'issued',
+      course_specific_data: courseSpecificData,
+      certificate_template_id: templateId
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating certificate:', error);
+    throw error;
+  }
+
+  // Update delegate to mark certificate as issued
+  await supabase
+    .from('open_course_delegates')
+    .update({
+      certificate_issued: true,
+      certificate_number: certificateNumber
+    })
+    .eq('id', delegateId);
+
+  // Generate PDF
+  try {
+    await generateCertificatePDF(
+      certificate.id,
+      {
+        certificate_number: certificateNumber,
+        candidate_name: delegateName,
+        trainer_name: trainerName,
+        course_date_start: courseStartDate,
+        course_date_end: courseEndDate,
+        issue_date: issueDate,
+        expiry_date: expiryDate,
+        course_specific_data: courseSpecificData,
+      },
+      templateId
+    );
+  } catch (error) {
+    console.error('Error generating certificate PDF:', error);
+  }
+
+  return certificate as Certificate;
+}
+
+export async function updateOpenCourseDelegateAttendance(delegateId: string, attended: boolean) {
+  const { error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      attendance_detail: attended ? 'attended' : 'absent',
+      attendance_status: attended ? 'attended' : 'no_show'
+    })
+    .eq('id', delegateId);
+
+  if (error) {
+    console.error('Error updating delegate attendance:', error);
+    throw error;
+  }
+}
+
+export async function updateOpenCourseSessionData(sessionId: string, data: Record<string, any>) {
+  // Store session-level certificate data in a separate field or local state
+  // For now, we'll handle this in the UI component state
+  return;
+}
+
+export async function updateOpenCourseDelegateData(delegateId: string, data: Record<string, any>) {
+  const { error } = await supabase
+    .from('open_course_delegates')
+    .update({
+      additional_comments: JSON.stringify(data)
+    })
+    .eq('id', delegateId);
+
+  if (error) {
+    console.error('Error updating delegate data:', error);
+    throw error;
+  }
 }
