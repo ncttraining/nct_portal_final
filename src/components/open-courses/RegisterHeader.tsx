@@ -120,6 +120,17 @@ export default function RegisterHeader({
             </div>
           </div>
         )}
+
+        {/* Course ID */}
+        {session.course_id && (
+          <div className="flex items-start gap-3">
+            <FileText className="w-5 h-5 text-slate-400 mt-0.5" />
+            <div>
+              <p className="text-xs text-slate-500 uppercase tracking-wide">Course ID</p>
+              <p className="text-sm text-white font-mono">{session.course_id}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Actual Session Times Row */}
