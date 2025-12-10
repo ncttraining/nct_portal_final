@@ -1126,11 +1126,6 @@ The Training Team`,
                               <div className="font-semibold truncate" title={decodeHtmlEntities(session.event_title)}>
                                 {decodeHtmlEntities(session.event_title)}
                               </div>
-                              {session.course_type && (
-                                <div className="text-slate-400 text-[10px] truncate">
-                                  {session.course_type.code}
-                                </div>
-                              )}
                             </div>
                             {session.is_online && (
                               <Video className="w-3 h-3 text-blue-400 ml-1 flex-shrink-0" />
@@ -1161,6 +1156,11 @@ The Training Team`,
                                 <span className="truncate" title={session.trainer.name}>
                                   {session.trainer.name}
                                 </span>
+                                {session.course_type && (
+                                  <span className="text-[10px] text-slate-500">
+                                    ({session.course_type.code})
+                                  </span>
+                                )}
                               </div>
                             ) : (
                               <div className="flex items-center gap-1 text-amber-400">
