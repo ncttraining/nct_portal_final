@@ -1,4 +1,4 @@
-import { Shield, Calendar, GraduationCap, Eye, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, Home, DollarSign, UserCog, ChevronDown, Inbox, Menu, X, CalendarClock, DoorOpen, CalendarDays, ClipboardList } from 'lucide-react';
+import { Shield, Calendar, GraduationCap, Eye, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, Home, DollarSign, UserCog, ChevronDown, Inbox, Menu, X, CalendarClock, DoorOpen, CalendarDays, ClipboardList, Building2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 
@@ -54,6 +54,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
         { id: 'course-booking', label: 'Course Booking & Scheduling', icon: BookOpen },
         { id: 'open-courses', label: 'Open Courses Dashboard', icon: CalendarDays },
         { id: 'open-courses-registers', label: 'Open Courses Registers', icon: ClipboardList },
+        { id: 'open-courses-delegates', label: 'Open Course Delegates', icon: Users },
+        { id: 'open-courses-companies', label: 'Open Course Companies', icon: Building2 },
         { id: 'candidates-management', label: 'Candidates', icon: Users },
         { id: 'trainer-map', label: 'Trainer Map', icon: MapPin },
         { id: 'client-management', label: 'Clients', icon: Building },
