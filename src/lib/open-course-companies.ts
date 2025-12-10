@@ -39,6 +39,7 @@ export interface CompanyDelegate {
   delegate_phone: string | null;
   session_id: string;
   session_date: string;
+  event_title: string | null;
   course_type_name: string | null;
   course_type_code: string | null;
   venue_name: string | null;
@@ -271,6 +272,7 @@ export async function getCompanyDelegates(companyId: string): Promise<CompanyDel
       attendance_detail,
       open_course_sessions!session_id (
         session_date,
+        event_title,
         course_types (
           name,
           code
@@ -314,6 +316,7 @@ export async function getCompanyDelegates(companyId: string): Promise<CompanyDel
       delegate_phone: delegate.delegate_phone,
       session_id: delegate.session_id,
       session_date: session?.session_date || '',
+      event_title: session?.event_title || null,
       course_type_name: session?.course_types?.name || null,
       course_type_code: session?.course_types?.code || null,
       venue_name: session?.venues?.name || null,

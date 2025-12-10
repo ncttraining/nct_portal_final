@@ -511,7 +511,7 @@ export default function OpenCourseCompanyDetails({ currentPage, onNavigate, comp
                             <div className="text-sm text-slate-400">{delegate.delegate_email}</div>
                           </td>
                           <td className="px-4 py-3 text-slate-300 text-sm">
-                            <div>{delegate.course_type_name || 'Unknown'}</div>
+                            <div>{delegate.event_title || 'Unknown'}</div>
                             <div className="text-slate-500">{delegate.venue_name}</div>
                           </td>
                           <td className="px-4 py-3 text-slate-300 text-sm">
