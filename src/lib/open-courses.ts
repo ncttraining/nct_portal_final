@@ -1074,7 +1074,7 @@ export async function getSessionsForRegisters(filters?: {
       trainer:trainers(id, name, email),
       course_type:course_types(id, name, code, jaupt_code)
     `)
-    .order('session_date', { ascending: false });
+    .order('session_date', { ascending: true });
 
   if (filters?.startDate) {
     query = query.gte('session_date', filters.startDate);
