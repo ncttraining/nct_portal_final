@@ -1562,6 +1562,26 @@ The Training Team`,
           {getMultiDaySessions().length > 0 && (
             <>
               <h3 className="text-lg font-semibold text-slate-200 mt-8 mb-4">Multi-day Courses</h3>
+
+              {/* Day/Date Headers */}
+              <div className="grid grid-cols-7 gap-4 mb-4">
+                {weekDates.map((date, index) => {
+                  const dateString = date.toISOString().split('T')[0];
+                  const isToday = dateString === new Date().toISOString().split('T')[0];
+                  return (
+                    <div
+                      key={`header-${dateString}`}
+                      className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}
+                    >
+                      <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               <div className="relative mt-4">
                 {/* Background columns */}
                 <div className="grid grid-cols-7 gap-4 absolute inset-0 pointer-events-none">
