@@ -52,6 +52,7 @@ import {
   Venue,
 } from '../lib/open-courses';
 import { supabase } from '../lib/supabase';
+import { queueEmail } from '../lib/email-queue';
 
 function decodeHtmlEntities(text: string): string {
   const textarea = document.createElement('textarea');
@@ -1192,6 +1193,55 @@ The Training Team`,
         .eq('id', sessionToAssignTrainer.id);
 
       if (error) throw error;
+
+      // Fetch trainer details for email
+      const { data: trainer } = await supabase
+        .from('trainers')
+        .select('name, email')
+        .eq('id', trainerId)
+        .maybeSingle();
+
+      // Fetch delegates for this session
+      const { data: delegates } = await supabase
+        .from('open_course_delegates')
+        .select('delegate_name, delegate_company')
+        .eq('session_id', sessionToAssignTrainer.id)
+        .order('delegate_name');
+
+      // Send email notification to trainer if they have an email
+      if (trainer?.email) {
+        const delegatesList = delegates && delegates.length > 0
+          ? delegates.map((d) => `<li>${d.delegate_name}${d.delegate_company ? ` (${d.delegate_company})` : ''}</li>`).join('')
+          : '<li>No delegates registered yet</li>';
+
+        const delegatesText = delegates && delegates.length > 0
+          ? delegates.map((d) => `- ${d.delegate_name}${d.delegate_company ? ` (${d.delegate_company})` : ''}`).join('\n')
+          : '- No delegates registered yet';
+
+        const location = sessionToAssignTrainer.is_online
+          ? 'Online'
+          : sessionToAssignTrainer.venue?.name || 'TBC';
+
+        await queueEmail({
+          recipientEmail: trainer.email,
+          recipientName: trainer.name,
+          templateKey: 'trainer_open_course_assignment',
+          templateData: {
+            trainer_name: trainer.name,
+            course_title: sessionToAssignTrainer.event_title || 'Untitled Session',
+            course_subtitle: sessionToAssignTrainer.event_subtitle || '',
+            course_type: sessionToAssignTrainer.course_type?.name || '',
+            session_date: formatDate(sessionToAssignTrainer.session_date),
+            start_time: formatTime(sessionToAssignTrainer.start_time) || 'TBC',
+            end_time: formatTime(sessionToAssignTrainer.end_time) || 'TBC',
+            is_online: sessionToAssignTrainer.is_online ? 'true' : '',
+            location: location,
+            capacity: sessionToAssignTrainer.capacity_limit.toString(),
+            delegates_list: delegatesList,
+            delegates_text: delegatesText,
+          },
+        });
+      }
 
       setNotification({
         type: 'success',
