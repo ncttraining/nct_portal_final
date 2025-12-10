@@ -1561,6 +1561,7 @@ The Training Team`,
           {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
           {getMultiDaySessions().length > 0 && (
             <>
+              <h3 className="text-lg font-semibold text-slate-200 mt-8 mb-4">Multi-day Courses</h3>
               <div className="relative mt-4">
                 {/* Background columns */}
                 <div className="grid grid-cols-7 gap-4 absolute inset-0 pointer-events-none">
