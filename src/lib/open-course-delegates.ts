@@ -90,6 +90,7 @@ export async function getAllDelegates(filters?: {
   dateFrom?: string;
   dateTo?: string;
 }): Promise<DelegateWithDetails[]> {
+  // Query delegates without columns that may not exist in DB yet
   let query = supabase
     .from('open_course_delegates')
     .select(`
@@ -98,12 +99,9 @@ export async function getAllDelegates(filters?: {
       delegate_email,
       delegate_phone,
       delegate_company,
-      company_id,
       session_id,
       attendance_status,
       attendance_detail,
-      certificate_issued,
-      certificate_number,
       created_at,
       open_course_sessions!session_id (
         id,
@@ -125,18 +123,9 @@ export async function getAllDelegates(filters?: {
         trainers (
           name
         )
-      ),
-      open_course_companies (
-        id,
-        name
       )
     `)
     .order('created_at', { ascending: false });
-
-  // Apply company filter
-  if (filters?.companyId) {
-    query = query.eq('company_id', filters.companyId);
-  }
 
   // Apply search filter
   if (filters?.searchTerm) {
@@ -151,10 +140,26 @@ export async function getAllDelegates(filters?: {
     return [];
   }
 
-  // Transform and filter the data
+  // Get all delegate IDs for certificate lookup
+  const allDelegateIds = (data || []).map(d => d.id);
+
+  // Fetch certificates for all delegates in one query
+  let certificateMap = new Map<string, any>();
+  if (allDelegateIds.length > 0) {
+    const { data: certificates } = await supabase
+      .from('certificates')
+      .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status, issue_date, expiry_date')
+      .in('open_course_delegate_id', allDelegateIds);
+
+    certificateMap = new Map(
+      (certificates || []).map(c => [c.open_course_delegate_id, c])
+    );
+  }
+
+  // Transform the data
   let delegates: DelegateWithDetails[] = (data || []).map(delegate => {
     const session = (delegate as any).open_course_sessions;
-    const company = (delegate as any).open_course_companies;
+    const cert = certificateMap.get(delegate.id);
 
     return {
       id: delegate.id,
@@ -162,8 +167,8 @@ export async function getAllDelegates(filters?: {
       delegate_email: delegate.delegate_email,
       delegate_phone: delegate.delegate_phone,
       delegate_company: delegate.delegate_company,
-      company_id: delegate.company_id,
-      company_name: company?.name || delegate.delegate_company || null,
+      company_id: null, // Column doesn't exist yet
+      company_name: delegate.delegate_company || null,
       session_id: delegate.session_id,
       session_date: session?.session_date || '',
       session_end_date: session?.end_date || session?.session_date || null,
@@ -176,8 +181,16 @@ export async function getAllDelegates(filters?: {
       trainer_name: session?.trainers?.name || null,
       attendance_status: delegate.attendance_status,
       attendance_detail: delegate.attendance_detail,
-      certificate_issued: delegate.certificate_issued,
-      certificate_number: delegate.certificate_number,
+      certificate_issued: !!cert,
+      certificate_number: cert?.certificate_number || null,
+      certificate: cert ? {
+        id: cert.id,
+        certificate_number: cert.certificate_number,
+        certificate_pdf_url: cert.certificate_pdf_url,
+        status: cert.status,
+        issue_date: cert.issue_date,
+        expiry_date: cert.expiry_date,
+      } : null,
       created_at: delegate.created_at,
     };
   });
@@ -238,31 +251,10 @@ export async function getAllDelegates(filters?: {
     });
   }
 
-  // Now fetch certificates for all delegates
-  const delegateIds = delegates.map(d => d.id);
-
-  if (delegateIds.length > 0) {
-    const { data: certificates } = await supabase
-      .from('certificates')
-      .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status, issue_date, expiry_date')
-      .in('open_course_delegate_id', delegateIds);
-
-    const certificateMap = new Map(
-      (certificates || []).map(c => [c.open_course_delegate_id, c])
-    );
-
-    delegates = delegates.map(d => ({
-      ...d,
-      certificate: certificateMap.get(d.id) ? {
-        id: certificateMap.get(d.id)!.id,
-        certificate_number: certificateMap.get(d.id)!.certificate_number,
-        certificate_pdf_url: certificateMap.get(d.id)!.certificate_pdf_url,
-        status: certificateMap.get(d.id)!.status,
-        issue_date: certificateMap.get(d.id)!.issue_date,
-        expiry_date: certificateMap.get(d.id)!.expiry_date,
-      } : null,
-      certificate_issued: d.certificate_issued || !!certificateMap.get(d.id),
-    }));
+  // Apply company filter (by delegate_company text for now)
+  if (filters?.companyId) {
+    // For now, companyId filter won't work until migration is applied
+    // This is a placeholder
   }
 
   return delegates;
@@ -277,12 +269,9 @@ export async function getDelegateById(delegateId: string): Promise<DelegateWithD
       delegate_email,
       delegate_phone,
       delegate_company,
-      company_id,
       session_id,
       attendance_status,
       attendance_detail,
-      certificate_issued,
-      certificate_number,
       created_at,
       open_course_sessions!session_id (
         id,
@@ -304,10 +293,6 @@ export async function getDelegateById(delegateId: string): Promise<DelegateWithD
         trainers (
           name
         )
-      ),
-      open_course_companies (
-        id,
-        name
       )
     `)
     .eq('id', delegateId)
@@ -319,7 +304,6 @@ export async function getDelegateById(delegateId: string): Promise<DelegateWithD
   }
 
   const session = (data as any).open_course_sessions;
-  const company = (data as any).open_course_companies;
 
   // Get certificate if exists
   const { data: certificate } = await supabase
@@ -334,8 +318,8 @@ export async function getDelegateById(delegateId: string): Promise<DelegateWithD
     delegate_email: data.delegate_email,
     delegate_phone: data.delegate_phone,
     delegate_company: data.delegate_company,
-    company_id: data.company_id,
-    company_name: company?.name || data.delegate_company || null,
+    company_id: null,
+    company_name: data.delegate_company || null,
     session_id: data.session_id,
     session_date: session?.session_date || '',
     session_end_date: session?.end_date || session?.session_date || null,
@@ -348,8 +332,8 @@ export async function getDelegateById(delegateId: string): Promise<DelegateWithD
     trainer_name: session?.trainers?.name || null,
     attendance_status: data.attendance_status,
     attendance_detail: data.attendance_detail,
-    certificate_issued: data.certificate_issued || !!certificate,
-    certificate_number: data.certificate_number || certificate?.certificate_number || null,
+    certificate_issued: !!certificate,
+    certificate_number: certificate?.certificate_number || null,
     certificate: certificate ? {
       id: certificate.id,
       certificate_number: certificate.certificate_number,
@@ -371,12 +355,9 @@ export async function getDelegateHistory(delegateEmail: string, delegateName: st
       delegate_email,
       delegate_phone,
       delegate_company,
-      company_id,
       session_id,
       attendance_status,
       attendance_detail,
-      certificate_issued,
-      certificate_number,
       open_course_sessions!session_id (
         id,
         session_date,
@@ -390,9 +371,6 @@ export async function getDelegateHistory(delegateEmail: string, delegateName: st
         trainers (
           name
         )
-      ),
-      open_course_companies (
-        name
       )
     `)
     .eq('delegate_email', delegateEmail)
@@ -416,7 +394,6 @@ export async function getDelegateHistory(delegateEmail: string, delegateName: st
   );
 
   const firstRecord = data[0];
-  const company = (firstRecord as any).open_course_companies;
 
   const courses: DelegateCourse[] = data.map(d => {
     const session = (d as any).open_course_sessions;
@@ -431,7 +408,7 @@ export async function getDelegateHistory(delegateEmail: string, delegateName: st
       trainer_name: session?.trainers?.name || null,
       attendance_status: d.attendance_status,
       attendance_detail: d.attendance_detail,
-      certificate_issued: d.certificate_issued || !!cert,
+      certificate_issued: !!cert,
       certificate: cert ? {
         id: cert.id,
         certificate_number: cert.certificate_number,
@@ -448,7 +425,7 @@ export async function getDelegateHistory(delegateEmail: string, delegateName: st
     delegate_name: firstRecord.delegate_name,
     delegate_email: firstRecord.delegate_email,
     delegate_phone: firstRecord.delegate_phone,
-    company_name: company?.name || firstRecord.delegate_company || null,
+    company_name: firstRecord.delegate_company || null,
     courses,
   };
 }
@@ -461,7 +438,6 @@ export async function updateDelegateDetails(delegateId: string, updates: {
   delegate_name?: string;
   delegate_email?: string;
   delegate_phone?: string;
-  company_id?: string | null;
 }): Promise<void> {
   const { error } = await supabase
     .from('open_course_delegates')
@@ -486,7 +462,7 @@ export async function getDelegateStats(): Promise<{
 }> {
   const { data, error } = await supabase
     .from('open_course_delegates')
-    .select('company_id, attendance_detail, certificate_issued');
+    .select('id, delegate_company, attendance_detail');
 
   if (error) {
     console.error('Error loading delegate stats:', error);
@@ -494,13 +470,25 @@ export async function getDelegateStats(): Promise<{
   }
 
   const total = data?.length || 0;
-  const withCompany = data?.filter(d => d.company_id).length || 0;
+  const withCompany = data?.filter(d => d.delegate_company).length || 0;
   const attended = data?.filter(d =>
     d.attendance_detail === 'attended' ||
     d.attendance_detail === 'late' ||
     d.attendance_detail === 'left_early'
   ).length || 0;
-  const certificatesIssued = data?.filter(d => d.certificate_issued).length || 0;
+
+  // Get certificate count from certificates table
+  const delegateIds = (data || []).map(d => d.id);
+  let certificatesIssued = 0;
+
+  if (delegateIds.length > 0) {
+    const { count } = await supabase
+      .from('certificates')
+      .select('*', { count: 'exact', head: true })
+      .in('open_course_delegate_id', delegateIds);
+
+    certificatesIssued = count || 0;
+  }
 
   return { total, withCompany, attended, certificatesIssued };
 }

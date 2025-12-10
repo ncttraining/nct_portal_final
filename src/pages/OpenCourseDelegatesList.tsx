@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, Mail, Eye, X, Download, Send, Building2, CheckCircle, Clock, XCircle, AlertCircle, Filter } from 'lucide-react';
+import { Users, Search, Mail, Eye, X, Download, Send, Building2, CheckCircle, Clock, XCircle } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
 import {
@@ -13,9 +13,7 @@ import {
   AttendanceStatusFilter,
   CertificateStatusFilter,
 } from '../lib/open-course-delegates';
-import { getCompaniesForDropdown } from '../lib/open-course-companies';
-import { getCourseTypes } from '../lib/open-courses';
-import { getActiveVenues } from '../lib/open-courses';
+import { getCourseTypes, getActiveVenues } from '../lib/open-courses';
 import { sendCertificateEmail, sendTemplateEmail } from '../lib/email';
 
 interface OpenCourseDelegatesListProps {
@@ -33,7 +31,6 @@ type SortDirection = 'asc' | 'desc';
 
 export default function OpenCourseDelegatesList({ currentPage, onNavigate }: OpenCourseDelegatesListProps) {
   const [delegates, setDelegates] = useState<DelegateWithDetails[]>([]);
-  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [courseTypes, setCourseTypes] = useState<Array<{ id: string; name: string }>>([]);
   const [venues, setVenues] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +38,6 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCompany, setSelectedCompany] = useState('');
   const [selectedCourseType, setSelectedCourseType] = useState('');
   const [selectedVenue, setSelectedVenue] = useState('');
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceStatusFilter>('all');
@@ -78,15 +74,13 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
   async function loadData() {
     setLoading(true);
     try {
-      const [delegatesData, companiesData, courseTypesData, venuesData] = await Promise.all([
+      const [delegatesData, courseTypesData, venuesData] = await Promise.all([
         getAllDelegates(),
-        getCompaniesForDropdown(),
         getCourseTypes(),
         getActiveVenues(),
       ]);
 
       setDelegates(delegatesData);
-      setCompanies(companiesData);
       setCourseTypes(courseTypesData);
       setVenues(venuesData);
     } catch (error) {
@@ -102,7 +96,6 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
     try {
       const delegatesData = await getAllDelegates({
         searchTerm,
-        companyId: selectedCompany || undefined,
         courseTypeId: selectedCourseType || undefined,
         venueId: selectedVenue || undefined,
         attendanceStatus: selectedAttendance,
@@ -124,7 +117,7 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, selectedCompany, selectedCourseType, selectedVenue, selectedAttendance, selectedCertificateStatus, dateFrom, dateTo]);
+  }, [searchTerm, selectedCourseType, selectedVenue, selectedAttendance, selectedCertificateStatus, dateFrom, dateTo]);
 
   async function handleViewDetails(delegate: DelegateWithDetails) {
     setSelectedDelegate(delegate);
@@ -373,7 +366,6 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
 
   function clearFilters() {
     setSearchTerm('');
-    setSelectedCompany('');
     setSelectedCourseType('');
     setSelectedVenue('');
     setSelectedAttendance('all');
@@ -387,8 +379,6 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
   return (
     <div className="min-h-screen bg-slate-950">
       <PageHeader
-        title="Open Course Delegates"
-        icon={Users}
         currentPage={currentPage}
         onNavigate={onNavigate}
       />
@@ -402,9 +392,14 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
       )}
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Page Title */}
+        <div className="flex items-center gap-3 mb-6">
+          <Users className="w-8 h-8 text-blue-400" />
+          <h1 className="text-2xl font-semibold text-white">Open Course Delegates</h1>
+        </div>
         {/* Filters */}
         <div className="bg-slate-900/50 rounded-lg border border-slate-800 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             <div className="lg:col-span-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -417,17 +412,6 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
                 />
               </div>
             </div>
-
-            <select
-              value={selectedCompany}
-              onChange={(e) => setSelectedCompany(e.target.value)}
-              className="px-3 py-2 bg-slate-900 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
-            >
-              <option value="">All Companies</option>
-              {companies.map(company => (
-                <option key={company.id} value={company.id}>{company.name}</option>
-              ))}
-            </select>
 
             <select
               value={selectedCourseType}
