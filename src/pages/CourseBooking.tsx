@@ -6,7 +6,7 @@ import BookingModal from '../components/BookingModal';
 import Notification from '../components/Notification';
 import { getTrainerUnavailability, TrainerUnavailability } from '../lib/trainer-availability';
 import { getTrainerTypesForMultipleTrainers, type TrainerType as LibTrainerType } from '../lib/trainer-types';
-import { sendBookingMovedNotification, sendBookingCancelledNotification } from '../lib/booking-notifications';
+import { sendBookingMovedNotification, sendBookingCancelledNotification, sendOpenCourseAssignmentNotification } from '../lib/booking-notifications';
 
 interface TrainerType {
   id: string;
@@ -551,6 +551,18 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
         });
         setDraggedBooking(null);
         return;
+      }
+
+      // Send email notifications
+      try {
+        // Send cancellation notification to old trainer
+        await sendBookingCancelledNotification(booking as any, oldTrainerId);
+
+        // Send assignment notification to new trainer
+        await sendOpenCourseAssignmentNotification(sessionId, trainerId);
+      } catch (emailError) {
+        console.error('Error sending email notifications:', emailError);
+        // Don't fail the operation if emails fail
       }
 
       setNotification({
