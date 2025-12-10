@@ -150,6 +150,10 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   });
   const [selectedSessions, setSelectedSessions] = useState<Set<string>>(new Set());
   const [availableSessionsForBooking, setAvailableSessionsForBooking] = useState<OpenCourseSessionWithDetails[]>([]);
+  const [delegateSuggestions, setDelegateSuggestions] = useState<any[]>([]);
+  const [showDelegateSuggestions, setShowDelegateSuggestions] = useState(false);
+  const [selectedExistingDelegateId, setSelectedExistingDelegateId] = useState<string | null>(null);
+  const [delegateBookingHistory, setDelegateBookingHistory] = useState<any[]>([]);
 
   const [showResendModal, setShowResendModal] = useState(false);
   const [resendDelegate, setResendDelegate] = useState<any | null>(null);
@@ -157,6 +161,11 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [resendUpcomingBookings, setResendUpcomingBookings] = useState<any[]>([]);
   const [resendingSingle, setResendingSingle] = useState(false);
   const [resendingAll, setResendingAll] = useState(false);
+
+  const [showTrainerAssignModal, setShowTrainerAssignModal] = useState(false);
+  const [sessionToAssignTrainer, setSessionToAssignTrainer] = useState<OpenCourseSessionWithDetails | null>(null);
+  const [availableTrainers, setAvailableTrainers] = useState<any[]>([]);
+  const [assigningTrainer, setAssigningTrainer] = useState(false);
 
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'warning' | 'info';
@@ -288,8 +297,59 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
     return dates;
   }
 
+  // Check if a session is multi-day
+  function isMultiDaySession(session: OpenCourseSessionWithDetails): boolean {
+    return !!(session.end_date && session.end_date !== session.session_date);
+  }
+
+  // Get single-day sessions for a specific date
   function getSessionsForDate(date: string): OpenCourseSessionWithDetails[] {
-    return sessions.filter(session => session.session_date === date);
+    return sessions.filter(session =>
+      session.session_date === date && !isMultiDaySession(session)
+    );
+  }
+
+  // Get multi-day sessions that overlap with the current week
+  function getMultiDaySessions(): OpenCourseSessionWithDetails[] {
+    const weekStart = weekDates[0]?.toISOString().split('T')[0];
+    const weekEnd = weekDates[6]?.toISOString().split('T')[0];
+
+    if (!weekStart || !weekEnd) return [];
+
+    return sessions.filter(session => {
+      if (!isMultiDaySession(session)) return false;
+
+      const sessionStart = session.session_date;
+      const sessionEnd = session.end_date!;
+
+      // Check if the multi-day session overlaps with the current week
+      return sessionStart <= weekEnd && sessionEnd >= weekStart;
+    });
+  }
+
+  // Calculate the span of a multi-day session within the current week (returns column indices)
+  function getMultiDaySpan(session: OpenCourseSessionWithDetails): { startCol: number; endCol: number } {
+    const weekStart = weekDates[0]?.toISOString().split('T')[0] || '';
+    const weekEnd = weekDates[6]?.toISOString().split('T')[0] || '';
+
+    const sessionStart = session.session_date;
+    const sessionEnd = session.end_date || session.session_date;
+
+    // Clamp to week boundaries
+    const visibleStart = sessionStart < weekStart ? weekStart : sessionStart;
+    const visibleEnd = sessionEnd > weekEnd ? weekEnd : sessionEnd;
+
+    // Find column indices
+    let startCol = 0;
+    let endCol = 6;
+
+    weekDates.forEach((date, index) => {
+      const dateStr = date.toISOString().split('T')[0];
+      if (dateStr === visibleStart) startCol = index;
+      if (dateStr === visibleEnd) endCol = index;
+    });
+
+    return { startCol, endCol };
   }
 
   function handleCreateSession() {
@@ -477,6 +537,94 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
         message: error.message || 'Failed to cancel session',
       });
     }
+  }
+
+  // Search for existing delegates by name
+  async function searchDelegatesByName(searchTerm: string) {
+    if (!searchTerm || searchTerm.length < 2) {
+      setDelegateSuggestions([]);
+      setShowDelegateSuggestions(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('open_course_delegates')
+        .select('id, delegate_name, delegate_email, delegate_phone, delegate_company, dietary_requirements, special_requirements')
+        .ilike('delegate_name', `%${searchTerm}%`)
+        .order('delegate_name')
+        .limit(10);
+
+      if (error) throw error;
+
+      // Group by unique delegate (by email)
+      const uniqueDelegates = data?.reduce((acc: any[], curr) => {
+        const existing = acc.find(d => d.delegate_email === curr.delegate_email);
+        if (!existing) {
+          acc.push(curr);
+        }
+        return acc;
+      }, []) || [];
+
+      setDelegateSuggestions(uniqueDelegates);
+      setShowDelegateSuggestions(uniqueDelegates.length > 0);
+    } catch (error: any) {
+      console.error('Error searching delegates:', error);
+    }
+  }
+
+  // Fetch booking history for a delegate
+  async function fetchDelegateBookingHistory(delegateEmail: string) {
+    try {
+      const { data, error } = await supabase
+        .from('open_course_delegates')
+        .select(`
+          id,
+          session_id,
+          attendance_status,
+          created_at,
+          session:open_course_sessions!session_id(
+            id,
+            event_title,
+            event_subtitle,
+            session_date,
+            start_time,
+            end_time,
+            is_online,
+            status,
+            venue_id,
+            venues:venues!venue_id(
+              name,
+              town
+            )
+          )
+        `)
+        .eq('delegate_email', delegateEmail)
+        .order('session(session_date)', { ascending: true });
+
+      if (error) throw error;
+      setDelegateBookingHistory(data || []);
+    } catch (error: any) {
+      console.error('Error fetching delegate booking history:', error);
+      setDelegateBookingHistory([]);
+    }
+  }
+
+  // Handle selecting an existing delegate from suggestions
+  async function handleSelectExistingDelegate(delegate: any) {
+    setNewDelegateData({
+      delegate_name: delegate.delegate_name,
+      delegate_email: delegate.delegate_email,
+      delegate_phone: delegate.delegate_phone || '',
+      delegate_company: delegate.delegate_company || '',
+      dietary_requirements: delegate.dietary_requirements || '',
+      special_requirements: delegate.special_requirements || '',
+      notes: '',
+    });
+    setSelectedExistingDelegateId(delegate.id);
+    setShowDelegateSuggestions(false);
+    setDelegateSuggestions([]);
+    await fetchDelegateBookingHistory(delegate.delegate_email);
   }
 
   // Drag and Drop Handlers
@@ -756,14 +904,13 @@ The Training Team`,
       const { data: orderData, error: orderError } = await supabase
         .from('open_course_orders')
         .insert({
-          wp_order_id: null,
+          woocommerce_order_id: `MANUAL-${Date.now()}`,
           order_number: `MANUAL-${Date.now()}`,
+          order_date: new Date().toISOString(),
           customer_name: newDelegateData.delegate_name,
           customer_email: newDelegateData.delegate_email,
-          order_status: 'confirmed',
           payment_status: 'paid',
           total_amount: 0,
-          booking_source: 'manual',
         })
         .select()
         .single();
@@ -781,8 +928,7 @@ The Training Team`,
         special_requirements: newDelegateData.special_requirements || null,
         notes: newDelegateData.notes || null,
         status: 'confirmed',
-        attendance_status: 'registered',
-        booking_source: 'manual',
+        booking_source: 'admin',
       }));
 
       const { error: delegatesError } = await supabase
@@ -799,6 +945,19 @@ The Training Team`,
       setShowAddDelegateModal(false);
       setAddDelegateStep(1);
       setSelectedSessions(new Set());
+      setDelegateSuggestions([]);
+      setShowDelegateSuggestions(false);
+      setSelectedExistingDelegateId(null);
+      setDelegateBookingHistory([]);
+      setNewDelegateData({
+        delegate_name: '',
+        delegate_email: '',
+        delegate_phone: '',
+        delegate_company: '',
+        dietary_requirements: '',
+        special_requirements: '',
+        notes: '',
+      });
       loadData();
     } catch (error: any) {
       setNotification({
@@ -967,6 +1126,121 @@ The Training Team`,
     }
   }
 
+  async function handleOpenTrainerAssignModal(session: OpenCourseSessionWithDetails) {
+    setSessionToAssignTrainer(session);
+
+    try {
+      const { data: courseType } = await supabase
+        .from('course_types')
+        .select('trainer_type_id')
+        .eq('id', session.course_type_id)
+        .single();
+
+      if (!courseType?.trainer_type_id) {
+        setNotification({
+          type: 'error',
+          message: 'Course type has no trainer type assigned',
+        });
+        return;
+      }
+
+      const { data: trainerIds } = await supabase
+        .from('trainer_trainer_types')
+        .select('trainer_id')
+        .eq('trainer_type_id', courseType.trainer_type_id);
+
+      if (!trainerIds || trainerIds.length === 0) {
+        setNotification({
+          type: 'warning',
+          message: 'No trainers available for this course type',
+        });
+        setAvailableTrainers([]);
+        setShowTrainerAssignModal(true);
+        return;
+      }
+
+      const trainerIdsList = trainerIds.map(t => t.trainer_id);
+
+      const { data: trainersData, error } = await supabase
+        .from('trainers')
+        .select('id, name, email, active, suspended')
+        .in('id', trainerIdsList)
+        .eq('active', true)
+        .eq('suspended', false)
+        .order('name');
+
+      if (error) throw error;
+
+      setAvailableTrainers(trainersData || []);
+      setShowTrainerAssignModal(true);
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to load available trainers',
+      });
+    }
+  }
+
+  async function handleAssignTrainer(trainerId: string) {
+    if (!sessionToAssignTrainer) return;
+
+    setAssigningTrainer(true);
+    try {
+      const { error } = await supabase
+        .from('open_course_sessions')
+        .update({ trainer_id: trainerId, updated_at: new Date().toISOString() })
+        .eq('id', sessionToAssignTrainer.id);
+
+      if (error) throw error;
+
+      setNotification({
+        type: 'success',
+        message: 'Trainer assigned successfully',
+      });
+
+      setShowTrainerAssignModal(false);
+      setSessionToAssignTrainer(null);
+      loadWeekData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to assign trainer',
+      });
+    } finally {
+      setAssigningTrainer(false);
+    }
+  }
+
+  async function handleUnassignTrainer() {
+    if (!sessionToAssignTrainer) return;
+
+    setAssigningTrainer(true);
+    try {
+      const { error } = await supabase
+        .from('open_course_sessions')
+        .update({ trainer_id: null, updated_at: new Date().toISOString() })
+        .eq('id', sessionToAssignTrainer.id);
+
+      if (error) throw error;
+
+      setNotification({
+        type: 'success',
+        message: 'Trainer unassigned successfully',
+      });
+
+      setShowTrainerAssignModal(false);
+      setSessionToAssignTrainer(null);
+      loadWeekData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to unassign trainer',
+      });
+    } finally {
+      setAssigningTrainer(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white">
@@ -1074,27 +1348,29 @@ The Training Team`,
           </div>
         </div>
 
-        {/* Week Grid */}
-        <div className="grid grid-cols-7 gap-4">
-          {weekDates.map((date, index) => {
-            const dateString = date.toISOString().split('T')[0];
-            const daySessions = getSessionsForDate(dateString);
-            const isToday = dateString === new Date().toISOString().split('T')[0];
+        {/* Week Grid Container */}
+        <div className="relative">
+          {/* Week Grid */}
+          <div className="grid grid-cols-7 gap-4">
+            {weekDates.map((date, index) => {
+              const dateString = date.toISOString().split('T')[0];
+              const daySessions = getSessionsForDate(dateString);
+              const isToday = dateString === new Date().toISOString().split('T')[0];
 
-            return (
-              <div
-                key={dateString}
-                className={`bg-slate-900 border rounded-lg overflow-hidden ${
-                  isToday ? 'border-blue-500' : 'border-slate-800'
-                }`}
-              >
-                {/* Day Header */}
-                <div className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
-                  <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
-                  <div className="text-xs text-slate-400 mt-1">
-                    {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              return (
+                <div
+                  key={dateString}
+                  className={`bg-slate-900 border rounded-lg overflow-hidden ${
+                    isToday ? 'border-blue-500' : 'border-slate-800'
+                  }`}
+                >
+                  {/* Day Header */}
+                  <div className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
+                    <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    </div>
                   </div>
-                </div>
 
                 {/* Sessions */}
                 <div className="p-2 space-y-2 min-h-[200px]">
@@ -1151,7 +1427,11 @@ The Training Team`,
                             )}
 
                             {session.trainer ? (
-                              <div className="flex items-center gap-1 text-slate-400">
+                              <div
+                                className="flex items-center gap-1 text-slate-400 cursor-pointer hover:text-slate-300 transition-colors"
+                                onClick={() => handleOpenTrainerAssignModal(session)}
+                                title="Click to change trainer"
+                              >
                                 <UserCog className="w-3 h-3" />
                                 <span className="truncate" title={session.trainer.name}>
                                   {session.trainer.name}
@@ -1163,7 +1443,11 @@ The Training Team`,
                                 )}
                               </div>
                             ) : (
-                              <div className="flex items-center gap-1 text-amber-400">
+                              <div
+                                className="flex items-center gap-1 text-amber-400 cursor-pointer hover:text-amber-300 transition-colors"
+                                onClick={() => handleOpenTrainerAssignModal(session)}
+                                title="Click to assign trainer"
+                              >
                                 <UserCog className="w-3 h-3" />
                                 <span className="text-xs font-semibold">ASSIGN TRAINER</span>
                               </div>
@@ -1182,7 +1466,7 @@ The Training Team`,
 
                           {/* Delegates */}
                           {delegates.length > 0 && (
-                            <div className="space-y-1 mb-2 max-h-32 overflow-y-auto">
+                            <div className="space-y-1 mb-2 max-h-32 overflow-y-auto overflow-x-hidden">
                               {delegates.map((delegate) => (
                                 <div
                                   key={delegate.id}
@@ -1272,6 +1556,242 @@ The Training Team`,
               </div>
             );
           })}
+          </div>
+
+          {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
+          {getMultiDaySessions().length > 0 && (
+            <>
+              <h3 className="text-lg font-semibold text-slate-200 mt-8 mb-4">Multi-day Courses</h3>
+
+              {/* Day/Date Headers */}
+              <div className="grid grid-cols-7 gap-4 mb-4">
+                {weekDates.map((date, index) => {
+                  const dateString = date.toISOString().split('T')[0];
+                  const isToday = dateString === new Date().toISOString().split('T')[0];
+                  return (
+                    <div
+                      key={`header-${dateString}`}
+                      className={`p-3 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}
+                    >
+                      <div className="font-semibold text-sm">{weekDaysLabels[index]}</div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="relative mt-4">
+                {/* Background columns */}
+                <div className="grid grid-cols-7 gap-4 absolute inset-0 pointer-events-none">
+                  {weekDates.map((date, index) => {
+                    const dateString = date.toISOString().split('T')[0];
+                    const isToday = dateString === new Date().toISOString().split('T')[0];
+                    return (
+                      <div
+                        key={`bg-${dateString}`}
+                        className={`bg-slate-900 border rounded-lg ${
+                          isToday ? 'border-blue-500' : 'border-slate-800'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Multi-day sessions overlay */}
+                <div className="grid grid-cols-7 gap-4 relative">
+                  {getMultiDaySessions().map((session) => {
+                  const { startCol, endCol } = getMultiDaySpan(session);
+                  const spanCols = endCol - startCol + 1;
+                  const delegates = sessionDelegates[session.id] || [];
+                  const delegateCount = delegates.length;
+                  const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+                  const capacityBg = getCapacityBgColor(delegateCount, session.capacity_limit);
+                  const isDragOver = dragOverSessionId === session.id;
+
+                  // Calculate days text
+                  const startDate = new Date(session.session_date);
+                  const endDate = new Date(session.end_date || session.session_date);
+                  const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+                  return (
+                  <div
+                    key={session.id}
+                    className={`border rounded p-2 text-xs transition-all ${capacityBg} ${
+                      isDragOver ? 'ring-2 ring-blue-500 scale-105' : ''
+                    }`}
+                    style={{
+                      gridColumn: `${startCol + 1} / span ${spanCols}`,
+                    }}
+                    onDragOver={(e) => handleDragOver(e, session.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, session.id)}
+                  >
+                    {/* Session Header */}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold truncate" title={decodeHtmlEntities(session.event_title)}>
+                          {decodeHtmlEntities(session.event_title)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {session.course_type && (
+                            <span className="text-slate-400 text-[10px] truncate">
+                              {session.course_type.code}
+                            </span>
+                          )}
+                          <span className="text-purple-400 text-[10px] font-medium">
+                            ({daysDiff} day{daysDiff > 1 ? 's' : ''})
+                          </span>
+                        </div>
+                      </div>
+                      {session.is_online && (
+                        <Video className="w-3 h-3 text-blue-400 ml-1 flex-shrink-0" />
+                      )}
+                    </div>
+
+                    {/* Session Details */}
+                    <div className="space-y-1 mb-2">
+                      {session.start_time && (
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatTime(session.start_time)} - {formatTime(session.end_time || '')}</span>
+                        </div>
+                      )}
+
+                      {session.venue && !session.is_online && (
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate" title={session.venue.name}>
+                            {session.venue.town || session.venue.name}
+                          </span>
+                        </div>
+                      )}
+
+                      {session.trainer ? (
+                        <div
+                          className="flex items-center gap-1 text-slate-400 cursor-pointer hover:text-slate-300 transition-colors"
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          title="Click to change trainer"
+                        >
+                          <UserCog className="w-3 h-3" />
+                          <span className="truncate" title={session.trainer.name}>
+                            {session.trainer.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex items-center gap-1 text-amber-400 cursor-pointer hover:text-amber-300 transition-colors"
+                          onClick={() => handleOpenTrainerAssignModal(session)}
+                          title="Click to assign trainer"
+                        >
+                          <UserCog className="w-3 h-3" />
+                          <span className="text-xs font-semibold">ASSIGN TRAINER</span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-1">
+                        <Users className={`w-3 h-3 ${capacityColor}`} />
+                        <span className={capacityColor}>
+                          {delegateCount} / {session.capacity_limit}
+                        </span>
+                        {delegateCount >= session.capacity_limit && (
+                          <span className="ml-1 text-red-400 font-semibold">FULL</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Delegates */}
+                    {delegates.length > 0 && (
+                      <div className="space-y-1 mb-2 max-h-32 overflow-y-auto overflow-x-hidden">
+                        {delegates.map((delegate) => (
+                          <div
+                            key={delegate.id}
+                            className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group"
+                          >
+                            <div className="flex items-center gap-1">
+                              <div
+                                draggable
+                                onDragStart={() => handleDragStart(delegate, session.id)}
+                                className="flex-1 cursor-move"
+                                title="Drag to transfer delegate"
+                              >
+                                <div className="text-[10px] font-medium truncate">
+                                  {delegate.delegate_name}
+                                </div>
+                                {delegate.delegate_company && (
+                                  <div className="text-[9px] text-slate-500 truncate">
+                                    {delegate.delegate_company}
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenResendModal(delegate, session);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Resend booking details"
+                              >
+                                <Mail className="w-3 h-3 text-slate-400" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenEditDelegate(delegate);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Edit delegate details"
+                              >
+                                <Edit className="w-3 h-3 text-slate-400" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenMoveModal(delegate, session.id, session.course_type_id);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                title="Move to different session"
+                              >
+                                <MoveRight className="w-3 h-3 text-slate-400" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 pt-2 border-t border-slate-700/50">
+                      <button
+                        onClick={() => handleEditSession(session)}
+                        className="p-1 hover:bg-slate-700 rounded transition-colors"
+                        title="Edit Session"
+                      >
+                        <Edit className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDuplicateSession(session)}
+                        className="p-1 hover:bg-slate-700 rounded transition-colors"
+                        title="Duplicate Session"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSession(session)}
+                        className="p-1 hover:bg-red-500/20 text-red-400 rounded transition-colors"
+                        title="Delete Session"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                  );
+                })}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Legend */}
@@ -1945,7 +2465,7 @@ The Training Team`,
       {/* Add Delegate Modal */}
       {showAddDelegateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+          <div className={`bg-slate-900 border border-slate-800 rounded-lg w-full ${selectedExistingDelegateId ? 'max-w-7xl' : 'max-w-4xl'} max-h-[90vh] flex flex-col`}>
             <div className="flex items-center justify-between p-6 border-b border-slate-800">
               <div>
                 <h2 className="text-xl font-semibold">Add New Delegate</h2>
@@ -1958,6 +2478,19 @@ The Training Team`,
                   setShowAddDelegateModal(false);
                   setAddDelegateStep(1);
                   setSelectedSessions(new Set());
+                  setDelegateSuggestions([]);
+                  setShowDelegateSuggestions(false);
+                  setSelectedExistingDelegateId(null);
+                  setDelegateBookingHistory([]);
+                  setNewDelegateData({
+                    delegate_name: '',
+                    delegate_email: '',
+                    delegate_phone: '',
+                    delegate_company: '',
+                    dietary_requirements: '',
+                    special_requirements: '',
+                    notes: '',
+                  });
                 }}
                 className="p-2 hover:bg-slate-800 rounded transition-colors"
               >
@@ -1967,19 +2500,121 @@ The Training Team`,
 
             <div className="flex-1 overflow-y-auto p-6">
               {addDelegateStep === 1 ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
+                <div className={selectedExistingDelegateId ? "grid grid-cols-3 gap-6" : "grid grid-cols-2 gap-4"}>
+                  {/* Booking History Column - Only shown for existing delegates */}
+                  {selectedExistingDelegateId && (
+                    <div className="col-span-1 border-r border-slate-700 pr-6">
+                      <h3 className="text-lg font-semibold mb-4">Booking History</h3>
+                      <div className="space-y-3">
+                        {delegateBookingHistory.length === 0 ? (
+                          <p className="text-sm text-slate-400">No previous bookings</p>
+                        ) : (
+                          delegateBookingHistory.map((booking: any) => (
+                            <div
+                              key={booking.id}
+                              className="p-3 bg-slate-800 rounded border border-slate-700"
+                            >
+                              <div className="font-medium text-sm mb-1">
+                                {decodeHtmlEntities(booking.session.event_title)}
+                              </div>
+                              {booking.session.event_subtitle && (
+                                <div className="text-xs text-slate-400 mb-2">
+                                  {decodeHtmlEntities(booking.session.event_subtitle)}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(booking.session.session_date)} at {formatTime(booking.session.start_time)}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                                <MapPin className="w-3 h-3" />
+                                {booking.session.is_online ? (
+                                  <span className="flex items-center gap-1">
+                                    <Video className="w-3 h-3" />
+                                    Online
+                                  </span>
+                                ) : booking.session.venues ? (
+                                  `${booking.session.venues.name}, ${booking.session.venues.town}`
+                                ) : (
+                                  'Location TBC'
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                  booking.session.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                                  booking.session.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                                  'bg-slate-700 text-slate-400'
+                                }`}>
+                                  {booking.session.status}
+                                </span>
+                                {booking.attendance_status && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    booking.attendance_status === 'attended' ? 'bg-blue-500/20 text-blue-400' :
+                                    booking.attendance_status === 'no_show' ? 'bg-orange-500/20 text-orange-400' :
+                                    'bg-slate-700 text-slate-400'
+                                  }`}>
+                                    {booking.attendance_status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Form Content Column */}
+                  <div className={selectedExistingDelegateId ? "col-span-2 grid grid-cols-2 gap-4" : "col-span-2 grid grid-cols-2 gap-4"}>
+                  <div className="col-span-2 relative">
                     <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
                       Name *
                     </label>
                     <input
                       type="text"
                       value={newDelegateData.delegate_name}
-                      onChange={(e) => setNewDelegateData({ ...newDelegateData, delegate_name: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setNewDelegateData({ ...newDelegateData, delegate_name: value });
+                        setSelectedExistingDelegateId(null);
+                        setDelegateBookingHistory([]);
+                        searchDelegatesByName(value);
+                      }}
+                      onFocus={() => {
+                        if (newDelegateData.delegate_name.length >= 2 && delegateSuggestions.length > 0) {
+                          setShowDelegateSuggestions(true);
+                        }
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setShowDelegateSuggestions(false), 200);
+                      }}
                       className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
                       placeholder="Full name"
                       required
                     />
+
+                    {/* Autocomplete Suggestions */}
+                    {showDelegateSuggestions && delegateSuggestions.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded shadow-lg max-h-60 overflow-y-auto">
+                        {delegateSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion.id}
+                            type="button"
+                            onClick={() => handleSelectExistingDelegate(suggestion)}
+                            className="w-full px-3 py-2 text-left hover:bg-slate-700 transition-colors flex justify-between items-center"
+                          >
+                            <span className="font-medium">{suggestion.delegate_name}</span>
+                            <span className="text-sm text-slate-400">{suggestion.delegate_email}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {selectedExistingDelegateId && (
+                      <p className="text-xs text-blue-400 mt-1">
+                        Using existing delegate - booking will be added to their profile
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -2060,97 +2695,174 @@ The Training Team`,
                       placeholder="Internal notes..."
                     />
                   </div>
+                  </div>
                 </div>
               ) : (
-                <div>
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-slate-400">
-                        Select the sessions you want to book {newDelegateData.delegate_name} for:
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {selectedSessions.size} session(s) selected
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                    {availableSessionsForBooking.map((session) => {
-                      const isSelected = selectedSessions.has(session.id);
-                      const delegateCount = sessionDelegates[session.id]?.length || 0;
-                      const isFull = delegateCount >= session.capacity_limit;
-                      const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
-
-                      return (
-                        <div
-                          key={session.id}
-                          onClick={() => !isFull && toggleSessionSelection(session.id)}
-                          className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-blue-500/10 border-blue-500'
-                              : isFull
-                              ? 'bg-slate-800/30 border-slate-700 opacity-50 cursor-not-allowed'
-                              : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${
-                              isSelected
-                                ? 'bg-blue-500 border-blue-500'
-                                : 'border-slate-600'
-                            }`}>
-                              {isSelected && (
-                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </div>
-
-                            <div className="flex-1">
-                              <div className="font-medium">{session.event_title}</div>
-                              {session.event_subtitle && (
-                                <div className="text-xs text-slate-400 mt-1">{decodeHtmlEntities(session.event_subtitle)}</div>
-                              )}
-                              <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {formatDate(session.session_date)}
+                <div className={selectedExistingDelegateId ? "grid grid-cols-3 gap-6" : ""}>
+                  {/* Booking History Column - Only shown for existing delegates */}
+                  {selectedExistingDelegateId && (
+                    <div className="col-span-1 border-r border-slate-700 pr-6">
+                      <h3 className="text-lg font-semibold mb-4">Booking History</h3>
+                      <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                        {delegateBookingHistory.length === 0 ? (
+                          <p className="text-sm text-slate-400">No previous bookings</p>
+                        ) : (
+                          delegateBookingHistory.map((booking: any) => (
+                            <div
+                              key={booking.id}
+                              className="p-3 bg-slate-800 rounded border border-slate-700"
+                            >
+                              <div className="font-medium text-sm mb-1">
+                                {decodeHtmlEntities(booking.session.event_title)}
+                              </div>
+                              {booking.session.event_subtitle && (
+                                <div className="text-xs text-slate-400 mb-2">
+                                  {decodeHtmlEntities(booking.session.event_subtitle)}
                                 </div>
-                                {session.start_time && (
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    {formatTime(session.start_time)} - {formatTime(session.end_time || '')}
-                                  </div>
-                                )}
-                                {session.is_online ? (
-                                  <div className="flex items-center gap-1">
+                              )}
+                              <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(booking.session.session_date)} at {formatTime(booking.session.start_time)}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                                <MapPin className="w-3 h-3" />
+                                {booking.session.is_online ? (
+                                  <span className="flex items-center gap-1">
                                     <Video className="w-3 h-3" />
                                     Online
-                                  </div>
-                                ) : session.venue && (
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {session.venue.name}
-                                  </div>
+                                  </span>
+                                ) : booking.session.venues ? (
+                                  `${booking.session.venues.name}, ${booking.session.venues.town}`
+                                ) : (
+                                  'Location TBC'
                                 )}
-                                <div className={`flex items-center gap-1 ${capacityColor}`}>
-                                  <Users className="w-3 h-3" />
-                                  {delegateCount} / {session.capacity_limit}
-                                  {isFull && <span className="ml-1 font-semibold">FULL</span>}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                  booking.session.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                                  booking.session.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                                  'bg-slate-700 text-slate-400'
+                                }`}>
+                                  {booking.session.status}
+                                </span>
+                                {booking.attendance_status && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    booking.attendance_status === 'attended' ? 'bg-blue-500/20 text-blue-400' :
+                                    booking.attendance_status === 'no_show' ? 'bg-orange-500/20 text-orange-400' :
+                                    'bg-slate-700 text-slate-400'
+                                  }`}>
+                                    {booking.attendance_status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Session Selection Column */}
+                  <div className={selectedExistingDelegateId ? "col-span-2" : ""}>
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-slate-400">
+                          Select the sessions you want to book {newDelegateData.delegate_name} for:
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {selectedSessions.size} session(s) selected
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                      {availableSessionsForBooking.map((session) => {
+                        const isSelected = selectedSessions.has(session.id);
+                        const delegateCount = sessionDelegates[session.id]?.length || 0;
+                        const isFull = delegateCount >= session.capacity_limit;
+                        const isOverbooked = delegateCount > session.capacity_limit;
+                        const capacityColor = getCapacityColor(delegateCount, session.capacity_limit);
+
+                        return (
+                          <div
+                            key={session.id}
+                            onClick={() => toggleSessionSelection(session.id)}
+                            className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? isFull
+                                  ? 'bg-red-500/20 border-red-500'
+                                  : 'bg-blue-500/10 border-blue-500'
+                                : isFull
+                                ? 'bg-red-500/10 border-red-500/50 hover:border-red-500'
+                                : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                isSelected
+                                  ? isFull
+                                    ? 'bg-red-500 border-red-500'
+                                    : 'bg-blue-500 border-blue-500'
+                                  : isFull
+                                  ? 'border-red-500/50'
+                                  : 'border-slate-600'
+                              }`}>
+                                {isSelected && (
+                                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </div>
+
+                              <div className="flex-1">
+                                <div className={`font-medium ${isFull ? 'text-red-300' : ''}`}>
+                                  {session.event_title}
+                                  {isFull && <span className="ml-2 text-xs text-red-400 font-normal">(Overbook)</span>}
+                                </div>
+                                {session.event_subtitle && (
+                                  <div className="text-xs text-slate-400 mt-1">{decodeHtmlEntities(session.event_subtitle)}</div>
+                                )}
+                                <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {formatDate(session.session_date)}
+                                  </div>
+                                  {session.start_time && (
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {formatTime(session.start_time)} - {formatTime(session.end_time || '')}
+                                    </div>
+                                  )}
+                                  {session.is_online ? (
+                                    <div className="flex items-center gap-1">
+                                      <Video className="w-3 h-3" />
+                                      Online
+                                    </div>
+                                  ) : session.venue && (
+                                    <div className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      {session.venue.name}
+                                    </div>
+                                  )}
+                                  <div className={`flex items-center gap-1 ${isFull ? 'text-red-400' : capacityColor}`}>
+                                    <Users className="w-3 h-3" />
+                                    {delegateCount} / {session.capacity_limit}
+                                    {isFull && <span className="ml-1 font-semibold">FULL</span>}
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {availableSessionsForBooking.length === 0 && (
-                    <div className="text-center py-12 text-slate-400">
-                      No upcoming sessions available
+                        );
+                      })}
                     </div>
-                  )}
+
+                    {availableSessionsForBooking.length === 0 && (
+                      <div className="text-center py-12 text-slate-400">
+                        No upcoming sessions available
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -2162,6 +2874,20 @@ The Training Team`,
                     onClick={() => {
                       setShowAddDelegateModal(false);
                       setAddDelegateStep(1);
+                      setSelectedSessions(new Set());
+                      setDelegateSuggestions([]);
+                      setShowDelegateSuggestions(false);
+                      setSelectedExistingDelegateId(null);
+                      setDelegateBookingHistory([]);
+                      setNewDelegateData({
+                        delegate_name: '',
+                        delegate_email: '',
+                        delegate_phone: '',
+                        delegate_company: '',
+                        dietary_requirements: '',
+                        special_requirements: '',
+                        notes: '',
+                      });
                     }}
                     className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
                   >
@@ -2288,6 +3014,99 @@ The Training Team`,
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trainer Assignment Modal */}
+      {showTrainerAssignModal && sessionToAssignTrainer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+              <div>
+                <h2 className="text-xl font-semibold">Assign Trainer</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  {sessionToAssignTrainer.event_title}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {formatDate(sessionToAssignTrainer.session_date)} at {formatTime(sessionToAssignTrainer.start_time)}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowTrainerAssignModal(false);
+                  setSessionToAssignTrainer(null);
+                }}
+                className="p-2 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {availableTrainers.length === 0 ? (
+                <div className="text-center py-8">
+                  <UserCog className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-400">No trainers available for this course type</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-400 mb-4">
+                    Select a trainer qualified to deliver this course:
+                  </p>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {availableTrainers.map((trainer) => (
+                      <button
+                        key={trainer.id}
+                        onClick={() => handleAssignTrainer(trainer.id)}
+                        disabled={assigningTrainer}
+                        className={`w-full text-left p-4 rounded-lg border transition-all ${
+                          sessionToAssignTrainer.trainer_id === trainer.id
+                            ? 'bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/50'
+                            : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <UserCog className="w-5 h-5 text-slate-400" />
+                          <div className="flex-1">
+                            <div className="font-medium">{trainer.name}</div>
+                            {trainer.email && (
+                              <div className="text-xs text-slate-400 mt-1">{trainer.email}</div>
+                            )}
+                          </div>
+                          {sessionToAssignTrainer.trainer_id === trainer.id && (
+                            <div className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
+                              Current
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex items-center justify-end gap-3 rounded-b-lg">
+              <button
+                onClick={() => {
+                  setShowTrainerAssignModal(false);
+                  setSessionToAssignTrainer(null);
+                }}
+                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              {sessionToAssignTrainer.trainer_id && (
+                <button
+                  onClick={handleUnassignTrainer}
+                  disabled={assigningTrainer}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {assigningTrainer ? 'Unassigning...' : 'Unassign Trainer'}
+                </button>
+              )}
             </div>
           </div>
         </div>
