@@ -609,7 +609,7 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
                         {formatDate(delegate.session_date)}
                       </td>
                       <td className="px-4 py-3 text-slate-300 text-sm">
-                        <div>{delegate.course_type_name || 'Unknown'}</div>
+                        <div>{delegate.event_title || 'Unknown'}</div>
                         <div className="text-slate-500">{delegate.venue_name}</div>
                       </td>
                       <td className="px-4 py-3">
