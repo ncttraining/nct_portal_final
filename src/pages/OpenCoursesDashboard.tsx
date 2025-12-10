@@ -1526,7 +1526,7 @@ The Training Team`,
                                     <div
                                       draggable
                                       onDragStart={() => handleDragStart(delegate, session.id)}
-                                      className="flex-1 cursor-move"
+                                      className="flex-1 min-w-0 cursor-move"
                                       title="Drag to transfer delegate"
                                     >
                                       <div className="text-[10px] font-medium truncate">
@@ -1763,7 +1763,7 @@ The Training Team`,
                               <div
                                 draggable
                                 onDragStart={() => handleDragStart(delegate, session.id)}
-                                className="flex-1 cursor-move"
+                                className="flex-1 min-w-0 cursor-move"
                                 title="Drag to transfer delegate"
                               >
                                 <div className="text-[10px] font-medium truncate">
