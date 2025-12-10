@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Mail, Plus, Edit2, Trash2, X, Save } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Mail, Plus, Edit2, Trash2, X, Save, Code, Eye } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { supabase } from '../lib/supabase';
 import type { EmailTemplate } from '../lib/email';
@@ -181,18 +181,67 @@ function TemplateModal({
   onSave: () => void;
 }) {
   const [saving, setSaving] = useState(false);
+  const [editorMode, setEditorMode] = useState<'html' | 'visual'>('visual');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [formData, setFormData] = useState({
     template_key: template?.template_key || '',
     name: template?.name || '',
     subject_template: template?.subject_template || '',
     body_html: template?.body_html || '',
-    body_text: template?.body_text || '',
     description: template?.description || '',
   });
+
+  // Track the last HTML loaded into iframe to prevent unnecessary reloads
+  const lastLoadedHtml = useRef<string>('');
+
+  // Update iframe content when switching to visual mode
+  useEffect(() => {
+    if (editorMode === 'visual' && iframeRef.current) {
+      // Only reload if HTML has changed since last load
+      if (lastLoadedHtml.current === formData.body_html) return;
+      lastLoadedHtml.current = formData.body_html;
+
+      const iframe = iframeRef.current;
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        doc.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                padding: 16px;
+                margin: 0;
+                background: white;
+                color: #333;
+              }
+            </style>
+          </head>
+          <body contenteditable="true">${formData.body_html}</body>
+          </html>
+        `);
+        doc.close();
+
+        // Listen for changes in the iframe
+        doc.body.addEventListener('input', () => {
+          const newHtml = doc.body.innerHTML;
+          lastLoadedHtml.current = newHtml;
+          setFormData(prev => ({ ...prev, body_html: newHtml }));
+        });
+      }
+    }
+  }, [editorMode, formData.body_html]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+
+    // Auto-generate plain text from HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = formData.body_html;
+    const body_text = tempDiv.textContent || tempDiv.innerText || '';
 
     try {
       if (template) {
@@ -202,7 +251,7 @@ function TemplateModal({
             name: formData.name,
             subject_template: formData.subject_template,
             body_html: formData.body_html,
-            body_text: formData.body_text,
+            body_text: body_text,
             description: formData.description,
             updated_at: new Date().toISOString(),
           })
@@ -217,7 +266,7 @@ function TemplateModal({
             name: formData.name,
             subject_template: formData.subject_template,
             body_html: formData.body_html,
-            body_text: formData.body_text,
+            body_text: body_text,
             description: formData.description,
           });
 
@@ -315,48 +364,72 @@ function TemplateModal({
             </p>
           </div>
 
+          {/* Email Body Editor with Mode Toggle */}
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
-              HTML Body *
-            </label>
-            <textarea
-              required
-              rows={12}
-              value={formData.body_html}
-              onChange={(e) => setFormData({ ...formData, body_html: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm"
-              placeholder="<html><body>Hi {{trainer_name}}, ...</body></html>"
-            />
-            <p className="text-xs text-slate-500 mt-1">
-              HTML version of the email with styling
-            </p>
-          </div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-400">
+                Email Body *
+              </label>
+              <div className="flex bg-slate-800 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setEditorMode('visual')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                    editorMode === 'visual'
+                      ? 'bg-blue-500 text-white'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  Visual
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditorMode('html')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                    editorMode === 'html'
+                      ? 'bg-blue-500 text-white'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Code className="w-3.5 h-3.5" />
+                  HTML
+                </button>
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
-              Plain Text Body
-            </label>
-            <textarea
-              rows={8}
-              value={formData.body_text}
-              onChange={(e) => setFormData({ ...formData, body_text: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none"
-              placeholder="Hi {{trainer_name}}, ..."
-            />
+            {editorMode === 'html' ? (
+              <textarea
+                required
+                rows={16}
+                value={formData.body_html}
+                onChange={(e) => setFormData({ ...formData, body_html: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm"
+                placeholder="<html><body>Hi {{trainer_name}}, ...</body></html>"
+              />
+            ) : (
+              <iframe
+                ref={iframeRef}
+                className="w-full h-96 bg-white border border-slate-700 rounded-lg"
+                title="Email Preview"
+              />
+            )}
             <p className="text-xs text-slate-500 mt-1">
-              Plain text fallback (optional, will use HTML if not provided)
+              {editorMode === 'visual'
+                ? 'Click inside to edit. Switch to HTML mode for full control over formatting.'
+                : 'Edit raw HTML. Switch to Visual mode to see rendered preview.'}
             </p>
           </div>
 
           <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
             <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">Available Placeholders:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs text-slate-300">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-slate-300">
               <code className="bg-slate-900 px-2 py-1 rounded">{`{{trainer_name}}`}</code>
               <code className="bg-slate-900 px-2 py-1 rounded">{`{{trainer_type}}`}</code>
               <code className="bg-slate-900 px-2 py-1 rounded">{`{{email}}`}</code>
               <code className="bg-slate-900 px-2 py-1 rounded">{`{{telephone}}`}</code>
               <code className="bg-slate-900 px-2 py-1 rounded">{`{{expiry_date}}`}</code>
-              <code className="bg-slate-900 px-2 py-1 rounded">{`{{expiry_status}}`}</code>
+              <code className="bg-slate-900 px-2 py-1 rounded">{`{{course_title}}`}</code>
             </div>
           </div>
 
