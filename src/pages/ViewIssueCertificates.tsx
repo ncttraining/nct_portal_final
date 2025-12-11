@@ -212,10 +212,12 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         sessionDataMap[session.id] = {};
       }
 
-      // Set duration from course type
+      // Set duration - prioritize saved data, then fall back to course type defaults
       durationsMap[session.id] = {
-        value: courseType?.duration_days || null,
-        unit: (courseType?.duration_unit as 'hours' | 'days') || 'days'
+        value: savedSessionData.duration_value !== undefined
+          ? savedSessionData.duration_value
+          : (courseType?.duration_days || null),
+        unit: savedSessionData.duration_unit || (courseType?.duration_unit as 'hours' | 'days') || 'days'
       };
     });
 
@@ -438,7 +440,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
   async function handleBulkGeneratePDFs(booking: BookingWithCandidates) {
     const passedCandidates = booking.candidates.filter(c => {
       const cert = (c as any).certificate;
-      return c.passed && (!c.certificate_id || cert?.status === 'revoked');
+      return c.passed && (!c.certificate_id || cert?.status !== 'issued');
     });
 
     if (passedCandidates.length === 0) {
@@ -742,7 +744,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
   async function handleBulkGenerateOpenCourseCertificates(session: OpenCourseSessionWithDelegates) {
     const attendedDelegates = session.delegates.filter(d =>
       (d.attendance_status === 'attended' || d.attendance_detail === 'attended') &&
-      (!d.certificate?.id || d.certificate?.status === 'revoked')
+      (!d.certificate?.id || d.certificate?.status !== 'issued')
     );
 
     if (attendedDelegates.length === 0) {
@@ -1507,12 +1509,17 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               Certificate Revoked
                                             </span>
                                           )}
+                                          {cert && cert.status === 'expired' && (
+                                            <span className="px-2 py-1 text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded">
+                                              Certificate Expired
+                                            </span>
+                                          )}
                                         </div>
                                         {candidate.email && (
                                           <p className="text-xs text-slate-400 mb-3">{candidate.email}</p>
                                         )}
 
-                                        {candidate.passed && (!cert || cert.status === 'revoked') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
+                                        {candidate.passed && (!cert || cert.status !== 'issued') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
                                           <div className="grid grid-cols-2 gap-3 mb-3">
                                             {requiredFields.filter(f => f.scope === 'candidate').map(field => {
                                               const hasDefault = isCandidateDefaultValue(candidate.id, field.name, booking);
@@ -1584,7 +1591,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                         )}
 
                                         <div className="flex items-center gap-2">
-                                          {candidate.passed && (!cert || cert.status === 'revoked') && (
+                                          {candidate.passed && (!cert || cert.status !== 'issued') && (
                                             <button
                                               onClick={() => handleGenerateCertificate(booking, candidate)}
                                               disabled={generatingFor === candidate.id}
@@ -1855,6 +1862,19 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               ...openCourseDurations,
                                               [session.id]: { value: newValue, unit }
                                             });
+                                            // Save duration to course_level_data
+                                            const updatedData = {
+                                              ...(openCourseSessionData[session.id] || {}),
+                                              duration_value: newValue,
+                                              duration_unit: unit
+                                            };
+                                            setOpenCourseSessionData(prev => ({
+                                              ...prev,
+                                              [session.id]: updatedData
+                                            }));
+                                            updateOpenCourseSessionData(session.id, updatedData).catch(err => {
+                                              console.error('Failed to save duration:', err);
+                                            });
                                           }}
                                           className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
                                         />
@@ -1866,6 +1886,19 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                             setOpenCourseDurations({
                                               ...openCourseDurations,
                                               [session.id]: { value, unit: newUnit }
+                                            });
+                                            // Save duration to course_level_data
+                                            const updatedData = {
+                                              ...(openCourseSessionData[session.id] || {}),
+                                              duration_value: value,
+                                              duration_unit: newUnit
+                                            };
+                                            setOpenCourseSessionData(prev => ({
+                                              ...prev,
+                                              [session.id]: updatedData
+                                            }));
+                                            updateOpenCourseSessionData(session.id, updatedData).catch(err => {
+                                              console.error('Failed to save duration unit:', err);
                                             });
                                           }}
                                           className="px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
@@ -1957,12 +1990,17 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               Certificate Revoked
                                             </span>
                                           )}
+                                          {cert && cert.status === 'expired' && (
+                                            <span className="px-2 py-1 text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded">
+                                              Certificate Expired
+                                            </span>
+                                          )}
                                         </div>
                                         {delegate.delegate_email && (
                                           <p className="text-xs text-slate-400 mb-3">{delegate.delegate_email}</p>
                                         )}
 
-                                        {isAttended && (!cert || cert.status === 'revoked') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
+                                        {isAttended && (!cert || cert.status !== 'issued') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
                                           <div className="grid grid-cols-2 gap-3 mb-3">
                                             {requiredFields.filter(f => f.scope === 'candidate').map(field => (
                                               <div key={field.name}>
@@ -2010,7 +2048,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                         )}
 
                                         <div className="flex items-center gap-2">
-                                          {isAttended && (!cert || cert.status === 'revoked') && (
+                                          {isAttended && (!cert || cert.status !== 'issued') && (
                                             <button
                                               onClick={() => handleGenerateOpenCourseCertificate(session, delegate)}
                                               disabled={generatingFor === delegate.id}

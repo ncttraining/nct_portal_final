@@ -1086,9 +1086,6 @@ export async function updateOpenCourseDelegateAttendance(delegateId: string, att
   }
 }
 
-// Note: updateOpenCourseSessionData is defined earlier in this file (lines 766-776)
-// and persists session-level certificate data to the database
-
 export async function updateOpenCourseDelegateData(delegateId: string, data: Record<string, any>) {
   const { error } = await supabase
     .from('open_course_delegates')
