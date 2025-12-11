@@ -4,7 +4,7 @@ import PageHeader from '../components/PageHeader';
 import { supabase } from '../lib/supabase';
 import BookingModal from '../components/BookingModal';
 import Notification from '../components/Notification';
-import { getTrainerUnavailability, TrainerUnavailability } from '../lib/trainer-availability';
+import { getTrainerUnavailability, getAllTrainersUnavailability, TrainerUnavailability, AvailabilityStatus } from '../lib/trainer-availability';
 import { getTrainerTypesForMultipleTrainers, type TrainerType as LibTrainerType } from '../lib/trainer-types';
 import { sendBookingMovedNotification, sendBookingCancelledNotification, sendOpenCourseAssignmentNotification } from '../lib/booking-notifications';
 
@@ -379,7 +379,9 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
 
     while (currentDate <= end) {
       const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
-      if (isTrainerUnavailable(booking.trainer_id, dateStr)) {
+      const record = isTrainerUnavailable(booking.trainer_id, dateStr);
+      // Only flag as conflict if status is 'unavailable', not 'provisionally_booked'
+      if (record?.status === 'unavailable') {
         return true;
       }
       currentDate.setDate(currentDate.getDate() + 1);
@@ -396,10 +398,12 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       return;
     }
 
-    const unavailable = isTrainerUnavailable(trainer.id, date);
+    const unavailableRecord = isTrainerUnavailable(trainer.id, date);
 
-    if (unavailable && !booking) {
-      const reason = unavailable.reason ? ` Reason: ${unavailable.reason}` : '';
+    // Only block new bookings on 'unavailable' dates, not 'provisionally_booked' dates
+    // Provisionally booked means the trainer is reserved but can be assigned to a course
+    if (unavailableRecord?.status === 'unavailable' && !booking) {
+      const reason = unavailableRecord.reason ? ` Reason: ${unavailableRecord.reason}` : '';
       setNotification({
         message: `This trainer is unavailable on this date.${reason}`,
         type: 'error'
@@ -861,7 +865,8 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                           const weekend = isWeekend(currentYear, currentMonth, day);
                           const dayBookings = getBookingsForTrainerAndDay(trainer.id, dateStr);
                           const unavailableRecord = isTrainerUnavailable(trainer.id, dateStr);
-                          const isUnavailable = !!unavailableRecord;
+                          const isUnavailable = unavailableRecord?.status === 'unavailable';
+                          const isProvisionallyBooked = unavailableRecord?.status === 'provisionally_booked';
 
                           return (
                             <div
@@ -869,12 +874,24 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                               className={`w-[120px] min-h-[88px] border-r border-b relative ${
                                 isUnavailable
                                   ? 'bg-red-900/40 border-red-700/50'
+                                  : isProvisionallyBooked
+                                  ? 'bg-green-900/40 border-green-700/50'
                                   : weekend
                                   ? 'bg-slate-900/50 border-slate-800'
                                   : 'border-slate-800'
                               } ${isUnavailable ? '' : 'hover:bg-blue-900/10'} cursor-pointer transition-colors`}
                               onClick={(e) => handleDayClick(trainer, dateStr, e)}
-                              title={isUnavailable && unavailableRecord?.reason ? `Unavailable: ${unavailableRecord.reason}` : undefined}
+                              title={
+                                isUnavailable && unavailableRecord?.reason
+                                  ? `Unavailable: ${unavailableRecord.reason}`
+                                  : isUnavailable
+                                  ? 'Unavailable'
+                                  : isProvisionallyBooked && unavailableRecord?.reason
+                                  ? `Provisionally Booked: ${unavailableRecord.reason}`
+                                  : isProvisionallyBooked
+                                  ? 'Provisionally Booked'
+                                  : undefined
+                              }
                               onDragOver={(e) => {
                                 e.preventDefault();
                                 if (draggedBooking) {

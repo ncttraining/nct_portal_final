@@ -1,10 +1,13 @@
 import { supabase } from './supabase';
 
+export type AvailabilityStatus = 'unavailable' | 'provisionally_booked';
+
 export interface TrainerUnavailability {
   id: string;
   trainer_id: string;
   unavailable_date: string;
   reason: string | null;
+  status: AvailabilityStatus;
   created_at: string;
   updated_at: string;
 }
@@ -12,7 +15,8 @@ export interface TrainerUnavailability {
 export async function markDateUnavailable(
   trainerId: string,
   date: string,
-  reason?: string
+  reason?: string,
+  status: AvailabilityStatus = 'unavailable'
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase
@@ -21,21 +25,58 @@ export async function markDateUnavailable(
         trainer_id: trainerId,
         unavailable_date: date,
         reason: reason || null,
+        status,
       });
 
     if (error) {
       if (error.code === '23505') {
-        return { success: false, error: 'This date is already marked as unavailable' };
+        return { success: false, error: 'This date is already marked' };
       }
       throw error;
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error marking date unavailable:', error);
+    console.error('Error marking date:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to mark date unavailable',
+      error: error instanceof Error ? error.message : 'Failed to mark date',
+    };
+  }
+}
+
+export async function markDateProvisionallyBooked(
+  trainerId: string,
+  date: string,
+  reason?: string
+): Promise<{ success: boolean; error?: string }> {
+  return markDateUnavailable(trainerId, date, reason, 'provisionally_booked');
+}
+
+export async function updateAvailabilityStatus(
+  unavailabilityId: string,
+  status: AvailabilityStatus,
+  reason?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const updateData: { status: AvailabilityStatus; reason?: string | null } = { status };
+    if (reason !== undefined) {
+      updateData.reason = reason || null;
+    }
+
+    const { error } = await supabase
+      .from('trainer_unavailability')
+      .update(updateData)
+      .eq('id', unavailabilityId);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating availability status:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to update status',
     };
   }
 }
@@ -109,7 +150,8 @@ export async function markDateRangeUnavailable(
   trainerId: string,
   startDate: string,
   endDate: string,
-  reason?: string
+  reason?: string,
+  status: AvailabilityStatus = 'unavailable'
 ): Promise<{ success: boolean; error?: string; conflictingDates?: string[] }> {
   try {
     const start = new Date(startDate);
@@ -119,7 +161,7 @@ export async function markDateRangeUnavailable(
       return { success: false, error: 'Start date must be before end date' };
     }
 
-    const dates: Array<{ trainer_id: string; unavailable_date: string; reason: string | null }> = [];
+    const dates: Array<{ trainer_id: string; unavailable_date: string; reason: string | null; status: AvailabilityStatus }> = [];
     const currentDate = new Date(start);
 
     while (currentDate <= end) {
@@ -128,6 +170,7 @@ export async function markDateRangeUnavailable(
         trainer_id: trainerId,
         unavailable_date: dateStr,
         reason: reason || null,
+        status,
       });
       currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -138,19 +181,28 @@ export async function markDateRangeUnavailable(
 
     if (error) {
       if (error.code === '23505') {
-        return { success: false, error: 'One or more dates in this range are already marked as unavailable' };
+        return { success: false, error: 'One or more dates in this range are already marked' };
       }
       throw error;
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error marking date range unavailable:', error);
+    console.error('Error marking date range:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to mark date range unavailable',
+      error: error instanceof Error ? error.message : 'Failed to mark date range',
     };
   }
+}
+
+export async function markDateRangeProvisionallyBooked(
+  trainerId: string,
+  startDate: string,
+  endDate: string,
+  reason?: string
+): Promise<{ success: boolean; error?: string; conflictingDates?: string[] }> {
+  return markDateRangeUnavailable(trainerId, startDate, endDate, reason, 'provisionally_booked');
 }
 
 export async function removeDateRangeUnavailability(
@@ -226,21 +278,29 @@ export async function getBookingConflicts(
 export async function toggleDateAvailability(
   trainerId: string,
   date: string,
-  reason?: string
+  reason?: string,
+  status: AvailabilityStatus = 'unavailable'
 ): Promise<{ success: boolean; error?: string; action?: 'marked' | 'removed' }> {
   try {
     const { data: existing } = await supabase
       .from('trainer_unavailability')
-      .select('id')
+      .select('id, status')
       .eq('trainer_id', trainerId)
       .eq('unavailable_date', date)
       .maybeSingle();
 
     if (existing) {
-      const result = await removeDateUnavailability(existing.id);
-      return { ...result, action: 'removed' };
+      // If the existing record has the same status, remove it (toggle off)
+      // Otherwise, update to the new status
+      if (existing.status === status) {
+        const result = await removeDateUnavailability(existing.id);
+        return { ...result, action: 'removed' };
+      } else {
+        const result = await updateAvailabilityStatus(existing.id, status, reason);
+        return { ...result, action: 'marked' };
+      }
     } else {
-      const result = await markDateUnavailable(trainerId, date, reason);
+      const result = await markDateUnavailable(trainerId, date, reason, status);
       return { ...result, action: 'marked' };
     }
   } catch (error) {
@@ -248,6 +308,36 @@ export async function toggleDateAvailability(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to toggle availability',
+    };
+  }
+}
+
+export async function setDateAvailabilityStatus(
+  trainerId: string,
+  date: string,
+  status: AvailabilityStatus,
+  reason?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data: existing } = await supabase
+      .from('trainer_unavailability')
+      .select('id, status')
+      .eq('trainer_id', trainerId)
+      .eq('unavailable_date', date)
+      .maybeSingle();
+
+    if (existing) {
+      // Update existing record
+      return await updateAvailabilityStatus(existing.id, status, reason);
+    } else {
+      // Create new record
+      return await markDateUnavailable(trainerId, date, reason, status);
+    }
+  } catch (error) {
+    console.error('Error setting date availability status:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to set availability status',
     };
   }
 }

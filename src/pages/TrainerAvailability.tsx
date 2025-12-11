@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, X, AlertTriangle, CalendarRange } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, AlertTriangle, CalendarRange, Check } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
 import { supabase } from '../lib/supabase';
 import {
   getAllTrainersUnavailability,
-  toggleDateAvailability,
+  setDateAvailabilityStatus,
   markDateRangeUnavailable,
+  markDateRangeProvisionallyBooked,
   removeDateRangeUnavailability,
+  removeDateUnavailability,
   getBookingConflicts,
   TrainerUnavailability,
+  AvailabilityStatus,
 } from '../lib/trainer-availability';
 import { getTrainerTypesForMultipleTrainers, type TrainerType as LibTrainerType } from '../lib/trainer-types';
 
@@ -61,12 +64,15 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
   const [rangeStartDate, setRangeStartDate] = useState('');
   const [rangeEndDate, setRangeEndDate] = useState('');
   const [rangeReason, setRangeReason] = useState('');
-  const [rangeAction, setRangeAction] = useState<'mark' | 'remove'>('mark');
+  const [rangeAction, setRangeAction] = useState<'mark' | 'remove' | 'provisional'>('mark');
   const [processingRange, setProcessingRange] = useState(false);
 
   const [showConflictWarning, setShowConflictWarning] = useState(false);
   const [conflictingBookings, setConflictingBookings] = useState<Array<{ id: string; title: string; booking_date: string }>>([]);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  // State for hover interaction on grid cells
+  const [hoveredCell, setHoveredCell] = useState<{ trainerId: string; date: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -164,71 +170,158 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
     return unavailability.find(u => u.trainer_id === trainerId && u.unavailable_date === date);
   }
 
-  async function handleDayClick(trainer: Trainer, dateStr: string) {
+  // Handle clicking the provisionally book (tick) button
+  async function handleProvisionallyBook(trainer: Trainer, dateStr: string) {
     const unavailableRecord = isTrainerUnavailable(trainer.id, dateStr);
 
-    if (unavailableRecord) {
-      const conflicts = await getBookingConflicts(trainer.id, dateStr, dateStr);
-      if (conflicts.length > 0) {
-        setConflictingBookings(conflicts);
-        setShowConflictWarning(true);
-        setPendingAction(() => () => performToggle(trainer, dateStr, unavailableRecord.reason || ''));
-        return;
+    // If already provisionally booked, clicking tick again removes it
+    if (unavailableRecord?.status === 'provisionally_booked') {
+      const result = await removeDateUnavailability(unavailableRecord.id);
+      if (result.success) {
+        setNotification({
+          type: 'success',
+          message: `${trainer.name} provisional booking removed for ${new Date(dateStr).toLocaleDateString('en-GB')}`,
+        });
+        await loadUnavailability();
+      } else {
+        setNotification({ type: 'error', message: result.error || 'Failed to remove provisional booking' });
       }
+      return;
     }
 
-    setSelectedTrainer(trainer);
-    setSelectedDate(dateStr);
-    setDayReason(unavailableRecord?.reason || '');
-    setShowDayModal(true);
+    // Check for booking conflicts before setting provisionally booked
+    const conflicts = await getBookingConflicts(trainer.id, dateStr, dateStr);
+    if (conflicts.length > 0) {
+      setConflictingBookings(conflicts);
+      setShowConflictWarning(true);
+      setPendingAction(() => () => performSetStatus(trainer, dateStr, 'provisionally_booked'));
+      return;
+    }
+
+    await performSetStatus(trainer, dateStr, 'provisionally_booked');
   }
 
-  async function performToggle(trainer: Trainer, dateStr: string, reason: string) {
-    const result = await toggleDateAvailability(trainer.id, dateStr, reason);
+  // Handle clicking the unavailable (cross) button
+  async function handleMarkUnavailable(trainer: Trainer, dateStr: string) {
+    const unavailableRecord = isTrainerUnavailable(trainer.id, dateStr);
+
+    // If already unavailable, clicking cross again removes it
+    if (unavailableRecord?.status === 'unavailable') {
+      const result = await removeDateUnavailability(unavailableRecord.id);
+      if (result.success) {
+        setNotification({
+          type: 'success',
+          message: `${trainer.name} marked available on ${new Date(dateStr).toLocaleDateString('en-GB')}`,
+        });
+        await loadUnavailability();
+      } else {
+        setNotification({ type: 'error', message: result.error || 'Failed to mark available' });
+      }
+      return;
+    }
+
+    // Check for booking conflicts before marking unavailable
+    const conflicts = await getBookingConflicts(trainer.id, dateStr, dateStr);
+    if (conflicts.length > 0) {
+      setConflictingBookings(conflicts);
+      setShowConflictWarning(true);
+      setPendingAction(() => () => performSetStatus(trainer, dateStr, 'unavailable'));
+      return;
+    }
+
+    await performSetStatus(trainer, dateStr, 'unavailable');
+  }
+
+  // Perform the status change
+  async function performSetStatus(trainer: Trainer, dateStr: string, status: AvailabilityStatus, reason?: string) {
+    const result = await setDateAvailabilityStatus(trainer.id, dateStr, status, reason);
 
     if (result.success) {
+      const statusLabel = status === 'provisionally_booked' ? 'provisionally booked' : 'unavailable';
       setNotification({
         type: 'success',
-        message: result.action === 'marked'
-          ? `${trainer.name} marked unavailable on ${new Date(dateStr).toLocaleDateString('en-GB')}`
-          : `${trainer.name} marked available on ${new Date(dateStr).toLocaleDateString('en-GB')}`,
+        message: `${trainer.name} marked ${statusLabel} on ${new Date(dateStr).toLocaleDateString('en-GB')}`,
       });
       await loadUnavailability();
     } else {
-      setNotification({ type: 'error', message: result.error || 'Failed to toggle availability' });
+      setNotification({ type: 'error', message: result.error || 'Failed to update availability' });
     }
   }
 
-  async function handleDayModalConfirm() {
+  async function handleDayClick(trainer: Trainer, dateStr: string) {
+    const unavailableRecord = isTrainerUnavailable(trainer.id, dateStr);
+
+    // If there's an existing record, open modal to edit/remove
+    if (unavailableRecord) {
+      setSelectedTrainer(trainer);
+      setSelectedDate(dateStr);
+      setDayReason(unavailableRecord?.reason || '');
+      setShowDayModal(true);
+      return;
+    }
+
+    // For empty cells, the hover UI handles the action selection
+    // This fallback opens the modal if clicked directly (not via hover buttons)
+    setSelectedTrainer(trainer);
+    setSelectedDate(dateStr);
+    setDayReason('');
+    setShowDayModal(true);
+  }
+
+  async function handleDayModalConfirm(status: AvailabilityStatus) {
     if (!selectedTrainer || !selectedDate) return;
 
     const unavailableRecord = isTrainerUnavailable(selectedTrainer.id, selectedDate);
 
+    // If there's no existing record and we're setting a status, check for conflicts
     if (!unavailableRecord) {
       const conflicts = await getBookingConflicts(selectedTrainer.id, selectedDate, selectedDate);
       if (conflicts.length > 0) {
         setShowDayModal(false);
         setConflictingBookings(conflicts);
         setShowConflictWarning(true);
-        setPendingAction(() => () => confirmDayToggle());
+        setPendingAction(() => () => confirmDayAction(status));
         return;
       }
     }
 
-    await confirmDayToggle();
+    await confirmDayAction(status);
   }
 
-  async function confirmDayToggle() {
+  async function confirmDayAction(status: AvailabilityStatus) {
     if (!selectedTrainer || !selectedDate) return;
 
-    await performToggle(selectedTrainer, selectedDate, dayReason);
+    await performSetStatus(selectedTrainer, selectedDate, status, dayReason);
     setShowDayModal(false);
     setSelectedTrainer(null);
     setSelectedDate(null);
     setDayReason('');
   }
 
-  function handleOpenRangeModal(action: 'mark' | 'remove') {
+  async function handleRemoveAvailabilityRecord() {
+    if (!selectedTrainer || !selectedDate) return;
+
+    const unavailableRecord = isTrainerUnavailable(selectedTrainer.id, selectedDate);
+    if (!unavailableRecord) return;
+
+    const result = await removeDateUnavailability(unavailableRecord.id);
+    if (result.success) {
+      setNotification({
+        type: 'success',
+        message: `${selectedTrainer.name} marked available on ${new Date(selectedDate).toLocaleDateString('en-GB')}`,
+      });
+      await loadUnavailability();
+    } else {
+      setNotification({ type: 'error', message: result.error || 'Failed to mark available' });
+    }
+
+    setShowDayModal(false);
+    setSelectedTrainer(null);
+    setSelectedDate(null);
+    setDayReason('');
+  }
+
+  function handleOpenRangeModal(action: 'mark' | 'remove' | 'provisional') {
     setRangeAction(action);
     setRangeTrainerId('');
     setRangeStartDate('');
@@ -251,7 +344,8 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
       return;
     }
 
-    if (rangeAction === 'mark') {
+    // Check for booking conflicts when marking unavailable or provisional
+    if (rangeAction === 'mark' || rangeAction === 'provisional') {
       const conflicts = await getBookingConflicts(rangeTrainerId, rangeStartDate, rangeEndDate);
       if (conflicts.length > 0) {
         setShowRangeModal(false);
@@ -272,19 +366,27 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
       const trainer = trainers.find(t => t.id === rangeTrainerId);
       if (!trainer) return;
 
-      const result = rangeAction === 'mark'
-        ? await markDateRangeUnavailable(rangeTrainerId, rangeStartDate, rangeEndDate, rangeReason)
-        : await removeDateRangeUnavailability(rangeTrainerId, rangeStartDate, rangeEndDate);
+      let result;
+      if (rangeAction === 'mark') {
+        result = await markDateRangeUnavailable(rangeTrainerId, rangeStartDate, rangeEndDate, rangeReason);
+      } else if (rangeAction === 'provisional') {
+        result = await markDateRangeProvisionallyBooked(rangeTrainerId, rangeStartDate, rangeEndDate, rangeReason);
+      } else {
+        result = await removeDateRangeUnavailability(rangeTrainerId, rangeStartDate, rangeEndDate);
+      }
 
       if (result.success) {
         const start = new Date(rangeStartDate).toLocaleDateString('en-GB');
         const end = new Date(rangeEndDate).toLocaleDateString('en-GB');
-        setNotification({
-          type: 'success',
-          message: rangeAction === 'mark'
-            ? `${trainer.name} marked unavailable from ${start} to ${end}`
-            : `${trainer.name} availability restored from ${start} to ${end}`,
-        });
+        let message = '';
+        if (rangeAction === 'mark') {
+          message = `${trainer.name} marked unavailable from ${start} to ${end}`;
+        } else if (rangeAction === 'provisional') {
+          message = `${trainer.name} provisionally booked from ${start} to ${end}`;
+        } else {
+          message = `${trainer.name} availability restored from ${start} to ${end}`;
+        }
+        setNotification({ type: 'success', message });
         await loadUnavailability();
         setShowRangeModal(false);
       } else {
@@ -400,18 +502,25 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
 
               <div className="flex items-center gap-2 mt-4">
                 <button
+                  onClick={() => handleOpenRangeModal('provisional')}
+                  className="flex items-center gap-2 px-4 py-2 text-sm bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors"
+                >
+                  <CalendarRange className="w-4 h-4" />
+                  Provisionally Book Range
+                </button>
+                <button
                   onClick={() => handleOpenRangeModal('mark')}
                   className="flex items-center gap-2 px-4 py-2 text-sm bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
                 >
                   <CalendarRange className="w-4 h-4" />
-                  Mark Date Range Unavailable
+                  Mark Range Unavailable
                 </button>
                 <button
                   onClick={() => handleOpenRangeModal('remove')}
-                  className="flex items-center gap-2 px-4 py-2 text-sm bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm bg-slate-500/20 text-slate-400 border border-slate-500/30 rounded hover:bg-slate-500/30 transition-colors"
                 >
                   <CalendarRange className="w-4 h-4" />
-                  Remove Date Range
+                  Clear Date Range
                 </button>
               </div>
             </div>
@@ -434,6 +543,10 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                 <span>{totalUnavailableDays} unavailable day(s)</span>
               </div>
               <div className="flex items-center justify-end gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-green-900/40 border border-green-700/50 rounded"></div>
+                  <span>Provisionally Booked</span>
+                </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-red-900/40 border border-red-700/50 rounded"></div>
                   <span>Unavailable</span>
@@ -494,8 +607,11 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                           const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                           const weekend = isWeekend(currentYear, currentMonth, day);
                           const unavailableRecord = isTrainerUnavailable(trainer.id, dateStr);
-                          const isUnavailable = !!unavailableRecord;
+                          const isUnavailable = unavailableRecord?.status === 'unavailable';
+                          const isProvisionallyBooked = unavailableRecord?.status === 'provisionally_booked';
+                          const hasRecord = !!unavailableRecord;
                           const isToday = dateStr === todayStr;
+                          const isHovered = hoveredCell?.trainerId === trainer.id && hoveredCell?.date === dateStr;
 
                           return (
                             <div
@@ -503,24 +619,98 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                               className={`w-[120px] min-h-[60px] border-r border-b relative ${
                                 isUnavailable
                                   ? 'bg-red-900/40 border-red-700/50'
+                                  : isProvisionallyBooked
+                                  ? 'bg-green-900/40 border-green-700/50'
                                   : weekend
                                   ? 'bg-slate-900/50 border-slate-800'
                                   : 'border-slate-800'
                               } ${isToday ? 'ring-1 ring-blue-500 ring-inset' : ''} ${
-                                isUnavailable ? 'hover:bg-red-900/50' : 'hover:bg-blue-900/10'
+                                !hasRecord && !isHovered ? 'hover:bg-slate-800/50' : ''
                               } cursor-pointer transition-colors`}
-                              onClick={() => handleDayClick(trainer, dateStr)}
+                              onMouseEnter={() => setHoveredCell({ trainerId: trainer.id, date: dateStr })}
+                              onMouseLeave={() => setHoveredCell(null)}
+                              onClick={() => hasRecord && handleDayClick(trainer, dateStr)}
                               title={
                                 isUnavailable && unavailableRecord?.reason
                                   ? `Unavailable: ${unavailableRecord.reason}`
                                   : isUnavailable
-                                  ? 'Unavailable'
-                                  : 'Available - Click to mark unavailable'
+                                  ? 'Unavailable - Click to edit'
+                                  : isProvisionallyBooked && unavailableRecord?.reason
+                                  ? `Provisionally Booked: ${unavailableRecord.reason}`
+                                  : isProvisionallyBooked
+                                  ? 'Provisionally Booked - Click to edit'
+                                  : 'Hover to set availability'
                               }
                             >
+                              {/* Show icon for existing records */}
                               {isUnavailable && (
-                                <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                   <X className="w-10 h-10 text-red-400 stroke-[3]" />
+                                </div>
+                              )}
+                              {isProvisionallyBooked && (
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                  <Check className="w-10 h-10 text-green-400 stroke-[3]" />
+                                </div>
+                              )}
+
+                              {/* Hover UI with tick/cross buttons */}
+                              {isHovered && !hasRecord && (
+                                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-800/80">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleProvisionallyBook(trainer, dateStr);
+                                    }}
+                                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-green-500/20 hover:bg-green-500/40 border border-green-500/50 transition-colors"
+                                    title="Provisionally book"
+                                  >
+                                    <Check className="w-6 h-6 text-green-400" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMarkUnavailable(trainer, dateStr);
+                                    }}
+                                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 transition-colors"
+                                    title="Mark unavailable"
+                                  >
+                                    <X className="w-6 h-6 text-red-400" />
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* Hover UI for existing records - show option to toggle or edit */}
+                              {isHovered && hasRecord && (
+                                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-800/80">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleProvisionallyBook(trainer, dateStr);
+                                    }}
+                                    className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${
+                                      isProvisionallyBooked
+                                        ? 'bg-green-500/40 border-2 border-green-400'
+                                        : 'bg-green-500/20 hover:bg-green-500/40 border border-green-500/50'
+                                    }`}
+                                    title={isProvisionallyBooked ? "Remove provisional booking" : "Change to provisionally booked"}
+                                  >
+                                    <Check className="w-6 h-6 text-green-400" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMarkUnavailable(trainer, dateStr);
+                                    }}
+                                    className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${
+                                      isUnavailable
+                                        ? 'bg-red-500/40 border-2 border-red-400'
+                                        : 'bg-red-500/20 hover:bg-red-500/40 border border-red-500/50'
+                                    }`}
+                                    title={isUnavailable ? "Mark available" : "Change to unavailable"}
+                                  >
+                                    <X className="w-6 h-6 text-red-400" />
+                                  </button>
                                 </div>
                               )}
                             </div>
@@ -536,85 +726,132 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
         </div>
       </main>
 
-      {showDayModal && selectedTrainer && selectedDate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800">
-              <div>
-                <h2 className="text-xl font-semibold text-white">Manage Availability</h2>
-                <p className="text-sm text-slate-400 mt-1">
-                  {selectedTrainer.name} - {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowDayModal(false);
-                  setSelectedTrainer(null);
-                  setSelectedDate(null);
-                  setDayReason('');
-                }}
-                className="text-slate-400 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {showDayModal && selectedTrainer && selectedDate && (() => {
+        const record = isTrainerUnavailable(selectedTrainer.id, selectedDate);
+        const currentStatus = record?.status;
 
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Reason (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={dayReason}
-                  onChange={(e) => setDayReason(e.target.value)}
-                  placeholder="e.g., Holiday, Sick Leave, Training"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-white placeholder-slate-500 focus:border-blue-500 outline-none"
-                />
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-md w-full">
+              <div className="flex items-center justify-between p-6 border-b border-slate-800">
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Manage Availability</h2>
+                  <p className="text-sm text-slate-400 mt-1">
+                    {selectedTrainer.name} - {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDayModal(false);
+                    setSelectedTrainer(null);
+                    setSelectedDate(null);
+                    setDayReason('');
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-                <div className="text-sm text-slate-400">
-                  {isTrainerUnavailable(selectedTrainer.id, selectedDate)
-                    ? 'Currently unavailable - Click to mark as available'
-                    : 'Currently available - Click to mark as unavailable'}
+              <div className="p-6 space-y-4">
+                {/* Current status indicator */}
+                {currentStatus && (
+                  <div className={`p-3 rounded border ${
+                    currentStatus === 'unavailable'
+                      ? 'bg-red-500/10 border-red-500/30 text-red-400'
+                      : 'bg-green-500/10 border-green-500/30 text-green-400'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {currentStatus === 'unavailable' ? (
+                        <X className="w-5 h-5" />
+                      ) : (
+                        <Check className="w-5 h-5" />
+                      )}
+                      <span className="font-medium">
+                        Currently: {currentStatus === 'unavailable' ? 'Unavailable' : 'Provisionally Booked'}
+                      </span>
+                    </div>
+                    {record?.reason && (
+                      <p className="mt-1 text-sm opacity-80">Reason: {record.reason}</p>
+                    )}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Reason (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={dayReason}
+                    onChange={(e) => setDayReason(e.target.value)}
+                    placeholder="e.g., Holiday, Sick Leave, Reserved for client"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-white placeholder-slate-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 p-6 border-t border-slate-800">
+                {/* Action buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleDayModalConfirm('provisionally_booked')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded transition-colors ${
+                      currentStatus === 'provisionally_booked'
+                        ? 'bg-green-500/30 text-green-300 border-2 border-green-400'
+                        : 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
+                    }`}
+                  >
+                    <Check className="w-4 h-4" />
+                    Provisionally Book
+                  </button>
+                  <button
+                    onClick={() => handleDayModalConfirm('unavailable')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded transition-colors ${
+                      currentStatus === 'unavailable'
+                        ? 'bg-red-500/30 text-red-300 border-2 border-red-400'
+                        : 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                    }`}
+                  >
+                    <X className="w-4 h-4" />
+                    Mark Unavailable
+                  </button>
+                </div>
+
+                {/* Bottom row: Cancel and Clear */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDayModal(false);
+                      setSelectedTrainer(null);
+                      setSelectedDate(null);
+                      setDayReason('');
+                    }}
+                    className="flex-1 px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  {currentStatus && (
+                    <button
+                      onClick={handleRemoveAvailabilityRecord}
+                      className="flex-1 px-4 py-2 bg-slate-700/50 hover:bg-slate-700 text-slate-300 border border-slate-600 rounded transition-colors"
+                    >
+                      Clear (Mark Available)
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
-
-            <div className="flex gap-3 p-6 border-t border-slate-800">
-              <button
-                onClick={() => {
-                  setShowDayModal(false);
-                  setSelectedTrainer(null);
-                  setSelectedDate(null);
-                  setDayReason('');
-                }}
-                className="flex-1 px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDayModalConfirm}
-                className={`flex-1 px-4 py-2 rounded transition-colors ${
-                  isTrainerUnavailable(selectedTrainer.id, selectedDate)
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
-                    : 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                }`}
-              >
-                {isTrainerUnavailable(selectedTrainer.id, selectedDate) ? 'Mark Available' : 'Mark Unavailable'}
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {showRangeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-md w-full">
             <div className="flex items-center justify-between p-6 border-b border-slate-800">
               <h2 className="text-xl font-semibold text-white">
-                {rangeAction === 'mark' ? 'Mark Date Range Unavailable' : 'Remove Date Range'}
+                {rangeAction === 'provisional' ? 'Provisionally Book Date Range' : rangeAction === 'mark' ? 'Mark Date Range Unavailable' : 'Clear Date Range'}
               </h2>
               <button
                 onClick={() => setShowRangeModal(false)}
@@ -665,7 +902,7 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                 />
               </div>
 
-              {rangeAction === 'mark' && (
+              {(rangeAction === 'mark' || rangeAction === 'provisional') && (
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
                     Reason (Optional)
@@ -674,7 +911,7 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                     type="text"
                     value={rangeReason}
                     onChange={(e) => setRangeReason(e.target.value)}
-                    placeholder="e.g., Holiday, Training"
+                    placeholder={rangeAction === 'provisional' ? "e.g., Reserved for client, Tentative booking" : "e.g., Holiday, Training"}
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-white placeholder-slate-500 focus:border-blue-500 outline-none"
                   />
                 </div>
@@ -706,10 +943,12 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                 className={`flex-1 px-4 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                   rangeAction === 'mark'
                     ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                    : 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
+                    : rangeAction === 'provisional'
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
+                    : 'bg-slate-500/20 text-slate-300 border border-slate-500/30 hover:bg-slate-500/30'
                 }`}
               >
-                {processingRange ? 'Processing...' : rangeAction === 'mark' ? 'Mark Unavailable' : 'Remove'}
+                {processingRange ? 'Processing...' : rangeAction === 'mark' ? 'Mark Unavailable' : rangeAction === 'provisional' ? 'Provisionally Book' : 'Clear Range'}
               </button>
             </div>
           </div>
