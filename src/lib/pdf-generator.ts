@@ -68,7 +68,12 @@ export async function generateCertificatePDF(
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
-  const courseDateRange = `${formatDate(certificateData.course_date_start)} - ${formatDate(certificateData.course_date_end)}`;
+  // For one-day courses, show just the single date instead of "date - date"
+  const startDateFormatted = formatDate(certificateData.course_date_start);
+  const endDateFormatted = formatDate(certificateData.course_date_end);
+  const courseDateRange = startDateFormatted === endDateFormatted
+    ? startDateFormatted
+    : `${startDateFormatted} - ${endDateFormatted}`;
 
   const fieldValueMap: Record<string, string> = {
     certificate_number: certificateData.certificate_number,
