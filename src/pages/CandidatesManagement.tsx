@@ -179,7 +179,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
 
       const success = await sendCertificateEmail(booking.candidate_email, {
         candidate_name: booking.candidate_name,
-        course_type: booking.course_types?.name || 'Training Course',
+        course_title: booking.title || 'Training Course',
         certificate_number: booking.certificate.certificate_number,
         course_date: courseDate,
         trainer_name: booking.certificate.trainer_name,

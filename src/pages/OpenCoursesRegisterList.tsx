@@ -485,7 +485,7 @@ export default function OpenCoursesRegisterList({
                       <td className="px-4 py-4">
                         <div>
                           <p className="text-sm text-white font-medium">
-                            {session.event_title || session.course_type?.name || 'Untitled'}
+                            {session.event_title || 'Untitled'}
                           </p>
                           {session.course_type?.jaupt_code && (
                             <p className="text-xs text-blue-400 font-mono">

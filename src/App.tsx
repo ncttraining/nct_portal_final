@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, Shield, Calendar, GraduationCap, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, ArrowRight, UserCog, Inbox, CalendarClock, DoorOpen, CalendarDays, ClipboardList } from 'lucide-react';
+import { AlertCircle, Shield, Calendar, GraduationCap, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, ArrowRight, UserCog, Inbox, CalendarClock, DoorOpen, CalendarDays, ClipboardList, Building2 } from 'lucide-react';
 import PageHeader from './components/PageHeader';
 import TrainerMap from './pages/TrainerMap';
 import TrainerTypes from './pages/TrainerTypes';
@@ -22,13 +22,17 @@ import OpenCoursesDashboard from './pages/OpenCoursesDashboard';
 import OpenCoursesRegisterList from './pages/OpenCoursesRegisterList';
 import OpenCoursesRegisterTrainer from './pages/OpenCoursesRegisterTrainer';
 import OpenCoursesRegisterAdmin from './pages/OpenCoursesRegisterAdmin';
+import OpenCourseDelegatesList from './pages/OpenCourseDelegatesList';
+import OpenCourseCompaniesList from './pages/OpenCourseCompaniesList';
+import OpenCourseCompanyDetails from './pages/OpenCourseCompanyDetails';
 import EditProfile from './components/EditProfile';
 import { useAuth } from './contexts/AuthContext';
 
-type PageType = 'home' | 'administration' | 'bookings-management' | 'course-management' | 'trainer-map' | 'trainer-types' | 'email-templates' | 'email-queue' | 'user-management' | 'trainer-management' | 'course-booking' | 'candidates-management' | 'client-management' | 'certificate-templates' | 'certificates' | 'course-types' | 'bookings-viewer' | 'trainer-expenses' | 'trainer-availability' | 'centre-management' | 'open-courses' | 'open-courses-registers' | 'open-courses-register-trainer' | 'open-courses-register-admin';
+type PageType = 'home' | 'administration' | 'bookings-management' | 'course-management' | 'trainer-map' | 'trainer-types' | 'email-templates' | 'email-queue' | 'user-management' | 'trainer-management' | 'course-booking' | 'candidates-management' | 'client-management' | 'certificate-templates' | 'certificates' | 'course-types' | 'bookings-viewer' | 'trainer-expenses' | 'trainer-availability' | 'centre-management' | 'open-courses' | 'open-courses-registers' | 'open-courses-register-trainer' | 'open-courses-register-admin' | 'open-courses-delegates' | 'open-courses-companies' | 'open-courses-company-details';
 
 interface NavigationData {
   sessionId?: string;
+  companyId?: string;
 }
 
 function App() {
@@ -59,6 +63,9 @@ function App() {
       case 'client-management':
       case 'centre-management':
       case 'open-courses':
+      case 'open-courses-delegates':
+      case 'open-courses-companies':
+      case 'open-courses-company-details':
         return canManageBookings;
       case 'open-courses-registers':
       case 'open-courses-register-trainer':
@@ -176,6 +183,15 @@ function App() {
       case 'open-courses-register-admin':
         pageContent = <OpenCoursesRegisterAdmin currentPage={currentPage} onNavigate={handleNavigate} sessionId={navigationData.sessionId} />;
         break;
+      case 'open-courses-delegates':
+        pageContent = <OpenCourseDelegatesList currentPage={currentPage} onNavigate={handleNavigate} />;
+        break;
+      case 'open-courses-companies':
+        pageContent = <OpenCourseCompaniesList currentPage={currentPage} onNavigate={handleNavigate} />;
+        break;
+      case 'open-courses-company-details':
+        pageContent = <OpenCourseCompanyDetails currentPage={currentPage} onNavigate={handleNavigate} companyId={navigationData.companyId} />;
+        break;
     }
 
     if (pageContent) {
@@ -270,6 +286,18 @@ function App() {
           title: 'Open Courses Registers',
           description: 'Manage attendance and DVSA compliance',
           icon: ClipboardList,
+        },
+        {
+          id: 'open-courses-delegates',
+          title: 'Open Course Delegates',
+          description: 'View and manage all open course delegates',
+          icon: Users,
+        },
+        {
+          id: 'open-courses-companies',
+          title: 'Open Course Companies',
+          description: 'Manage companies and their delegates',
+          icon: Building2,
         },
         {
           id: 'candidates-management',

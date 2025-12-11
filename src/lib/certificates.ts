@@ -118,6 +118,7 @@ export type OpenCourseSessionWithDelegates = {
   venue_name: string | null;
   status: string;
   session_end_date: string;
+  course_level_data?: Record<string, any>;
   delegates: {
     id: string;
     delegate_name: string;
@@ -336,7 +337,7 @@ export async function getCertificates(filters?: {
 }) {
   let query = supabase
     .from('certificates')
-    .select('*, course_types(name, code)')
+    .select('*, course_types(name, code), bookings(title), open_course_sessions(event_title)')
     .order('issue_date', { ascending: false });
 
   if (filters?.courseTypeId) {
@@ -574,6 +575,19 @@ export async function regenerateCertificatePDF(certificateId: string) {
 }
 
 export async function revokeCertificate(id: string, reason: string) {
+  // First get the certificate to find out if it's for an open course delegate
+  const { data: certificate, error: fetchError } = await supabase
+    .from('certificates')
+    .select('open_course_delegate_id, candidate_id')
+    .eq('id', id)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching certificate:', fetchError);
+    throw fetchError;
+  }
+
+  // Update the certificate status to revoked
   const { error } = await supabase
     .from('certificates')
     .update({
@@ -586,6 +600,22 @@ export async function revokeCertificate(id: string, reason: string) {
   if (error) {
     console.error('Error revoking certificate:', error);
     throw error;
+  }
+
+  // If this was an open course delegate certificate, reset their certificate_issued flag
+  if (certificate?.open_course_delegate_id) {
+    const { error: delegateError } = await supabase
+      .from('open_course_delegates')
+      .update({
+        certificate_issued: false,
+        certificate_number: null
+      })
+      .eq('id', certificate.open_course_delegate_id);
+
+    if (delegateError) {
+      console.error('Error resetting delegate certificate status:', delegateError);
+      // Don't throw - the certificate is already revoked, this is a secondary update
+    }
   }
 }
 
@@ -680,12 +710,19 @@ export async function getBookingsWithCourseTypes(filters?: {
 
   const { data: certificates } = await supabase
     .from('certificates')
-    .select('id, candidate_id, certificate_number, certificate_pdf_url, status')
-    .in('booking_id', bookingsWithEndDate.map(b => b.id));
+    .select('id, candidate_id, certificate_number, certificate_pdf_url, status, created_at')
+    .in('booking_id', bookingsWithEndDate.map(b => b.id))
+    .order('created_at', { ascending: true });
 
-  const certificateMap = new Map(
-    (certificates || []).map(c => [c.candidate_id, c])
-  );
+  // Build certificate map - prefer 'issued' certificates, otherwise use the most recent one
+  const certificateMap = new Map<string, any>();
+  (certificates || []).forEach(c => {
+    const existing = certificateMap.get(c.candidate_id);
+    // Always prefer 'issued' status, or take newer certificate if neither is issued
+    if (!existing || c.status === 'issued' || (existing.status !== 'issued' && c.created_at > existing.created_at)) {
+      certificateMap.set(c.candidate_id, c);
+    }
+  });
 
   return bookingsWithEndDate.map(booking => ({
     ...booking,
@@ -704,7 +741,7 @@ export async function getBookingsWithPendingCertificates(filters?: {
 }) {
   const allBookings = await getBookingsWithCourseTypes(filters);
   return allBookings.filter(booking =>
-    booking.candidates.some((c: any) => c.passed && !c.certificate)
+    booking.candidates.some((c: any) => c.passed && (!c.certificate || c.certificate?.status === 'revoked'))
   );
 }
 
@@ -762,6 +799,18 @@ export async function getBookingCourseLevelData(bookingId: string): Promise<Reco
   return (data?.course_level_data || {}) as Record<string, any>;
 }
 
+export async function updateOpenCourseSessionData(sessionId: string, courseLevelData: Record<string, any>) {
+  const { error } = await supabase
+    .from('open_course_sessions')
+    .update({ course_level_data: courseLevelData })
+    .eq('id', sessionId);
+
+  if (error) {
+    console.error('Error updating open course session data:', error);
+    throw error;
+  }
+}
+
 export function calculateExpiryDate(issueDate: string, validityMonths: number | null): string | null {
   if (!validityMonths) return null;
 
@@ -814,6 +863,7 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
       course_type_id,
       trainer_id,
       status,
+      course_level_data,
       course_types(id, name, code, required_fields, certificate_validity_months, duration_days, duration_unit, default_course_data),
       trainers(name),
       venue:venues(name)
@@ -875,16 +925,23 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
     d.attendance_status === 'attended' || d.attendance_detail === 'attended'
   );
 
-  // Get certificates for these delegates
+  // Get certificates for these delegates - order by created_at so newest is last
   const delegateIds = filteredDelegates.map(d => d.id);
   const { data: certificates } = await supabase
     .from('certificates')
-    .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status')
-    .in('open_course_delegate_id', delegateIds.length > 0 ? delegateIds : ['00000000-0000-0000-0000-000000000000']);
+    .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status, created_at')
+    .in('open_course_delegate_id', delegateIds.length > 0 ? delegateIds : ['00000000-0000-0000-0000-000000000000'])
+    .order('created_at', { ascending: true });
 
-  const certificateMap = new Map(
-    (certificates || []).map(c => [c.open_course_delegate_id, c])
-  );
+  // Build certificate map - prefer 'issued' certificates, otherwise use the most recent one
+  const certificateMap = new Map<string, any>();
+  (certificates || []).forEach(c => {
+    const existing = certificateMap.get(c.open_course_delegate_id);
+    // Always prefer 'issued' status, or take newer certificate if neither is issued
+    if (!existing || c.status === 'issued' || (existing.status !== 'issued' && c.created_at > existing.created_at)) {
+      certificateMap.set(c.open_course_delegate_id, c);
+    }
+  });
 
   // Map delegates to their sessions
   const delegatesBySession = new Map<string, any[]>();
@@ -921,6 +978,7 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
         venue_name: (session as any).venue?.name || null,
         status: session.status,
         session_end_date: endDate.toISOString().split('T')[0],
+        course_level_data: (session as any).course_level_data || {},
         delegates: delegatesBySession.get(session.id) || [],
         course_types: (session as any).course_types,
         trainers: (session as any).trainers,
@@ -1040,12 +1098,6 @@ export async function updateOpenCourseDelegateAttendance(delegateId: string, att
     console.error('Error updating delegate attendance:', error);
     throw error;
   }
-}
-
-export async function updateOpenCourseSessionData(sessionId: string, data: Record<string, any>) {
-  // Store session-level certificate data in a separate field or local state
-  // For now, we'll handle this in the UI component state
-  return;
 }
 
 export async function updateOpenCourseDelegateData(delegateId: string, data: Record<string, any>) {

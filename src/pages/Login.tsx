@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -8,11 +8,41 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Forgot password states
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetError, setResetError] = useState('');
+
+  // Password recovery states (when user clicks reset link from email)
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [updatePasswordLoading, setUpdatePasswordLoading] = useState(false);
+  const [updatePasswordSuccess, setUpdatePasswordSuccess] = useState(false);
+  const [updatePasswordError, setUpdatePasswordError] = useState('');
+
+  // Check for recovery token in URL on mount
+  useEffect(() => {
+    // Check URL hash for recovery token (Supabase format)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+
+    if (type === 'recovery') {
+      setIsRecoveryMode(true);
+    }
+
+    // Also listen for auth state changes for PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryMode(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,9 +58,71 @@ export default function Login() {
     }
   }
 
-  function handleShowForgotPassword() {
-    setShowForgotPassword(true);
-    setResetSuccess(true); // Show the contact admin message immediately
+  async function handleSendResetEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setResetError('');
+    setResetLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setResetSuccess(true);
+    } catch (err: any) {
+      setResetError(err.message || 'Failed to send reset email');
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
+  async function handleUpdatePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setUpdatePasswordError('');
+
+    if (newPassword !== confirmPassword) {
+      setUpdatePasswordError('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setUpdatePasswordError('Password must be at least 6 characters');
+      return;
+    }
+
+    setUpdatePasswordLoading(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setUpdatePasswordSuccess(true);
+
+      // Clear the hash from URL
+      window.history.replaceState(null, '', window.location.pathname);
+
+      // Sign out and redirect to login after short delay
+      setTimeout(async () => {
+        await supabase.auth.signOut();
+        setIsRecoveryMode(false);
+        setUpdatePasswordSuccess(false);
+        setNewPassword('');
+        setConfirmPassword('');
+      }, 2000);
+    } catch (err: any) {
+      setUpdatePasswordError(err.message || 'Failed to update password');
+    } finally {
+      setUpdatePasswordLoading(false);
+    }
   }
 
   function handleBackToLogin() {
@@ -38,6 +130,80 @@ export default function Login() {
     setResetEmail('');
     setResetError('');
     setResetSuccess(false);
+  }
+
+  // Recovery mode - user clicked reset link from email
+  if (isRecoveryMode) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 via-slate-950 to-slate-950 p-5">
+        <img
+          src="/logo_white.png"
+          alt="NCT Logo"
+          className="w-64 mb-8"
+        />
+
+        <div className="w-full max-w-md bg-gradient-to-br from-slate-950 to-slate-950 border border-slate-800 rounded-3xl shadow-2xl p-8">
+          <h2 className="text-xl font-semibold text-center mb-6 tracking-wider uppercase text-slate-100">
+            Set New Password
+          </h2>
+
+          {updatePasswordSuccess ? (
+            <div className="text-center text-sm text-green-400 bg-green-900/30 py-4 px-4 rounded-lg">
+              <p className="font-semibold">Password updated successfully!</p>
+              <p className="text-slate-300 mt-2">Redirecting to login...</p>
+            </div>
+          ) : (
+            <form onSubmit={handleUpdatePassword} className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="newPassword" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                  placeholder="Enter new password"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                  placeholder="Confirm new password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={updatePasswordLoading}
+                className="w-full mt-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              >
+                {updatePasswordLoading ? 'Updating...' : 'Update Password'}
+              </button>
+
+              {updatePasswordError && (
+                <p className="text-center text-sm text-red-400 bg-red-900/30 py-2 px-4 rounded-lg">
+                  {updatePasswordError}
+                </p>
+              )}
+            </form>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -87,7 +253,7 @@ export default function Login() {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={handleShowForgotPassword}
+                  onClick={() => setShowForgotPassword(true)}
                   className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                 >
                   Forgot Password?
@@ -115,20 +281,65 @@ export default function Login() {
               Reset Password
             </h2>
 
-            <div className="space-y-4">
-              <div className="text-center text-sm text-blue-400 bg-blue-900/30 py-4 px-4 rounded-lg space-y-2">
-                <p className="font-semibold">Forgot your password?</p>
-                <p className="text-slate-300">
-                  Please contact your system administrator to reset your password. They will send you a new temporary password via email.
-                </p>
+            {resetSuccess ? (
+              <div className="space-y-4">
+                <div className="text-center text-sm text-green-400 bg-green-900/30 py-4 px-4 rounded-lg space-y-2">
+                  <p className="font-semibold">Reset email sent!</p>
+                  <p className="text-slate-300">
+                    If an account exists with that email address, you will receive a password reset link shortly. Please check your inbox and spam folder.
+                  </p>
+                </div>
+                <button
+                  onClick={handleBackToLogin}
+                  className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-full transition-colors"
+                >
+                  Back to Login
+                </button>
               </div>
-              <button
-                onClick={handleBackToLogin}
-                className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-full transition-colors"
-              >
-                Back to Login
-              </button>
-            </div>
+            ) : (
+              <form onSubmit={handleSendResetEmail} className="space-y-4">
+                <p className="text-sm text-slate-400 text-center mb-4">
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+
+                <div>
+                  <label htmlFor="resetEmail" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="resetEmail"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                {resetError && (
+                  <p className="text-center text-sm text-red-400 bg-red-900/30 py-2 px-4 rounded-lg">
+                    {resetError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                >
+                  {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBackToLogin}
+                  className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-full transition-colors"
+                >
+                  Back to Login
+                </button>
+              </form>
+            )}
           </>
         )}
       </div>

@@ -119,7 +119,7 @@ export async function sendCertificateEmail(
   candidateEmail: string,
   certificateData: {
     candidate_name: string;
-    course_type: string;
+    course_title: string;
     certificate_number: string;
     course_date: string;
     trainer_name: string;
@@ -140,7 +140,7 @@ export async function sendCertificateEmail(
     'send_certificate_candidate',
     {
       candidate_name: certificateData.candidate_name,
-      course_type: certificateData.course_type,
+      course_title: certificateData.course_title,
       certificate_number: certificateData.certificate_number,
       course_date: certificateData.course_date,
       trainer_name: certificateData.trainer_name,

@@ -6,7 +6,7 @@ import BookingModal from '../components/BookingModal';
 import Notification from '../components/Notification';
 import { getTrainerUnavailability, TrainerUnavailability } from '../lib/trainer-availability';
 import { getTrainerTypesForMultipleTrainers, type TrainerType as LibTrainerType } from '../lib/trainer-types';
-import { sendBookingMovedNotification, sendBookingCancelledNotification } from '../lib/booking-notifications';
+import { sendBookingMovedNotification, sendBookingCancelledNotification, sendOpenCourseAssignmentNotification } from '../lib/booking-notifications';
 
 interface TrainerType {
   id: string;
@@ -239,33 +239,43 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       console.error('Error loading open courses:', openCoursesError);
     }
 
-    const transformedOpenCourses = (openCoursesData || []).map(session => ({
-      id: `open-${session.id}`,
-      trainer_id: session.trainer_id,
-      booking_date: session.session_date,
-      start_time: session.start_time || '09:00',
-      title: `${session.event_title}${session.event_subtitle ? ` - ${session.event_subtitle}` : ''}`,
-      location: session.is_online ? 'Online' : (session.venue?.town || session.venue?.name || 'TBA'),
-      client_name: 'Open Course',
-      client_contact_name: '',
-      client_email: '',
-      client_telephone: '',
-      notes: `Open Course Session\nCapacity: ${session.delegates?.length || 0}/${session.capacity_limit}`,
-      status: 'confirmed' as const,
-      in_centre: false,
-      num_days: 1,
-      candidates: (session.delegates || []).map(delegate => ({
-        candidate_name: delegate.delegate_name,
-        email: delegate.delegate_email,
-        telephone: delegate.delegate_phone,
-        paid: true,
-        outstanding_balance: 0
-      })),
-      course_type_id: session.course_type_id,
-      course_type: session.course_type,
-      is_open_course: true,
-      open_course_session_id: session.id
-    }));
+    const transformedOpenCourses = (openCoursesData || []).map(session => {
+      // Calculate number of days for multi-day events
+      let numDays = 1;
+      if (session.end_date) {
+        const startDate = new Date(session.session_date);
+        const endDate = new Date(session.end_date);
+        numDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      }
+
+      return {
+        id: `open-${session.id}`,
+        trainer_id: session.trainer_id,
+        booking_date: session.session_date,
+        start_time: session.start_time || '09:00',
+        title: `${session.event_title}${session.event_subtitle ? ` - ${session.event_subtitle}` : ''}`,
+        location: session.is_online ? 'Online' : (session.venue?.town || session.venue?.name || 'TBA'),
+        client_name: 'Open Course',
+        client_contact_name: '',
+        client_email: '',
+        client_telephone: '',
+        notes: `Open Course Session\nCapacity: ${session.delegates?.length || 0}/${session.capacity_limit}`,
+        status: 'confirmed' as const,
+        in_centre: false,
+        num_days: numDays,
+        candidates: (session.delegates || []).map(delegate => ({
+          candidate_name: delegate.delegate_name,
+          email: delegate.delegate_email,
+          telephone: delegate.delegate_phone,
+          paid: true,
+          outstanding_balance: 0
+        })),
+        course_type_id: session.course_type_id,
+        course_type: session.course_type,
+        is_open_course: true,
+        open_course_session_id: session.id
+      };
+    });
 
     setBookings([...(bookingsData || []), ...transformedOpenCourses]);
   }
@@ -553,6 +563,18 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
         return;
       }
 
+      // Send email notifications
+      try {
+        // Send cancellation notification to old trainer
+        await sendBookingCancelledNotification(booking as any, oldTrainerId);
+
+        // Send assignment notification to new trainer
+        await sendOpenCourseAssignmentNotification(sessionId, trainerId);
+      } catch (emailError) {
+        console.error('Error sending email notifications:', emailError);
+        // Don't fail the operation if emails fail
+      }
+
       setNotification({
         message: 'Trainer updated successfully for open course session',
         type: 'success'
@@ -813,7 +835,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                       }}
                     >
                       <div
-                        className="w-40 px-3 py-2 border-r border-b border-slate-800 text-sm sticky left-0 bg-inherit cursor-move"
+                        className="w-40 px-3 py-2 border-r border-b border-slate-800 text-sm sticky left-0 bg-slate-900 cursor-move"
                         draggable
                         onDragStart={(e) => {
                           e.stopPropagation();

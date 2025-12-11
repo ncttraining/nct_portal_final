@@ -8,6 +8,7 @@ import {
   getOpenCourseSessionsWithDelegates,
   updateCandidatePassStatus,
   updateBookingCourseLevelData,
+  updateOpenCourseSessionData,
   issueCertificate,
   issueOpenCourseCertificate,
   updateOpenCourseDelegateAttendance,
@@ -197,18 +198,26 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         uniqueCourseTypeIds.add(session.course_type_id);
       }
 
-      // Initialize session data with defaults from course type
+      // Use saved session data if available, otherwise fall back to course type defaults
+      const savedSessionData = session.course_level_data || {};
       const courseType = session.course_types;
-      if (courseType?.default_course_data) {
+
+      if (Object.keys(savedSessionData).length > 0) {
+        // Use saved session data
+        sessionDataMap[session.id] = { ...savedSessionData };
+      } else if (courseType?.default_course_data) {
+        // Fall back to course type defaults
         sessionDataMap[session.id] = { ...courseType.default_course_data };
       } else {
         sessionDataMap[session.id] = {};
       }
 
-      // Set duration from course type
+      // Set duration - prioritize saved data, then fall back to course type defaults
       durationsMap[session.id] = {
-        value: courseType?.duration_days || null,
-        unit: (courseType?.duration_unit as 'hours' | 'days') || 'days'
+        value: savedSessionData.duration_value !== undefined
+          ? savedSessionData.duration_value
+          : (courseType?.duration_days || null),
+        unit: savedSessionData.duration_unit || (courseType?.duration_unit as 'hours' | 'days') || 'days'
       };
     });
 
@@ -429,7 +438,10 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
   }
 
   async function handleBulkGeneratePDFs(booking: BookingWithCandidates) {
-    const passedCandidates = booking.candidates.filter(c => c.passed && !c.certificate_id);
+    const passedCandidates = booking.candidates.filter(c => {
+      const cert = (c as any).certificate;
+      return c.passed && (!c.certificate_id || cert?.status !== 'issued');
+    });
 
     if (passedCandidates.length === 0) {
       setNotification({ type: 'warning', message: 'No passed candidates without certificates found' });
@@ -517,7 +529,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         try {
           const success = await sendCertificateEmail(candidate.email, {
             candidate_name: candidate.candidate_name,
-            course_type: courseType?.name || 'Training Course',
+            course_title: booking.title || 'Training Course',
             certificate_number: certificate.certificate_number,
             course_date: courseDate,
             trainer_name: booking.trainer_name,
@@ -609,13 +621,20 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
   // Open Course Handlers
   function updateOpenCourseSessionField(sessionId: string, fieldName: string, value: any) {
+    const newData = {
+      ...(openCourseSessionData[sessionId] || {}),
+      [fieldName]: value
+    };
+
     setOpenCourseSessionData(prev => ({
       ...prev,
-      [sessionId]: {
-        ...(prev[sessionId] || {}),
-        [fieldName]: value
-      }
+      [sessionId]: newData
     }));
+
+    // Save to database
+    updateOpenCourseSessionData(sessionId, newData).catch(err => {
+      console.error('Failed to save open course session data:', err);
+    });
   }
 
   function updateOpenCourseDelegateField(delegateId: string, fieldName: string, value: any) {
@@ -725,7 +744,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
   async function handleBulkGenerateOpenCourseCertificates(session: OpenCourseSessionWithDelegates) {
     const attendedDelegates = session.delegates.filter(d =>
       (d.attendance_status === 'attended' || d.attendance_detail === 'attended') &&
-      !d.certificate?.id
+      (!d.certificate?.id || d.certificate?.status !== 'issued')
     );
 
     if (attendedDelegates.length === 0) {
@@ -813,7 +832,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         try {
           const success = await sendCertificateEmail(delegate.delegate_email, {
             candidate_name: delegate.delegate_name,
-            course_type: courseType?.name || 'Training Course',
+            course_title: session.event_title || 'Training Course',
             certificate_number: certificate.certificate_number,
             course_date: courseDate,
             trainer_name: session.trainer_name,
@@ -964,11 +983,15 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
     try {
       setSendingEmailFor(certificate.id);
       const courseType = (certificate as any).course_types;
+      const booking = (certificate as any).bookings;
+      const session = (certificate as any).open_course_sessions;
       const courseDate = `${formatDate(certificate.course_date_start)} - ${formatDate(certificate.course_date_end)}`;
+
+      const courseTitle = booking?.title || session?.event_title || courseType?.name || 'Training Course';
 
       const success = await sendCertificateEmail(certificate.candidate_email, {
         candidate_name: certificate.candidate_name,
-        course_type: courseType?.name || 'Training Course',
+        course_title: courseTitle,
         certificate_number: certificate.certificate_number,
         course_date: courseDate,
         trainer_name: certificate.trainer_name,
@@ -1002,7 +1025,9 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
       setNotification({ type: 'success', message: 'Certificate revoked successfully' });
       setShowRevokeModal(null);
       setRevokeReason('');
+      // Reload both booking and open course data to reflect the change
       await loadBookings();
+      await loadOpenCourseSessions();
       if (activeTab === 'view') {
         await loadCertificates();
       }
@@ -1488,12 +1513,17 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               Certificate Revoked
                                             </span>
                                           )}
+                                          {cert && cert.status === 'expired' && (
+                                            <span className="px-2 py-1 text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded">
+                                              Certificate Expired
+                                            </span>
+                                          )}
                                         </div>
                                         {candidate.email && (
                                           <p className="text-xs text-slate-400 mb-3">{candidate.email}</p>
                                         )}
 
-                                        {candidate.passed && !cert && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
+                                        {candidate.passed && (!cert || cert.status !== 'issued') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
                                           <div className="grid grid-cols-2 gap-3 mb-3">
                                             {requiredFields.filter(f => f.scope === 'candidate').map(field => {
                                               const hasDefault = isCandidateDefaultValue(candidate.id, field.name, booking);
@@ -1565,7 +1595,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                         )}
 
                                         <div className="flex items-center gap-2">
-                                          {candidate.passed && !cert && (
+                                          {candidate.passed && (!cert || cert.status !== 'issued') && (
                                             <button
                                               onClick={() => handleGenerateCertificate(booking, candidate)}
                                               disabled={generatingFor === candidate.id}
@@ -1836,6 +1866,19 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               ...openCourseDurations,
                                               [session.id]: { value: newValue, unit }
                                             });
+                                            // Save duration to course_level_data
+                                            const updatedData = {
+                                              ...(openCourseSessionData[session.id] || {}),
+                                              duration_value: newValue,
+                                              duration_unit: unit
+                                            };
+                                            setOpenCourseSessionData(prev => ({
+                                              ...prev,
+                                              [session.id]: updatedData
+                                            }));
+                                            updateOpenCourseSessionData(session.id, updatedData).catch(err => {
+                                              console.error('Failed to save duration:', err);
+                                            });
                                           }}
                                           className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
                                         />
@@ -1847,6 +1890,19 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                             setOpenCourseDurations({
                                               ...openCourseDurations,
                                               [session.id]: { value, unit: newUnit }
+                                            });
+                                            // Save duration to course_level_data
+                                            const updatedData = {
+                                              ...(openCourseSessionData[session.id] || {}),
+                                              duration_value: value,
+                                              duration_unit: newUnit
+                                            };
+                                            setOpenCourseSessionData(prev => ({
+                                              ...prev,
+                                              [session.id]: updatedData
+                                            }));
+                                            updateOpenCourseSessionData(session.id, updatedData).catch(err => {
+                                              console.error('Failed to save duration unit:', err);
                                             });
                                           }}
                                           className="px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
@@ -1933,12 +1989,22 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               Certificate Issued
                                             </span>
                                           )}
+                                          {cert && cert.status === 'revoked' && (
+                                            <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
+                                              Certificate Revoked
+                                            </span>
+                                          )}
+                                          {cert && cert.status === 'expired' && (
+                                            <span className="px-2 py-1 text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded">
+                                              Certificate Expired
+                                            </span>
+                                          )}
                                         </div>
                                         {delegate.delegate_email && (
                                           <p className="text-xs text-slate-400 mb-3">{delegate.delegate_email}</p>
                                         )}
 
-                                        {isAttended && !cert && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
+                                        {isAttended && (!cert || cert.status !== 'issued') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
                                           <div className="grid grid-cols-2 gap-3 mb-3">
                                             {requiredFields.filter(f => f.scope === 'candidate').map(field => (
                                               <div key={field.name}>
@@ -1986,7 +2052,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                         )}
 
                                         <div className="flex items-center gap-2">
-                                          {isAttended && !cert && (
+                                          {isAttended && (!cert || cert.status !== 'issued') && (
                                             <button
                                               onClick={() => handleGenerateOpenCourseCertificate(session, delegate)}
                                               disabled={generatingFor === delegate.id}
@@ -2018,7 +2084,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                                     try {
                                                       const success = await sendCertificateEmail(delegate.delegate_email, {
                                                         candidate_name: delegate.delegate_name,
-                                                        course_type: courseType?.name || 'Training Course',
+                                                        course_title: session.event_title || 'Training Course',
                                                         certificate_number: cert.certificate_number,
                                                         course_date: `${formatDate(session.session_date)} - ${formatDate(session.session_end_date)}`,
                                                         trainer_name: session.trainer_name,
