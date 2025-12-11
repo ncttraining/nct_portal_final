@@ -8,6 +8,7 @@ import {
   getOpenCourseSessionsWithDelegates,
   updateCandidatePassStatus,
   updateBookingCourseLevelData,
+  updateOpenCourseSessionData,
   issueCertificate,
   issueOpenCourseCertificate,
   updateOpenCourseDelegateAttendance,
@@ -197,9 +198,15 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         uniqueCourseTypeIds.add(session.course_type_id);
       }
 
-      // Initialize session data with defaults from course type
+      // Use saved session data if available, otherwise fall back to course type defaults
+      const savedSessionData = session.course_level_data || {};
       const courseType = session.course_types;
-      if (courseType?.default_course_data) {
+
+      if (Object.keys(savedSessionData).length > 0) {
+        // Use saved session data
+        sessionDataMap[session.id] = { ...savedSessionData };
+      } else if (courseType?.default_course_data) {
+        // Fall back to course type defaults
         sessionDataMap[session.id] = { ...courseType.default_course_data };
       } else {
         sessionDataMap[session.id] = {};
@@ -612,13 +619,20 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
   // Open Course Handlers
   function updateOpenCourseSessionField(sessionId: string, fieldName: string, value: any) {
+    const newData = {
+      ...(openCourseSessionData[sessionId] || {}),
+      [fieldName]: value
+    };
+
     setOpenCourseSessionData(prev => ({
       ...prev,
-      [sessionId]: {
-        ...(prev[sessionId] || {}),
-        [fieldName]: value
-      }
+      [sessionId]: newData
     }));
+
+    // Save to database
+    updateOpenCourseSessionData(sessionId, newData).catch(err => {
+      console.error('Failed to save open course session data:', err);
+    });
   }
 
   function updateOpenCourseDelegateField(delegateId: string, fieldName: string, value: any) {

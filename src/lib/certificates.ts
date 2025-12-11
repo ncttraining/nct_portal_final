@@ -118,6 +118,7 @@ export type OpenCourseSessionWithDelegates = {
   venue_name: string | null;
   status: string;
   session_end_date: string;
+  course_level_data?: Record<string, any>;
   delegates: {
     id: string;
     delegate_name: string;
@@ -762,6 +763,18 @@ export async function getBookingCourseLevelData(bookingId: string): Promise<Reco
   return (data?.course_level_data || {}) as Record<string, any>;
 }
 
+export async function updateOpenCourseSessionData(sessionId: string, courseLevelData: Record<string, any>) {
+  const { error } = await supabase
+    .from('open_course_sessions')
+    .update({ course_level_data: courseLevelData })
+    .eq('id', sessionId);
+
+  if (error) {
+    console.error('Error updating open course session data:', error);
+    throw error;
+  }
+}
+
 export function calculateExpiryDate(issueDate: string, validityMonths: number | null): string | null {
   if (!validityMonths) return null;
 
@@ -814,6 +827,7 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
       course_type_id,
       trainer_id,
       status,
+      course_level_data,
       course_types(id, name, code, required_fields, certificate_validity_months, duration_days, duration_unit, default_course_data),
       trainers(name),
       venue:venues(name)
@@ -921,6 +935,7 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
         venue_name: (session as any).venue?.name || null,
         status: session.status,
         session_end_date: endDate.toISOString().split('T')[0],
+        course_level_data: (session as any).course_level_data || {},
         delegates: delegatesBySession.get(session.id) || [],
         course_types: (session as any).course_types,
         trainers: (session as any).trainers,
