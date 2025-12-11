@@ -53,6 +53,7 @@ import {
 } from '../lib/open-courses';
 import { supabase } from '../lib/supabase';
 import { queueEmail } from '../lib/email-queue';
+import { getAllTrainersUnavailability, TrainerUnavailability } from '../lib/trainer-availability';
 
 function decodeHtmlEntities(text: string): string {
   const textarea = document.createElement('textarea');
@@ -105,6 +106,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [venues, setVenues] = useState<Venue[]>([]);
   const [trainers, setTrainers] = useState<any[]>([]);
   const [courseTypes, setCourseTypes] = useState<any[]>([]);
+  const [provisionalBookings, setProvisionalBookings] = useState<TrainerUnavailability[]>([]);
 
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [editingSession, setEditingSession] = useState<OpenCourseSessionWithDetails | null>(null);
@@ -252,6 +254,14 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
         .order('name');
       setCourseTypes(courseTypesData || []);
 
+      // Load provisional bookings for the week
+      const weekEndDate = new Date(currentWeekStart);
+      weekEndDate.setDate(weekEndDate.getDate() + 6);
+      const weekEndStr = weekEndDate.toISOString().split('T')[0];
+      const unavailabilityData = await getAllTrainersUnavailability(weekStart, weekEndStr);
+      // Filter to only provisionally booked (not unavailable)
+      setProvisionalBookings(unavailabilityData.filter(u => u.status === 'provisionally_booked'));
+
     } catch (error: any) {
       console.error('Error loading data:', error);
       setNotification({
@@ -327,6 +337,51 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       // Check if the multi-day session overlaps with the current week
       return sessionStart <= weekEnd && sessionEnd >= weekStart;
     });
+  }
+
+  // Get provisionally booked trainers for a specific date
+  // Filters out trainers who are already assigned to a session on that date
+  function getProvisionallyBookedTrainersForDate(date: string): Array<{ trainer: any; booking: TrainerUnavailability }> {
+    // Get all provisional bookings for this date
+    const bookingsForDate = provisionalBookings.filter(pb => pb.unavailable_date === date);
+
+    if (bookingsForDate.length === 0) return [];
+
+    // Get trainer IDs that are already assigned to sessions on this date
+    // Check both single-day sessions and multi-day sessions
+    const assignedTrainerIds = new Set<string>();
+
+    // Check single-day sessions for this date
+    sessions.forEach(session => {
+      if (session.trainer_id) {
+        // Single-day session on this date
+        if (session.session_date === date && !isMultiDaySession(session)) {
+          assignedTrainerIds.add(session.trainer_id);
+        }
+        // Multi-day session overlapping this date
+        if (isMultiDaySession(session)) {
+          const startDate = session.session_date;
+          const endDate = session.end_date || session.session_date;
+          if (date >= startDate && date <= endDate) {
+            assignedTrainerIds.add(session.trainer_id);
+          }
+        }
+      }
+    });
+
+    // Filter out trainers who are assigned to a session
+    return bookingsForDate
+      .filter(booking => !assignedTrainerIds.has(booking.trainer_id))
+      .map(booking => {
+        const trainer = trainers.find(t => t.id === booking.trainer_id);
+        return { trainer, booking };
+      })
+      .filter(item => item.trainer); // Only include if trainer found
+  }
+
+  // Check if any provisional bookings exist for the current week
+  function hasProvisionalBookingsInWeek(): boolean {
+    return provisionalBookings.length > 0;
   }
 
   // Calculate the span of a multi-day session within the current week (returns column indices)
@@ -1652,6 +1707,67 @@ The Training Team`,
             );
           })}
           </div>
+
+          {/* Provisionally Booked Trainers Section */}
+          {hasProvisionalBookingsInWeek() && (
+            <>
+              <h3 className="text-lg font-semibold text-slate-200 mt-8 mb-4 flex items-center gap-2">
+                <UserCog className="w-5 h-5 text-green-400" />
+                Provisionally Booked Trainers
+              </h3>
+
+              <div className="grid grid-cols-7 gap-4">
+                {weekDates.map((date, index) => {
+                  const dateString = date.toISOString().split('T')[0];
+                  const provisionalTrainers = getProvisionallyBookedTrainersForDate(dateString);
+                  const isToday = dateString === new Date().toISOString().split('T')[0];
+
+                  return (
+                    <div
+                      key={`provisional-${dateString}`}
+                      className={`bg-slate-900 border rounded-lg overflow-hidden min-h-[100px] ${
+                        isToday ? 'border-blue-500' : 'border-slate-800'
+                      }`}
+                    >
+                      {/* Day Header */}
+                      <div className={`p-2 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
+                        <div className="font-semibold text-xs">{weekDaysLabels[index]}</div>
+                        <div className="text-[10px] text-slate-400">
+                          {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                        </div>
+                      </div>
+
+                      {/* Provisional Trainers */}
+                      <div className="p-2 space-y-1">
+                        {provisionalTrainers.length === 0 ? (
+                          <div className="text-center text-slate-600 text-[10px] py-2">
+                            No provisional
+                          </div>
+                        ) : (
+                          provisionalTrainers.map(({ trainer, booking }) => (
+                            <div
+                              key={booking.id}
+                              className="bg-green-900/30 border border-green-700/50 rounded px-2 py-1.5 text-xs"
+                              title={booking.reason || 'Provisionally booked'}
+                            >
+                              <div className="font-medium text-green-300 truncate">
+                                {trainer.name}
+                              </div>
+                              {booking.reason && (
+                                <div className="text-[10px] text-green-400/70 truncate mt-0.5">
+                                  {booking.reason}
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
           {getMultiDaySessions().length > 0 && (
