@@ -1952,6 +1952,11 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               Certificate Issued
                                             </span>
                                           )}
+                                          {cert && cert.status === 'revoked' && (
+                                            <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
+                                              Certificate Revoked
+                                            </span>
+                                          )}
                                         </div>
                                         {delegate.delegate_email && (
                                           <p className="text-xs text-slate-400 mb-3">{delegate.delegate_email}</p>

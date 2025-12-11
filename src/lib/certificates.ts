@@ -575,6 +575,19 @@ export async function regenerateCertificatePDF(certificateId: string) {
 }
 
 export async function revokeCertificate(id: string, reason: string) {
+  // First get the certificate to find out if it's for an open course delegate
+  const { data: certificate, error: fetchError } = await supabase
+    .from('certificates')
+    .select('open_course_delegate_id, candidate_id')
+    .eq('id', id)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching certificate:', fetchError);
+    throw fetchError;
+  }
+
+  // Update the certificate status to revoked
   const { error } = await supabase
     .from('certificates')
     .update({
@@ -587,6 +600,22 @@ export async function revokeCertificate(id: string, reason: string) {
   if (error) {
     console.error('Error revoking certificate:', error);
     throw error;
+  }
+
+  // If this was an open course delegate certificate, reset their certificate_issued flag
+  if (certificate?.open_course_delegate_id) {
+    const { error: delegateError } = await supabase
+      .from('open_course_delegates')
+      .update({
+        certificate_issued: false,
+        certificate_number: null
+      })
+      .eq('id', certificate.open_course_delegate_id);
+
+    if (delegateError) {
+      console.error('Error resetting delegate certificate status:', delegateError);
+      // Don't throw - the certificate is already revoked, this is a secondary update
+    }
   }
 }
 
@@ -1057,11 +1086,8 @@ export async function updateOpenCourseDelegateAttendance(delegateId: string, att
   }
 }
 
-export async function updateOpenCourseSessionData(sessionId: string, data: Record<string, any>) {
-  // Store session-level certificate data in a separate field or local state
-  // For now, we'll handle this in the UI component state
-  return;
-}
+// Note: updateOpenCourseSessionData is defined earlier in this file (lines 766-776)
+// and persists session-level certificate data to the database
 
 export async function updateOpenCourseDelegateData(delegateId: string, data: Record<string, any>) {
   const { error } = await supabase
