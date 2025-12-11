@@ -182,7 +182,7 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
     try {
       const success = await sendCertificateEmail(delegate.delegate_email, {
         candidate_name: delegate.delegate_name,
-        course_type: delegate.course_type_name || 'Training Course',
+        course_title: delegate.event_title || 'Training Course',
         certificate_number: delegate.certificate.certificate_number,
         course_date: formatDate(delegate.session_date),
         trainer_name: delegate.trainer_name || '',
@@ -335,7 +335,7 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
       try {
         const success = await sendCertificateEmail(delegate.delegate_email, {
           candidate_name: delegate.delegate_name,
-          course_type: delegate.course_type_name || 'Training Course',
+          course_title: delegate.event_title || 'Training Course',
           certificate_number: delegate.certificate!.certificate_number,
           course_date: formatDate(delegate.session_date),
           trainer_name: delegate.trainer_name || '',

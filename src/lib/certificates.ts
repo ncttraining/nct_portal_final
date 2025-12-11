@@ -337,7 +337,7 @@ export async function getCertificates(filters?: {
 }) {
   let query = supabase
     .from('certificates')
-    .select('*, course_types(name, code)')
+    .select('*, course_types(name, code), bookings(title), open_course_sessions(event_title)')
     .order('issue_date', { ascending: false });
 
   if (filters?.courseTypeId) {

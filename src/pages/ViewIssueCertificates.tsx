@@ -529,7 +529,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         try {
           const success = await sendCertificateEmail(candidate.email, {
             candidate_name: candidate.candidate_name,
-            course_type: courseType?.name || 'Training Course',
+            course_title: booking.title || 'Training Course',
             certificate_number: certificate.certificate_number,
             course_date: courseDate,
             trainer_name: booking.trainer_name,
@@ -832,7 +832,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         try {
           const success = await sendCertificateEmail(delegate.delegate_email, {
             candidate_name: delegate.delegate_name,
-            course_type: courseType?.name || 'Training Course',
+            course_title: session.event_title || 'Training Course',
             certificate_number: certificate.certificate_number,
             course_date: courseDate,
             trainer_name: session.trainer_name,
@@ -983,11 +983,15 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
     try {
       setSendingEmailFor(certificate.id);
       const courseType = (certificate as any).course_types;
+      const booking = (certificate as any).bookings;
+      const session = (certificate as any).open_course_sessions;
       const courseDate = `${formatDate(certificate.course_date_start)} - ${formatDate(certificate.course_date_end)}`;
+
+      const courseTitle = booking?.title || session?.event_title || courseType?.name || 'Training Course';
 
       const success = await sendCertificateEmail(certificate.candidate_email, {
         candidate_name: certificate.candidate_name,
-        course_type: courseType?.name || 'Training Course',
+        course_title: courseTitle,
         certificate_number: certificate.certificate_number,
         course_date: courseDate,
         trainer_name: certificate.trainer_name,
@@ -2080,7 +2084,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                                     try {
                                                       const success = await sendCertificateEmail(delegate.delegate_email, {
                                                         candidate_name: delegate.delegate_name,
-                                                        course_type: courseType?.name || 'Training Course',
+                                                        course_title: session.event_title || 'Training Course',
                                                         certificate_number: cert.certificate_number,
                                                         course_date: `${formatDate(session.session_date)} - ${formatDate(session.session_end_date)}`,
                                                         trainer_name: session.trainer_name,
