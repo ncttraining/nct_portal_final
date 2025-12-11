@@ -905,6 +905,33 @@ The Training Team`,
     }
   }
 
+  async function handleDeleteDelegate(delegate: any, sessionId: string) {
+    if (!confirm(`Are you sure you want to remove "${delegate.delegate_name}" from this session?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('open_course_delegates')
+        .update({ status: 'cancelled' })
+        .eq('id', delegate.id);
+
+      if (error) throw error;
+
+      setNotification({
+        type: 'success',
+        message: `${delegate.delegate_name} removed from session`,
+      });
+
+      loadData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to remove delegate',
+      });
+    }
+  }
+
   async function handleOpenAddDelegate() {
     setNewDelegateData({
       delegate_name: '',
@@ -1680,6 +1707,16 @@ The Training Team`,
                                     >
                                       <MoveRight className="w-3 h-3 text-slate-400" />
                                     </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteDelegate(delegate, session.id);
+                                      }}
+                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                                      title="Remove from session"
+                                    >
+                                      <Trash2 className="w-3 h-3 text-red-400" />
+                                    </button>
                                   </div>
                                 </div>
                               ))}
@@ -1973,6 +2010,16 @@ The Training Team`,
                                 title="Move to different session"
                               >
                                 <MoveRight className="w-3 h-3 text-slate-400" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteDelegate(delegate, session.id);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                                title="Remove from session"
+                              >
+                                <Trash2 className="w-3 h-3 text-red-400" />
                               </button>
                             </div>
                           </div>
