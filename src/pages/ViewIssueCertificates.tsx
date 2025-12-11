@@ -1005,7 +1005,9 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
       setNotification({ type: 'success', message: 'Certificate revoked successfully' });
       setShowRevokeModal(null);
       setRevokeReason('');
+      // Reload both booking and open course data to reflect the change
       await loadBookings();
+      await loadOpenCourseSessions();
       if (activeTab === 'view') {
         await loadCertificates();
       }
@@ -1496,7 +1498,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                           <p className="text-xs text-slate-400 mb-3">{candidate.email}</p>
                                         )}
 
-                                        {candidate.passed && !cert && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
+                                        {candidate.passed && (!cert || cert.status === 'revoked') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
                                           <div className="grid grid-cols-2 gap-3 mb-3">
                                             {requiredFields.filter(f => f.scope === 'candidate').map(field => {
                                               const hasDefault = isCandidateDefaultValue(candidate.id, field.name, booking);
@@ -1568,7 +1570,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                         )}
 
                                         <div className="flex items-center gap-2">
-                                          {candidate.passed && !cert && (
+                                          {candidate.passed && (!cert || cert.status === 'revoked') && (
                                             <button
                                               onClick={() => handleGenerateCertificate(booking, candidate)}
                                               disabled={generatingFor === candidate.id}
@@ -1941,7 +1943,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                           <p className="text-xs text-slate-400 mb-3">{delegate.delegate_email}</p>
                                         )}
 
-                                        {isAttended && !cert && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
+                                        {isAttended && (!cert || cert.status === 'revoked') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
                                           <div className="grid grid-cols-2 gap-3 mb-3">
                                             {requiredFields.filter(f => f.scope === 'candidate').map(field => (
                                               <div key={field.name}>
@@ -1989,7 +1991,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                         )}
 
                                         <div className="flex items-center gap-2">
-                                          {isAttended && !cert && (
+                                          {isAttended && (!cert || cert.status === 'revoked') && (
                                             <button
                                               onClick={() => handleGenerateOpenCourseCertificate(session, delegate)}
                                               disabled={generatingFor === delegate.id}
