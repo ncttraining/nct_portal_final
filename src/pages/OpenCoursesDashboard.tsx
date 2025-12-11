@@ -1659,30 +1659,31 @@ The Training Team`,
                               {delegates.map((delegate) => (
                                 <div
                                   key={delegate.id}
-                                  className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group"
+                                  className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group relative"
                                 >
-                                  <div className="flex items-center gap-1">
-                                    <div
-                                      draggable
-                                      onDragStart={() => handleDragStart(delegate, session.id)}
-                                      className="flex-1 min-w-0 cursor-move"
-                                      title="Drag to transfer delegate"
-                                    >
-                                      <div className="text-[10px] font-medium truncate">
-                                        {delegate.delegate_name}
-                                      </div>
-                                      {delegate.delegate_company && (
-                                        <div className="text-[9px] text-slate-500 truncate">
-                                          {delegate.delegate_company}
-                                        </div>
-                                      )}
+                                  <div
+                                    draggable
+                                    onDragStart={() => handleDragStart(delegate, session.id)}
+                                    className="cursor-move"
+                                    title="Drag to transfer delegate"
+                                  >
+                                    <div className="text-[10px] font-medium truncate pr-1">
+                                      {delegate.delegate_name}
                                     </div>
+                                    {delegate.delegate_company && (
+                                      <div className="text-[9px] text-slate-500 truncate">
+                                        {delegate.delegate_company}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Action buttons - overlay on hover */}
+                                  <div className="absolute right-0 top-0 bottom-0 flex items-center gap-0.5 px-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-slate-800 via-slate-800 to-transparent pl-4">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleOpenResendModal(delegate, session);
                                       }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      className="p-1 hover:bg-slate-700 rounded transition-all"
                                       title="Resend booking details"
                                     >
                                       <Mail className="w-3 h-3 text-slate-400" />
@@ -1692,7 +1693,7 @@ The Training Team`,
                                         e.stopPropagation();
                                         handleOpenEditDelegate(delegate);
                                       }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      className="p-1 hover:bg-slate-700 rounded transition-all"
                                       title="Edit delegate details"
                                     >
                                       <Edit className="w-3 h-3 text-slate-400" />
@@ -1702,7 +1703,7 @@ The Training Team`,
                                         e.stopPropagation();
                                         handleOpenMoveModal(delegate, session.id, session.course_type_id);
                                       }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      className="p-1 hover:bg-slate-700 rounded transition-all"
                                       title="Move to different session"
                                     >
                                       <MoveRight className="w-3 h-3 text-slate-400" />
@@ -1712,7 +1713,7 @@ The Training Team`,
                                         e.stopPropagation();
                                         handleDeleteDelegate(delegate, session.id);
                                       }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                                      className="p-1 hover:bg-red-500/20 rounded transition-all"
                                       title="Remove from session"
                                     >
                                       <Trash2 className="w-3 h-3 text-red-400" />
@@ -1963,30 +1964,31 @@ The Training Team`,
                         {delegates.map((delegate) => (
                           <div
                             key={delegate.id}
-                            className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group"
+                            className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group relative"
                           >
-                            <div className="flex items-center gap-1">
-                              <div
-                                draggable
-                                onDragStart={() => handleDragStart(delegate, session.id)}
-                                className="flex-1 min-w-0 cursor-move"
-                                title="Drag to transfer delegate"
-                              >
-                                <div className="text-[10px] font-medium truncate">
-                                  {delegate.delegate_name}
-                                </div>
-                                {delegate.delegate_company && (
-                                  <div className="text-[9px] text-slate-500 truncate">
-                                    {delegate.delegate_company}
-                                  </div>
-                                )}
+                            <div
+                              draggable
+                              onDragStart={() => handleDragStart(delegate, session.id)}
+                              className="cursor-move"
+                              title="Drag to transfer delegate"
+                            >
+                              <div className="text-[10px] font-medium truncate pr-1">
+                                {delegate.delegate_name}
                               </div>
+                              {delegate.delegate_company && (
+                                <div className="text-[9px] text-slate-500 truncate">
+                                  {delegate.delegate_company}
+                                </div>
+                              )}
+                            </div>
+                            {/* Action buttons - overlay on hover */}
+                            <div className="absolute right-0 top-0 bottom-0 flex items-center gap-0.5 px-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-slate-800 via-slate-800 to-transparent pl-4">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleOpenResendModal(delegate, session);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                className="p-1 hover:bg-slate-700 rounded transition-all"
                                 title="Resend booking details"
                               >
                                 <Mail className="w-3 h-3 text-slate-400" />
@@ -1996,7 +1998,7 @@ The Training Team`,
                                   e.stopPropagation();
                                   handleOpenEditDelegate(delegate);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                className="p-1 hover:bg-slate-700 rounded transition-all"
                                 title="Edit delegate details"
                               >
                                 <Edit className="w-3 h-3 text-slate-400" />
@@ -2006,7 +2008,7 @@ The Training Team`,
                                   e.stopPropagation();
                                   handleOpenMoveModal(delegate, session.id, session.course_type_id);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                className="p-1 hover:bg-slate-700 rounded transition-all"
                                 title="Move to different session"
                               >
                                 <MoveRight className="w-3 h-3 text-slate-400" />
@@ -2016,7 +2018,7 @@ The Training Team`,
                                   e.stopPropagation();
                                   handleDeleteDelegate(delegate, session.id);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                                className="p-1 hover:bg-red-500/20 rounded transition-all"
                                 title="Remove from session"
                               >
                                 <Trash2 className="w-3 h-3 text-red-400" />
