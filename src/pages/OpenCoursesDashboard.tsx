@@ -169,6 +169,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [sessionToAssignTrainer, setSessionToAssignTrainer] = useState<OpenCourseSessionWithDetails | null>(null);
   const [availableTrainers, setAvailableTrainers] = useState<any[]>([]);
   const [unavailableTrainerIds, setUnavailableTrainerIds] = useState<Set<string>>(new Set());
+  const [provisionallyBookedTrainerIds, setProvisionallyBookedTrainerIds] = useState<Set<string>>(new Set());
   const [assigningTrainer, setAssigningTrainer] = useState(false);
 
   const [notification, setNotification] = useState<{
@@ -1258,18 +1259,27 @@ The Training Team`,
         });
       }
 
-      // Check trainer unavailability
+      // Check trainer unavailability - only truly unavailable, not provisionally booked
       const { data: unavailabilityConflicts } = await supabase
         .from('trainer_unavailability')
-        .select('trainer_id')
+        .select('trainer_id, status')
         .in('trainer_id', trainerIdsList)
         .eq('unavailable_date', sessionDate);
 
+      const provisionalIds = new Set<string>();
       if (unavailabilityConflicts) {
-        unavailabilityConflicts.forEach(u => unavailableIds.add(u.trainer_id));
+        unavailabilityConflicts.forEach(u => {
+          if (u.status === 'provisionally_booked') {
+            provisionalIds.add(u.trainer_id);
+          } else {
+            // Only add to unavailable if truly unavailable (not provisionally booked)
+            unavailableIds.add(u.trainer_id);
+          }
+        });
       }
 
       setUnavailableTrainerIds(unavailableIds);
+      setProvisionallyBookedTrainerIds(provisionalIds);
       setAvailableTrainers(trainersData || []);
       setShowTrainerAssignModal(true);
     } catch (error: any) {
@@ -1349,6 +1359,7 @@ The Training Team`,
       setShowTrainerAssignModal(false);
       setSessionToAssignTrainer(null);
       setUnavailableTrainerIds(new Set());
+      setProvisionallyBookedTrainerIds(new Set());
       loadData();
     } catch (error: any) {
       setNotification({
@@ -1380,6 +1391,7 @@ The Training Team`,
       setShowTrainerAssignModal(false);
       setSessionToAssignTrainer(null);
       setUnavailableTrainerIds(new Set());
+      setProvisionallyBookedTrainerIds(new Set());
       loadData();
     } catch (error: any) {
       setNotification({
@@ -3245,6 +3257,7 @@ The Training Team`,
                   setShowTrainerAssignModal(false);
                   setSessionToAssignTrainer(null);
                   setUnavailableTrainerIds(new Set());
+                  setProvisionallyBookedTrainerIds(new Set());
                 }}
                 className="p-2 hover:bg-slate-800 rounded transition-colors"
               >
@@ -3266,6 +3279,7 @@ The Training Team`,
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {availableTrainers.map((trainer) => {
                       const isUnavailable = unavailableTrainerIds.has(trainer.id);
+                      const isProvisionallyBooked = provisionallyBookedTrainerIds.has(trainer.id);
                       const isCurrent = sessionToAssignTrainer.trainer_id === trainer.id;
 
                       return (
@@ -3278,23 +3292,36 @@ The Training Team`,
                               ? 'bg-red-950/30 border-red-900/50 cursor-not-allowed opacity-60'
                               : isCurrent
                               ? 'bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/50'
+                              : isProvisionallyBooked
+                              ? 'bg-green-900/30 border-green-700/50 hover:bg-green-900/40 hover:border-green-600/60'
                               : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600'
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                           <div className="flex items-center gap-3">
-                            <UserCog className={`w-5 h-5 ${isUnavailable ? 'text-red-400' : 'text-slate-400'}`} />
+                            <UserCog className={`w-5 h-5 ${
+                              isUnavailable ? 'text-red-400' : isProvisionallyBooked ? 'text-green-400' : 'text-slate-400'
+                            }`} />
                             <div className="flex-1">
-                              <div className={`font-medium ${isUnavailable ? 'text-red-300' : ''}`}>
+                              <div className={`font-medium ${
+                                isUnavailable ? 'text-red-300' : isProvisionallyBooked ? 'text-green-300' : ''
+                              }`}>
                                 {trainer.name}
                               </div>
                               {trainer.email && (
-                                <div className={`text-xs mt-1 ${isUnavailable ? 'text-red-400/70' : 'text-slate-400'}`}>
+                                <div className={`text-xs mt-1 ${
+                                  isUnavailable ? 'text-red-400/70' : isProvisionallyBooked ? 'text-green-400/70' : 'text-slate-400'
+                                }`}>
                                   {trainer.email}
                                 </div>
                               )}
                               {isUnavailable && (
                                 <div className="text-xs text-red-400 mt-1 font-medium">
                                   Already booked or unavailable
+                                </div>
+                              )}
+                              {isProvisionallyBooked && !isUnavailable && (
+                                <div className="text-xs text-green-400 mt-1 font-medium">
+                                  Provisionally booked
                                 </div>
                               )}
                             </div>
@@ -3318,6 +3345,7 @@ The Training Team`,
                   setShowTrainerAssignModal(false);
                   setSessionToAssignTrainer(null);
                   setUnavailableTrainerIds(new Set());
+                  setProvisionallyBookedTrainerIds(new Set());
                 }}
                 className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
               >
