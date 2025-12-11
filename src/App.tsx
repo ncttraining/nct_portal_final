@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertCircle, Shield, Calendar, GraduationCap, Users, Mail, Tag, MapPin, Building, Award, BookOpen, FileText, ArrowRight, UserCog, Inbox, CalendarClock, DoorOpen, CalendarDays, ClipboardList, Building2 } from 'lucide-react';
 import PageHeader from './components/PageHeader';
 import TrainerMap from './pages/TrainerMap';
@@ -35,11 +35,47 @@ interface NavigationData {
   companyId?: string;
 }
 
+const STORAGE_KEY_PAGE = 'nct_current_page';
+const STORAGE_KEY_NAV_DATA = 'nct_navigation_data';
+
+// Load saved page state from localStorage
+function loadSavedPageState(): { page: PageType; navData: NavigationData } {
+  try {
+    const savedPage = localStorage.getItem(STORAGE_KEY_PAGE);
+    const savedNavData = localStorage.getItem(STORAGE_KEY_NAV_DATA);
+
+    const page = savedPage as PageType || 'home';
+    const navData = savedNavData ? JSON.parse(savedNavData) : {};
+
+    // If page requires navigation data that's missing, fall back appropriately
+    const pagesRequiringSessionId = ['open-courses-register-trainer', 'open-courses-register-admin'];
+    const pagesRequiringCompanyId = ['open-courses-company-details'];
+
+    if (pagesRequiringSessionId.includes(page) && !navData.sessionId) {
+      return { page: 'open-courses-registers', navData: {} };
+    }
+    if (pagesRequiringCompanyId.includes(page) && !navData.companyId) {
+      return { page: 'open-courses-companies', navData: {} };
+    }
+
+    return { page, navData };
+  } catch {
+    return { page: 'home', navData: {} };
+  }
+}
+
 function App() {
   const { profile, reloadProfile } = useAuth();
-  const [currentPage, setCurrentPage] = useState<PageType>('home');
+  const savedState = loadSavedPageState();
+  const [currentPage, setCurrentPage] = useState<PageType>(savedState.page);
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [navigationData, setNavigationData] = useState<NavigationData>({});
+  const [navigationData, setNavigationData] = useState<NavigationData>(savedState.navData);
+
+  // Persist page state to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_PAGE, currentPage);
+    localStorage.setItem(STORAGE_KEY_NAV_DATA, JSON.stringify(navigationData));
+  }, [currentPage, navigationData]);
 
   const isAdmin = profile?.role === 'admin' || profile?.super_admin;
   const canManageBookings = isAdmin || profile?.can_manage_bookings;
