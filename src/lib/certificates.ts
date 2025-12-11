@@ -704,7 +704,7 @@ export async function getBookingsWithPendingCertificates(filters?: {
 }) {
   const allBookings = await getBookingsWithCourseTypes(filters);
   return allBookings.filter(booking =>
-    booking.candidates.some((c: any) => c.passed && !c.certificate)
+    booking.candidates.some((c: any) => c.passed && (!c.certificate || c.certificate?.status === 'revoked'))
   );
 }
 

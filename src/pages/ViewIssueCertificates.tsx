@@ -429,7 +429,10 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
   }
 
   async function handleBulkGeneratePDFs(booking: BookingWithCandidates) {
-    const passedCandidates = booking.candidates.filter(c => c.passed && !c.certificate_id);
+    const passedCandidates = booking.candidates.filter(c => {
+      const cert = (c as any).certificate;
+      return c.passed && (!c.certificate_id || cert?.status === 'revoked');
+    });
 
     if (passedCandidates.length === 0) {
       setNotification({ type: 'warning', message: 'No passed candidates without certificates found' });
@@ -725,7 +728,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
   async function handleBulkGenerateOpenCourseCertificates(session: OpenCourseSessionWithDelegates) {
     const attendedDelegates = session.delegates.filter(d =>
       (d.attendance_status === 'attended' || d.attendance_detail === 'attended') &&
-      !d.certificate?.id
+      (!d.certificate?.id || d.certificate?.status === 'revoked')
     );
 
     if (attendedDelegates.length === 0) {
