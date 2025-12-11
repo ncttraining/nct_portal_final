@@ -710,12 +710,19 @@ export async function getBookingsWithCourseTypes(filters?: {
 
   const { data: certificates } = await supabase
     .from('certificates')
-    .select('id, candidate_id, certificate_number, certificate_pdf_url, status')
-    .in('booking_id', bookingsWithEndDate.map(b => b.id));
+    .select('id, candidate_id, certificate_number, certificate_pdf_url, status, created_at')
+    .in('booking_id', bookingsWithEndDate.map(b => b.id))
+    .order('created_at', { ascending: true });
 
-  const certificateMap = new Map(
-    (certificates || []).map(c => [c.candidate_id, c])
-  );
+  // Build certificate map - prefer 'issued' certificates, otherwise use the most recent one
+  const certificateMap = new Map<string, any>();
+  (certificates || []).forEach(c => {
+    const existing = certificateMap.get(c.candidate_id);
+    // Always prefer 'issued' status, or take newer certificate if neither is issued
+    if (!existing || c.status === 'issued' || (existing.status !== 'issued' && c.created_at > existing.created_at)) {
+      certificateMap.set(c.candidate_id, c);
+    }
+  });
 
   return bookingsWithEndDate.map(booking => ({
     ...booking,
@@ -918,16 +925,23 @@ export async function getOpenCourseSessionsWithDelegates(filters?: {
     d.attendance_status === 'attended' || d.attendance_detail === 'attended'
   );
 
-  // Get certificates for these delegates
+  // Get certificates for these delegates - order by created_at so newest is last
   const delegateIds = filteredDelegates.map(d => d.id);
   const { data: certificates } = await supabase
     .from('certificates')
-    .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status')
-    .in('open_course_delegate_id', delegateIds.length > 0 ? delegateIds : ['00000000-0000-0000-0000-000000000000']);
+    .select('id, open_course_delegate_id, certificate_number, certificate_pdf_url, status, created_at')
+    .in('open_course_delegate_id', delegateIds.length > 0 ? delegateIds : ['00000000-0000-0000-0000-000000000000'])
+    .order('created_at', { ascending: true });
 
-  const certificateMap = new Map(
-    (certificates || []).map(c => [c.open_course_delegate_id, c])
-  );
+  // Build certificate map - prefer 'issued' certificates, otherwise use the most recent one
+  const certificateMap = new Map<string, any>();
+  (certificates || []).forEach(c => {
+    const existing = certificateMap.get(c.open_course_delegate_id);
+    // Always prefer 'issued' status, or take newer certificate if neither is issued
+    if (!existing || c.status === 'issued' || (existing.status !== 'issued' && c.created_at > existing.created_at)) {
+      certificateMap.set(c.open_course_delegate_id, c);
+    }
+  });
 
   // Map delegates to their sessions
   const delegatesBySession = new Map<string, any[]>();
