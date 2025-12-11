@@ -482,3 +482,38 @@ export async function sendOpenCourseAssignmentNotification(
     { recipientName: trainer.name, priority: 5 }
   );
 }
+
+export async function sendProvisionalBookingNotification(
+  trainerId: string,
+  startDate: string,
+  endDate: string,
+  reason?: string
+): Promise<boolean> {
+  const canSend = await shouldSendNotification(trainerId);
+  if (!canSend) return false;
+
+  const trainer = await getTrainerForNotification(trainerId);
+  if (!trainer || !trainer.email) return false;
+
+  // Format the date range
+  let dateRange: string;
+  if (startDate === endDate) {
+    dateRange = formatDate(startDate);
+  } else {
+    dateRange = `${formatDate(startDate)} to ${formatDate(endDate)}`;
+  }
+
+  const templateData = {
+    trainer_name: trainer.name,
+    date_range: dateRange,
+    reason: reason || '',
+  };
+
+  return sendTemplateEmail(
+    trainer.email,
+    'trainer_provisional_booking',
+    templateData,
+    undefined,
+    { recipientName: trainer.name, priority: 4 }
+  );
+}

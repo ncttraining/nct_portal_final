@@ -15,6 +15,7 @@ import {
   AvailabilityStatus,
 } from '../lib/trainer-availability';
 import { getTrainerTypesForMultipleTrainers, type TrainerType as LibTrainerType } from '../lib/trainer-types';
+import { sendProvisionalBookingNotification } from '../lib/booking-notifications';
 
 interface TrainerType {
   id: string;
@@ -243,6 +244,11 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
         message: `${trainer.name} marked ${statusLabel} on ${new Date(dateStr).toLocaleDateString('en-GB')}`,
       });
       await loadUnavailability();
+
+      // Send email notification for provisional bookings
+      if (status === 'provisionally_booked') {
+        sendProvisionalBookingNotification(trainer.id, dateStr, dateStr, reason);
+      }
     } else {
       setNotification({ type: 'error', message: result.error || 'Failed to update availability' });
     }
@@ -383,6 +389,8 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
           message = `${trainer.name} marked unavailable from ${start} to ${end}`;
         } else if (rangeAction === 'provisional') {
           message = `${trainer.name} provisionally booked from ${start} to ${end}`;
+          // Send email notification for provisional bookings
+          sendProvisionalBookingNotification(rangeTrainerId, rangeStartDate, rangeEndDate, rangeReason);
         } else {
           message = `${trainer.name} availability restored from ${start} to ${end}`;
         }
