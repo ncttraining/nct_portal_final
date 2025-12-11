@@ -53,6 +53,7 @@ import {
 } from '../lib/open-courses';
 import { supabase } from '../lib/supabase';
 import { queueEmail } from '../lib/email-queue';
+import { getAllTrainersUnavailability, TrainerUnavailability } from '../lib/trainer-availability';
 
 function decodeHtmlEntities(text: string): string {
   const textarea = document.createElement('textarea');
@@ -105,6 +106,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [venues, setVenues] = useState<Venue[]>([]);
   const [trainers, setTrainers] = useState<any[]>([]);
   const [courseTypes, setCourseTypes] = useState<any[]>([]);
+  const [provisionalBookings, setProvisionalBookings] = useState<TrainerUnavailability[]>([]);
 
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [editingSession, setEditingSession] = useState<OpenCourseSessionWithDetails | null>(null);
@@ -167,6 +169,7 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
   const [sessionToAssignTrainer, setSessionToAssignTrainer] = useState<OpenCourseSessionWithDetails | null>(null);
   const [availableTrainers, setAvailableTrainers] = useState<any[]>([]);
   const [unavailableTrainerIds, setUnavailableTrainerIds] = useState<Set<string>>(new Set());
+  const [provisionallyBookedTrainerIds, setProvisionallyBookedTrainerIds] = useState<Set<string>>(new Set());
   const [assigningTrainer, setAssigningTrainer] = useState(false);
 
   const [notification, setNotification] = useState<{
@@ -252,6 +255,14 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
         .order('name');
       setCourseTypes(courseTypesData || []);
 
+      // Load provisional bookings for the week
+      const weekEndDate = new Date(currentWeekStart);
+      weekEndDate.setDate(weekEndDate.getDate() + 6);
+      const weekEndStr = weekEndDate.toISOString().split('T')[0];
+      const unavailabilityData = await getAllTrainersUnavailability(weekStart, weekEndStr);
+      // Filter to only provisionally booked (not unavailable)
+      setProvisionalBookings(unavailabilityData.filter(u => u.status === 'provisionally_booked'));
+
     } catch (error: any) {
       console.error('Error loading data:', error);
       setNotification({
@@ -327,6 +338,51 @@ export default function OpenCoursesDashboard({ currentPage, onNavigate }: PagePr
       // Check if the multi-day session overlaps with the current week
       return sessionStart <= weekEnd && sessionEnd >= weekStart;
     });
+  }
+
+  // Get provisionally booked trainers for a specific date
+  // Filters out trainers who are already assigned to a session on that date
+  function getProvisionallyBookedTrainersForDate(date: string): Array<{ trainer: any; booking: TrainerUnavailability }> {
+    // Get all provisional bookings for this date
+    const bookingsForDate = provisionalBookings.filter(pb => pb.unavailable_date === date);
+
+    if (bookingsForDate.length === 0) return [];
+
+    // Get trainer IDs that are already assigned to sessions on this date
+    // Check both single-day sessions and multi-day sessions
+    const assignedTrainerIds = new Set<string>();
+
+    // Check single-day sessions for this date
+    sessions.forEach(session => {
+      if (session.trainer_id) {
+        // Single-day session on this date
+        if (session.session_date === date && !isMultiDaySession(session)) {
+          assignedTrainerIds.add(session.trainer_id);
+        }
+        // Multi-day session overlapping this date
+        if (isMultiDaySession(session)) {
+          const startDate = session.session_date;
+          const endDate = session.end_date || session.session_date;
+          if (date >= startDate && date <= endDate) {
+            assignedTrainerIds.add(session.trainer_id);
+          }
+        }
+      }
+    });
+
+    // Filter out trainers who are assigned to a session
+    return bookingsForDate
+      .filter(booking => !assignedTrainerIds.has(booking.trainer_id))
+      .map(booking => {
+        const trainer = trainers.find(t => t.id === booking.trainer_id);
+        return { trainer, booking };
+      })
+      .filter(item => item.trainer); // Only include if trainer found
+  }
+
+  // Check if any provisional bookings exist for the current week
+  function hasProvisionalBookingsInWeek(): boolean {
+    return provisionalBookings.length > 0;
   }
 
   // Calculate the span of a multi-day session within the current week (returns column indices)
@@ -849,6 +905,33 @@ The Training Team`,
     }
   }
 
+  async function handleDeleteDelegate(delegate: any, sessionId: string) {
+    if (!confirm(`Are you sure you want to remove "${delegate.delegate_name}" from this session?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('open_course_delegates')
+        .update({ status: 'cancelled' })
+        .eq('id', delegate.id);
+
+      if (error) throw error;
+
+      setNotification({
+        type: 'success',
+        message: `${delegate.delegate_name} removed from session`,
+      });
+
+      loadData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to remove delegate',
+      });
+    }
+  }
+
   async function handleOpenAddDelegate() {
     setNewDelegateData({
       delegate_name: '',
@@ -1203,18 +1286,27 @@ The Training Team`,
         });
       }
 
-      // Check trainer unavailability
+      // Check trainer unavailability - only truly unavailable, not provisionally booked
       const { data: unavailabilityConflicts } = await supabase
         .from('trainer_unavailability')
-        .select('trainer_id')
+        .select('trainer_id, status')
         .in('trainer_id', trainerIdsList)
         .eq('unavailable_date', sessionDate);
 
+      const provisionalIds = new Set<string>();
       if (unavailabilityConflicts) {
-        unavailabilityConflicts.forEach(u => unavailableIds.add(u.trainer_id));
+        unavailabilityConflicts.forEach(u => {
+          if (u.status === 'provisionally_booked') {
+            provisionalIds.add(u.trainer_id);
+          } else {
+            // Only add to unavailable if truly unavailable (not provisionally booked)
+            unavailableIds.add(u.trainer_id);
+          }
+        });
       }
 
       setUnavailableTrainerIds(unavailableIds);
+      setProvisionallyBookedTrainerIds(provisionalIds);
       setAvailableTrainers(trainersData || []);
       setShowTrainerAssignModal(true);
     } catch (error: any) {
@@ -1294,6 +1386,7 @@ The Training Team`,
       setShowTrainerAssignModal(false);
       setSessionToAssignTrainer(null);
       setUnavailableTrainerIds(new Set());
+      setProvisionallyBookedTrainerIds(new Set());
       loadData();
     } catch (error: any) {
       setNotification({
@@ -1325,6 +1418,7 @@ The Training Team`,
       setShowTrainerAssignModal(false);
       setSessionToAssignTrainer(null);
       setUnavailableTrainerIds(new Set());
+      setProvisionallyBookedTrainerIds(new Set());
       loadData();
     } catch (error: any) {
       setNotification({
@@ -1565,30 +1659,31 @@ The Training Team`,
                               {delegates.map((delegate) => (
                                 <div
                                   key={delegate.id}
-                                  className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group"
+                                  className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group relative"
                                 >
-                                  <div className="flex items-center gap-1">
-                                    <div
-                                      draggable
-                                      onDragStart={() => handleDragStart(delegate, session.id)}
-                                      className="flex-1 min-w-0 cursor-move"
-                                      title="Drag to transfer delegate"
-                                    >
-                                      <div className="text-[10px] font-medium truncate">
-                                        {delegate.delegate_name}
-                                      </div>
-                                      {delegate.delegate_company && (
-                                        <div className="text-[9px] text-slate-500 truncate">
-                                          {delegate.delegate_company}
-                                        </div>
-                                      )}
+                                  <div
+                                    draggable
+                                    onDragStart={() => handleDragStart(delegate, session.id)}
+                                    className="cursor-move"
+                                    title="Drag to transfer delegate"
+                                  >
+                                    <div className="text-[10px] font-medium truncate pr-1">
+                                      {delegate.delegate_name}
                                     </div>
+                                    {delegate.delegate_company && (
+                                      <div className="text-[9px] text-slate-500 truncate">
+                                        {delegate.delegate_company}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Action buttons - overlay on hover */}
+                                  <div className="absolute right-0 top-0 bottom-0 flex items-center gap-0.5 px-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-slate-800 via-slate-800 to-transparent pl-4">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleOpenResendModal(delegate, session);
                                       }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      className="p-1 hover:bg-slate-700 rounded transition-all"
                                       title="Resend booking details"
                                     >
                                       <Mail className="w-3 h-3 text-slate-400" />
@@ -1598,7 +1693,7 @@ The Training Team`,
                                         e.stopPropagation();
                                         handleOpenEditDelegate(delegate);
                                       }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      className="p-1 hover:bg-slate-700 rounded transition-all"
                                       title="Edit delegate details"
                                     >
                                       <Edit className="w-3 h-3 text-slate-400" />
@@ -1608,10 +1703,20 @@ The Training Team`,
                                         e.stopPropagation();
                                         handleOpenMoveModal(delegate, session.id, session.course_type_id);
                                       }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                      className="p-1 hover:bg-slate-700 rounded transition-all"
                                       title="Move to different session"
                                     >
                                       <MoveRight className="w-3 h-3 text-slate-400" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteDelegate(delegate, session.id);
+                                      }}
+                                      className="p-1 hover:bg-red-500/20 rounded transition-all"
+                                      title="Remove from session"
+                                    >
+                                      <Trash2 className="w-3 h-3 text-red-400" />
                                     </button>
                                   </div>
                                 </div>
@@ -1651,6 +1756,63 @@ The Training Team`,
               </div>
             );
           })}
+          </div>
+
+          {/* Provisionally Booked Trainers Section */}
+          <h3 className="text-lg font-semibold text-slate-200 mt-8 mb-4 flex items-center gap-2">
+            <UserCog className="w-5 h-5 text-green-400" />
+            Provisionally Booked Trainers
+          </h3>
+
+          <div className="grid grid-cols-7 gap-4">
+            {weekDates.map((date, index) => {
+              const dateString = date.toISOString().split('T')[0];
+              const provisionalTrainers = getProvisionallyBookedTrainersForDate(dateString);
+              const isToday = dateString === new Date().toISOString().split('T')[0];
+
+              return (
+                <div
+                  key={`provisional-${dateString}`}
+                  className={`bg-slate-900 border rounded-lg overflow-hidden min-h-[100px] ${
+                    isToday ? 'border-blue-500' : 'border-slate-800'
+                  }`}
+                >
+                  {/* Day Header */}
+                  <div className={`p-2 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
+                    <div className="font-semibold text-xs">{weekDaysLabels[index]}</div>
+                    <div className="text-[10px] text-slate-400">
+                      {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    </div>
+                  </div>
+
+                  {/* Provisional Trainers */}
+                  <div className="p-2 space-y-1">
+                    {provisionalTrainers.length === 0 ? (
+                      <div className="text-center text-slate-600 text-[10px] py-2">
+                        -
+                      </div>
+                    ) : (
+                      provisionalTrainers.map(({ trainer, booking }) => (
+                        <div
+                          key={booking.id}
+                          className="bg-green-900/30 border border-green-700/50 rounded px-2 py-1.5 text-xs"
+                          title={booking.reason || 'Provisionally booked'}
+                        >
+                          <div className="font-medium text-green-300 truncate">
+                            {trainer.name}
+                          </div>
+                          {booking.reason && (
+                            <div className="text-[10px] text-green-400/70 truncate mt-0.5">
+                              {booking.reason}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
@@ -1802,30 +1964,31 @@ The Training Team`,
                         {delegates.map((delegate) => (
                           <div
                             key={delegate.id}
-                            className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group"
+                            className="bg-slate-800/50 rounded px-2 py-1 hover:bg-slate-800 transition-colors group relative"
                           >
-                            <div className="flex items-center gap-1">
-                              <div
-                                draggable
-                                onDragStart={() => handleDragStart(delegate, session.id)}
-                                className="flex-1 min-w-0 cursor-move"
-                                title="Drag to transfer delegate"
-                              >
-                                <div className="text-[10px] font-medium truncate">
-                                  {delegate.delegate_name}
-                                </div>
-                                {delegate.delegate_company && (
-                                  <div className="text-[9px] text-slate-500 truncate">
-                                    {delegate.delegate_company}
-                                  </div>
-                                )}
+                            <div
+                              draggable
+                              onDragStart={() => handleDragStart(delegate, session.id)}
+                              className="cursor-move"
+                              title="Drag to transfer delegate"
+                            >
+                              <div className="text-[10px] font-medium truncate pr-1">
+                                {delegate.delegate_name}
                               </div>
+                              {delegate.delegate_company && (
+                                <div className="text-[9px] text-slate-500 truncate">
+                                  {delegate.delegate_company}
+                                </div>
+                              )}
+                            </div>
+                            {/* Action buttons - overlay on hover */}
+                            <div className="absolute right-0 top-0 bottom-0 flex items-center gap-0.5 px-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-slate-800 via-slate-800 to-transparent pl-4">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleOpenResendModal(delegate, session);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                className="p-1 hover:bg-slate-700 rounded transition-all"
                                 title="Resend booking details"
                               >
                                 <Mail className="w-3 h-3 text-slate-400" />
@@ -1835,7 +1998,7 @@ The Training Team`,
                                   e.stopPropagation();
                                   handleOpenEditDelegate(delegate);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                className="p-1 hover:bg-slate-700 rounded transition-all"
                                 title="Edit delegate details"
                               >
                                 <Edit className="w-3 h-3 text-slate-400" />
@@ -1845,10 +2008,20 @@ The Training Team`,
                                   e.stopPropagation();
                                   handleOpenMoveModal(delegate, session.id, session.course_type_id);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-700 rounded transition-all"
+                                className="p-1 hover:bg-slate-700 rounded transition-all"
                                 title="Move to different session"
                               >
                                 <MoveRight className="w-3 h-3 text-slate-400" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteDelegate(delegate, session.id);
+                                }}
+                                className="p-1 hover:bg-red-500/20 rounded transition-all"
+                                title="Remove from session"
+                              >
+                                <Trash2 className="w-3 h-3 text-red-400" />
                               </button>
                             </div>
                           </div>
@@ -3133,6 +3306,7 @@ The Training Team`,
                   setShowTrainerAssignModal(false);
                   setSessionToAssignTrainer(null);
                   setUnavailableTrainerIds(new Set());
+                  setProvisionallyBookedTrainerIds(new Set());
                 }}
                 className="p-2 hover:bg-slate-800 rounded transition-colors"
               >
@@ -3154,6 +3328,7 @@ The Training Team`,
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {availableTrainers.map((trainer) => {
                       const isUnavailable = unavailableTrainerIds.has(trainer.id);
+                      const isProvisionallyBooked = provisionallyBookedTrainerIds.has(trainer.id);
                       const isCurrent = sessionToAssignTrainer.trainer_id === trainer.id;
 
                       return (
@@ -3166,23 +3341,36 @@ The Training Team`,
                               ? 'bg-red-950/30 border-red-900/50 cursor-not-allowed opacity-60'
                               : isCurrent
                               ? 'bg-blue-500/20 border-blue-500/50 ring-2 ring-blue-500/50'
+                              : isProvisionallyBooked
+                              ? 'bg-green-900/30 border-green-700/50 hover:bg-green-900/40 hover:border-green-600/60'
                               : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800 hover:border-slate-600'
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                           <div className="flex items-center gap-3">
-                            <UserCog className={`w-5 h-5 ${isUnavailable ? 'text-red-400' : 'text-slate-400'}`} />
+                            <UserCog className={`w-5 h-5 ${
+                              isUnavailable ? 'text-red-400' : isProvisionallyBooked ? 'text-green-400' : 'text-slate-400'
+                            }`} />
                             <div className="flex-1">
-                              <div className={`font-medium ${isUnavailable ? 'text-red-300' : ''}`}>
+                              <div className={`font-medium ${
+                                isUnavailable ? 'text-red-300' : isProvisionallyBooked ? 'text-green-300' : ''
+                              }`}>
                                 {trainer.name}
                               </div>
                               {trainer.email && (
-                                <div className={`text-xs mt-1 ${isUnavailable ? 'text-red-400/70' : 'text-slate-400'}`}>
+                                <div className={`text-xs mt-1 ${
+                                  isUnavailable ? 'text-red-400/70' : isProvisionallyBooked ? 'text-green-400/70' : 'text-slate-400'
+                                }`}>
                                   {trainer.email}
                                 </div>
                               )}
                               {isUnavailable && (
                                 <div className="text-xs text-red-400 mt-1 font-medium">
                                   Already booked or unavailable
+                                </div>
+                              )}
+                              {isProvisionallyBooked && !isUnavailable && (
+                                <div className="text-xs text-green-400 mt-1 font-medium">
+                                  Provisionally booked
                                 </div>
                               )}
                             </div>
@@ -3206,6 +3394,7 @@ The Training Team`,
                   setShowTrainerAssignModal(false);
                   setSessionToAssignTrainer(null);
                   setUnavailableTrainerIds(new Set());
+                  setProvisionallyBookedTrainerIds(new Set());
                 }}
                 className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
               >

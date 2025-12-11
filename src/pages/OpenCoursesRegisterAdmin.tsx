@@ -10,6 +10,8 @@ import {
   Upload,
   FileText,
   Calendar,
+  Plus,
+  X,
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
@@ -31,6 +33,7 @@ import {
   IdType,
   LicenceCategory,
 } from '../lib/open-courses';
+import { supabase } from '../lib/supabase';
 
 interface OpenCoursesRegisterAdminProps {
   currentPage: string;
@@ -64,6 +67,16 @@ export default function OpenCoursesRegisterAdmin({
     type: 'success' | 'error' | 'warning' | 'info';
     message: string;
   } | null>(null);
+
+  // Add delegate modal state
+  const [showAddDelegateModal, setShowAddDelegateModal] = useState(false);
+  const [addingDelegate, setAddingDelegate] = useState(false);
+  const [newDelegateData, setNewDelegateData] = useState({
+    delegate_name: '',
+    delegate_email: '',
+    delegate_phone: '',
+    delegate_company: '',
+  });
 
   // Debounce timers
   const saveTimers = useRef<{ [key: string]: NodeJS.Timeout }>({});
@@ -261,6 +274,77 @@ export default function OpenCoursesRegisterAdmin({
     }
   };
 
+  // Handle adding a new delegate to this session
+  const handleAddDelegate = async () => {
+    if (!session || !newDelegateData.delegate_name || !newDelegateData.delegate_email) {
+      setNotification({
+        type: 'error',
+        message: 'Name and email are required',
+      });
+      return;
+    }
+
+    setAddingDelegate(true);
+    try {
+      // Create order for the delegate
+      const { data: orderData, error: orderError } = await supabase
+        .from('open_course_orders')
+        .insert({
+          woocommerce_order_id: `MANUAL-${Date.now()}`,
+          order_number: `MANUAL-${Date.now()}`,
+          order_date: new Date().toISOString(),
+          customer_name: newDelegateData.delegate_name,
+          customer_email: newDelegateData.delegate_email,
+          payment_status: 'paid',
+          total_amount: 0,
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Create delegate record
+      const { error: delegateError } = await supabase
+        .from('open_course_delegates')
+        .insert({
+          session_id: session.id,
+          order_id: orderData.id,
+          delegate_name: newDelegateData.delegate_name,
+          delegate_email: newDelegateData.delegate_email,
+          delegate_phone: newDelegateData.delegate_phone || null,
+          delegate_company: newDelegateData.delegate_company || null,
+          status: 'confirmed',
+          booking_source: 'admin',
+        });
+
+      if (delegateError) throw delegateError;
+
+      setNotification({
+        type: 'success',
+        message: `${newDelegateData.delegate_name} added to register`,
+      });
+
+      // Reset form and close modal
+      setNewDelegateData({
+        delegate_name: '',
+        delegate_email: '',
+        delegate_phone: '',
+        delegate_company: '',
+      });
+      setShowAddDelegateModal(false);
+
+      // Reload delegates
+      loadData();
+    } catch (error: any) {
+      setNotification({
+        type: 'error',
+        message: error.message || 'Failed to add delegate',
+      });
+    } finally {
+      setAddingDelegate(false);
+    }
+  };
+
   const isCPC = session ? isCPCCourse(session) : false;
 
   // Calculate stats
@@ -358,6 +442,13 @@ export default function OpenCoursesRegisterAdmin({
                 <span className="text-slate-400">On Register:</span>{' '}
                 <span className="text-white font-semibold">{delegates.length}</span>
               </div>
+              <button
+                onClick={() => setShowAddDelegateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Add Delegate
+              </button>
               <button
                 disabled
                 className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-slate-400 rounded cursor-not-allowed"
@@ -693,6 +784,113 @@ export default function OpenCoursesRegisterAdmin({
           message={notification.message}
           onClose={() => setNotification(null)}
         />
+      )}
+
+      {/* Add Delegate Modal */}
+      {showAddDelegateModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 rounded-lg shadow-xl w-full max-w-md border border-slate-800">
+            <div className="flex items-center justify-between p-4 border-b border-slate-800">
+              <h3 className="text-lg font-semibold">Add Delegate to Register</h3>
+              <button
+                onClick={() => {
+                  setShowAddDelegateModal(false);
+                  setNewDelegateData({
+                    delegate_name: '',
+                    delegate_email: '',
+                    delegate_phone: '',
+                    delegate_company: '',
+                  });
+                }}
+                className="p-2 hover:bg-slate-800 rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">
+                  Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newDelegateData.delegate_name}
+                  onChange={(e) =>
+                    setNewDelegateData({ ...newDelegateData, delegate_name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Full name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">
+                  Email <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={newDelegateData.delegate_email}
+                  onChange={(e) =>
+                    setNewDelegateData({ ...newDelegateData, delegate_email: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="email@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={newDelegateData.delegate_phone}
+                  onChange={(e) =>
+                    setNewDelegateData({ ...newDelegateData, delegate_phone: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Phone number"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Company</label>
+                <input
+                  type="text"
+                  value={newDelegateData.delegate_company}
+                  onChange={(e) =>
+                    setNewDelegateData({ ...newDelegateData, delegate_company: e.target.value })
+                  }
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Company name"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-4 border-t border-slate-800">
+              <button
+                onClick={() => {
+                  setShowAddDelegateModal(false);
+                  setNewDelegateData({
+                    delegate_name: '',
+                    delegate_email: '',
+                    delegate_phone: '',
+                    delegate_company: '',
+                  });
+                }}
+                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddDelegate}
+                disabled={addingDelegate || !newDelegateData.delegate_name || !newDelegateData.delegate_email}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {addingDelegate ? 'Adding...' : 'Add Delegate'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
