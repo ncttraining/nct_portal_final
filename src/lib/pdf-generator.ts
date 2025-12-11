@@ -103,13 +103,18 @@ export async function generateCertificatePDF(
 
     const scaledFontSize = field.fontSize * scaleY;
     const textWidth = selectedFont.widthOfTextAtSize(value, scaledFontSize);
+    const scaledFieldWidth = field.width * scaleX;
 
+    // Calculate x position based on alignment within the field's width
     let xPosition = field.x * scaleX;
     if (field.align === 'center') {
-      xPosition = field.x * scaleX - textWidth / 2;
+      // Center text within the field width
+      xPosition = (field.x * scaleX) + (scaledFieldWidth / 2) - (textWidth / 2);
     } else if (field.align === 'right') {
-      xPosition = field.x * scaleX - textWidth;
+      // Right-align text within the field width
+      xPosition = (field.x * scaleX) + scaledFieldWidth - textWidth;
     }
+    // For 'left' alignment, xPosition stays at field.x * scaleX
 
     const yPosition = pageHeight - (field.y * scaleY) - scaledFontSize;
 
