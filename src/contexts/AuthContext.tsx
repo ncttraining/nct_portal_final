@@ -18,6 +18,13 @@ interface UserProfile {
   is_trainer: boolean;
   can_login: boolean;
   trainer_id: string | null;
+  two_factor_enabled: boolean;
+}
+
+interface PendingTwoFactorAuth {
+  userId: string;
+  email: string;
+  fullName: string | null;
 }
 
 interface AuthContextType {
@@ -28,6 +35,10 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
+  // Two-factor authentication
+  pendingTwoFactorAuth: PendingTwoFactorAuth | null;
+  completeTwoFactorAuth: () => Promise<void>;
+  cancelTwoFactorAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingTwoFactorAuth, setPendingTwoFactorAuth] = useState<PendingTwoFactorAuth | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -110,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data.user) {
       const { data: userProfile, error: profileError } = await supabase
         .from('users')
-        .select('can_login, is_trainer, trainer_id')
+        .select('can_login, is_trainer, trainer_id, two_factor_enabled, full_name')
         .eq('id', data.user.id)
         .maybeSingle();
 
@@ -139,7 +151,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Your trainer account has been suspended. Please contact an administrator.');
         }
       }
+
+      // Check if 2FA is enabled
+      if (userProfile && userProfile.two_factor_enabled) {
+        // Set pending 2FA state - user needs to verify before completing login
+        setPendingTwoFactorAuth({
+          userId: data.user.id,
+          email: data.user.email || email,
+          fullName: userProfile.full_name,
+        });
+        // Sign out temporarily - will sign back in after 2FA verification
+        await supabase.auth.signOut();
+        // Throw a special error that the Login component will catch
+        throw new Error('2FA_REQUIRED');
+      }
     }
+  }
+
+  async function completeTwoFactorAuth() {
+    if (!pendingTwoFactorAuth) {
+      throw new Error('No pending 2FA authentication');
+    }
+    // Clear the pending state - the user is now authenticated
+    setPendingTwoFactorAuth(null);
+  }
+
+  async function cancelTwoFactorAuth() {
+    setPendingTwoFactorAuth(null);
   }
 
   async function signOut() {
@@ -173,6 +211,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     reloadProfile,
+    pendingTwoFactorAuth,
+    completeTwoFactorAuth,
+    cancelTwoFactorAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
