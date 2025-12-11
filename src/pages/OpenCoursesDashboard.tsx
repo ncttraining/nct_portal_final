@@ -1709,65 +1709,61 @@ The Training Team`,
           </div>
 
           {/* Provisionally Booked Trainers Section */}
-          {hasProvisionalBookingsInWeek() && (
-            <>
-              <h3 className="text-lg font-semibold text-slate-200 mt-8 mb-4 flex items-center gap-2">
-                <UserCog className="w-5 h-5 text-green-400" />
-                Provisionally Booked Trainers
-              </h3>
+          <h3 className="text-lg font-semibold text-slate-200 mt-8 mb-4 flex items-center gap-2">
+            <UserCog className="w-5 h-5 text-green-400" />
+            Provisionally Booked Trainers
+          </h3>
 
-              <div className="grid grid-cols-7 gap-4">
-                {weekDates.map((date, index) => {
-                  const dateString = date.toISOString().split('T')[0];
-                  const provisionalTrainers = getProvisionallyBookedTrainersForDate(dateString);
-                  const isToday = dateString === new Date().toISOString().split('T')[0];
+          <div className="grid grid-cols-7 gap-4">
+            {weekDates.map((date, index) => {
+              const dateString = date.toISOString().split('T')[0];
+              const provisionalTrainers = getProvisionallyBookedTrainersForDate(dateString);
+              const isToday = dateString === new Date().toISOString().split('T')[0];
 
-                  return (
-                    <div
-                      key={`provisional-${dateString}`}
-                      className={`bg-slate-900 border rounded-lg overflow-hidden min-h-[100px] ${
-                        isToday ? 'border-blue-500' : 'border-slate-800'
-                      }`}
-                    >
-                      {/* Day Header */}
-                      <div className={`p-2 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
-                        <div className="font-semibold text-xs">{weekDaysLabels[index]}</div>
-                        <div className="text-[10px] text-slate-400">
-                          {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                        </div>
-                      </div>
-
-                      {/* Provisional Trainers */}
-                      <div className="p-2 space-y-1">
-                        {provisionalTrainers.length === 0 ? (
-                          <div className="text-center text-slate-600 text-[10px] py-2">
-                            No provisional
-                          </div>
-                        ) : (
-                          provisionalTrainers.map(({ trainer, booking }) => (
-                            <div
-                              key={booking.id}
-                              className="bg-green-900/30 border border-green-700/50 rounded px-2 py-1.5 text-xs"
-                              title={booking.reason || 'Provisionally booked'}
-                            >
-                              <div className="font-medium text-green-300 truncate">
-                                {trainer.name}
-                              </div>
-                              {booking.reason && (
-                                <div className="text-[10px] text-green-400/70 truncate mt-0.5">
-                                  {booking.reason}
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        )}
-                      </div>
+              return (
+                <div
+                  key={`provisional-${dateString}`}
+                  className={`bg-slate-900 border rounded-lg overflow-hidden min-h-[100px] ${
+                    isToday ? 'border-blue-500' : 'border-slate-800'
+                  }`}
+                >
+                  {/* Day Header */}
+                  <div className={`p-2 border-b ${isToday ? 'bg-blue-500/10 border-blue-500/20' : 'border-slate-800'}`}>
+                    <div className="font-semibold text-xs">{weekDaysLabels[index]}</div>
+                    <div className="text-[10px] text-slate-400">
+                      {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                     </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
+                  </div>
+
+                  {/* Provisional Trainers */}
+                  <div className="p-2 space-y-1">
+                    {provisionalTrainers.length === 0 ? (
+                      <div className="text-center text-slate-600 text-[10px] py-2">
+                        -
+                      </div>
+                    ) : (
+                      provisionalTrainers.map(({ trainer, booking }) => (
+                        <div
+                          key={booking.id}
+                          className="bg-green-900/30 border border-green-700/50 rounded px-2 py-1.5 text-xs"
+                          title={booking.reason || 'Provisionally booked'}
+                        >
+                          <div className="font-medium text-green-300 truncate">
+                            {trainer.name}
+                          </div>
+                          {booking.reason && (
+                            <div className="text-[10px] text-green-400/70 truncate mt-0.5">
+                              {booking.reason}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Multi-Day Sessions - displayed as full cards spanning multiple columns */}
           {getMultiDaySessions().length > 0 && (
