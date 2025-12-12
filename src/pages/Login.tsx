@@ -18,9 +18,16 @@ export default function Login() {
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetError, setResetError] = useState('');
 
-  // 2FA states
-  const [show2FA, setShow2FA] = useState(false);
+  // 2FA states - check if there's a pending 2FA auth from context (survives component remount)
+  const [show2FA, setShow2FA] = useState(!!pendingTwoFactorAuth);
   const [pendingCredentials, setPendingCredentials] = useState<{ email: string; password: string } | null>(null);
+
+  // Sync show2FA with pendingTwoFactorAuth from context
+  useEffect(() => {
+    if (pendingTwoFactorAuth) {
+      setShow2FA(true);
+    }
+  }, [pendingTwoFactorAuth]);
 
   // Password recovery states (when user clicks reset link from email)
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
@@ -220,7 +227,62 @@ export default function Login() {
   }
 
   // 2FA verification mode
-  if (show2FA && pendingCredentials) {
+  if (show2FA && pendingTwoFactorAuth) {
+    // If we lost credentials due to component remount, ask for password again
+    if (!pendingCredentials) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 via-slate-950 to-slate-950 p-5">
+          <img
+            src="/logo_white.png"
+            alt="NCT Logo"
+            className="w-64 mb-8"
+          />
+
+          <div className="w-full max-w-md bg-gradient-to-br from-slate-950 to-slate-950 border border-slate-800 rounded-3xl shadow-2xl p-8">
+            <h2 className="text-xl font-semibold text-center mb-6 tracking-wider uppercase text-slate-100">
+              Two-Factor Authentication
+            </h2>
+            <p className="text-sm text-slate-400 text-center mb-4">
+              Please re-enter your password to continue with 2FA verification.
+            </p>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (password) {
+                setPendingCredentials({ email: pendingTwoFactorAuth.email, password });
+              }
+            }} className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="reenterPassword" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="reenterPassword"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full mt-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:-translate-y-0.5 transition-all"
+              >
+                Continue
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel2FA}
+                className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-full transition-colors"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 via-slate-950 to-slate-950 p-5">
         <img
