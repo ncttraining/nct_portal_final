@@ -56,13 +56,18 @@ export default function Login() {
     setLoading(true);
 
     try {
+      console.log('Attempting sign in...');
       await signIn(email, password);
+      console.log('Sign in completed without 2FA');
     } catch (err: any) {
+      console.log('Sign in error caught:', err.message);
       if (err.message === '2FA_REQUIRED') {
+        console.log('2FA required - showing verification screen');
         // Store credentials and show 2FA verification
         setPendingCredentials({ email, password });
         setShow2FA(true);
       } else {
+        console.log('Other error:', err.message);
         setError(err.message || 'Invalid credentials');
       }
     } finally {

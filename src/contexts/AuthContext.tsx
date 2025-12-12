@@ -114,12 +114,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signIn(email: string, password: string) {
+    console.log('AuthContext signIn called');
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.log('Supabase auth error:', error.message);
+      throw error;
+    }
+
+    console.log('Supabase auth success, user:', data.user?.id);
 
     if (data.user) {
       const { data: userProfile, error: profileError } = await supabase
@@ -127,6 +133,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select('can_login, is_trainer, trainer_id, two_factor_enabled, full_name')
         .eq('id', data.user.id)
         .maybeSingle();
+
+      console.log('User profile loaded:', { userProfile, profileError });
 
       if (profileError) {
         console.error('Error checking user permissions:', profileError);
@@ -155,7 +163,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Check if 2FA is enabled
+      console.log('Checking 2FA status:', userProfile?.two_factor_enabled);
       if (userProfile && userProfile.two_factor_enabled) {
+        console.log('2FA is enabled - setting pending state and signing out');
         // Set pending 2FA state - user needs to verify before completing login
         setPendingTwoFactorAuth({
           userId: data.user.id,
@@ -164,9 +174,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         // Sign out temporarily - will sign back in after 2FA verification
         await supabase.auth.signOut();
+        console.log('Signed out, throwing 2FA_REQUIRED');
         // Throw a special error that the Login component will catch
         throw new Error('2FA_REQUIRED');
       }
+      console.log('No 2FA required, sign in complete');
     }
   }
 
