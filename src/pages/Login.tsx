@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import TwoFactorVerify from '../components/TwoFactorVerify';
+import { verifyTwoFactorCode, verifyBackupCode } from '../lib/two-factor-auth';
 
 export default function Login() {
-  const { signIn } = useAuth();
+  const { signIn, pendingTwoFactorAuth, completeTwoFactorAuth, cancelTwoFactorAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -15,6 +17,10 @@ export default function Login() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetError, setResetError] = useState('');
+
+  // 2FA states
+  const [show2FA, setShow2FA] = useState(false);
+  const [pendingCredentials, setPendingCredentials] = useState<{ email: string; password: string } | null>(null);
 
   // Password recovery states (when user clicks reset link from email)
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
@@ -52,10 +58,86 @@ export default function Login() {
     try {
       await signIn(email, password);
     } catch (err: any) {
-      setError(err.message || 'Invalid credentials');
+      if (err.message === '2FA_REQUIRED') {
+        // Store credentials and show 2FA verification
+        setPendingCredentials({ email, password });
+        setShow2FA(true);
+      } else {
+        setError(err.message || 'Invalid credentials');
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handle2FAVerify(code: string): Promise<boolean> {
+    if (!pendingCredentials) return false;
+
+    try {
+      // First, sign in again to get the session
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: pendingCredentials.email,
+        password: pendingCredentials.password,
+      });
+
+      if (signInError) throw signInError;
+
+      // Verify the 2FA code
+      const isValid = await verifyTwoFactorCode(code);
+
+      if (!isValid) {
+        // Sign out since code was invalid
+        await supabase.auth.signOut();
+        return false;
+      }
+
+      // Clear pending state - auth state change will handle the rest
+      setPendingCredentials(null);
+      setShow2FA(false);
+      await completeTwoFactorAuth();
+      return true;
+    } catch (err: any) {
+      console.error('2FA verification error:', err);
+      return false;
+    }
+  }
+
+  async function handle2FABackupCode(code: string): Promise<boolean> {
+    if (!pendingCredentials) return false;
+
+    try {
+      // First, sign in again to get the session
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: pendingCredentials.email,
+        password: pendingCredentials.password,
+      });
+
+      if (signInError) throw signInError;
+
+      // Verify the backup code
+      const isValid = await verifyBackupCode(code);
+
+      if (!isValid) {
+        // Sign out since code was invalid
+        await supabase.auth.signOut();
+        return false;
+      }
+
+      // Clear pending state - auth state change will handle the rest
+      setPendingCredentials(null);
+      setShow2FA(false);
+      await completeTwoFactorAuth();
+      return true;
+    } catch (err: any) {
+      console.error('Backup code verification error:', err);
+      return false;
+    }
+  }
+
+  function handleCancel2FA() {
+    setShow2FA(false);
+    setPendingCredentials(null);
+    cancelTwoFactorAuth();
   }
 
   async function handleSendResetEmail(e: React.FormEvent) {
@@ -130,6 +212,29 @@ export default function Login() {
     setResetEmail('');
     setResetError('');
     setResetSuccess(false);
+  }
+
+  // 2FA verification mode
+  if (show2FA && pendingCredentials) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 via-slate-950 to-slate-950 p-5">
+        <img
+          src="/logo_white.png"
+          alt="NCT Logo"
+          className="w-64 mb-8"
+        />
+
+        <div className="w-full max-w-md bg-gradient-to-br from-slate-950 to-slate-950 border border-slate-800 rounded-3xl shadow-2xl p-8">
+          <TwoFactorVerify
+            email={pendingCredentials.email}
+            fullName={pendingTwoFactorAuth?.fullName || null}
+            onVerify={handle2FAVerify}
+            onUseBackupCode={handle2FABackupCode}
+            onCancel={handleCancel2FA}
+          />
+        </div>
+      </div>
+    );
   }
 
   // Recovery mode - user clicked reset link from email
