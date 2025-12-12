@@ -198,17 +198,18 @@ export async function getEmailQueueStats(): Promise<EmailQueueStats | null> {
 
 export async function retryEmail(id: string): Promise<boolean> {
   try {
-    // Allow retrying both 'failed' and 'cancelled' emails
+    // Allow retrying/resending failed, cancelled, and sent emails
     const { error } = await supabase
       .from('email_queue')
       .update({
         status: 'pending',
         error_message: null,
         scheduled_at: new Date().toISOString(),
+        sent_at: null,
         attempts: 0, // Reset attempts counter
       })
       .eq('id', id)
-      .in('status', ['failed', 'cancelled']);
+      .in('status', ['failed', 'cancelled', 'sent']);
 
     if (error) {
       console.error('Error retrying email:', error);
@@ -244,17 +245,18 @@ export async function cancelEmail(id: string): Promise<boolean> {
 
 export async function bulkRetryEmails(ids: string[]): Promise<number> {
   try {
-    // Allow retrying both 'failed' and 'cancelled' emails
+    // Allow retrying/resending failed, cancelled, and sent emails
     const { data, error } = await supabase
       .from('email_queue')
       .update({
         status: 'pending',
         error_message: null,
         scheduled_at: new Date().toISOString(),
-        attempts: 0, // Reset attempts counter for cancelled emails
+        sent_at: null,
+        attempts: 0, // Reset attempts counter
       })
       .in('id', ids)
-      .in('status', ['failed', 'cancelled'])
+      .in('status', ['failed', 'cancelled', 'sent'])
       .select('id');
 
     if (error) {

@@ -435,11 +435,11 @@ export default function EmailQueueManagement({ currentPage, onNavigate }: EmailQ
                             >
                               <Eye className="w-4 h-4 text-slate-400" />
                             </button>
-                            {(email.status === 'failed' || email.status === 'cancelled') && (
+                            {(email.status === 'failed' || email.status === 'cancelled' || email.status === 'sent') && (
                               <button
                                 onClick={() => handleRetry(email.id)}
                                 className="p-1.5 hover:bg-slate-800 rounded transition-colors"
-                                title="Retry"
+                                title={email.status === 'sent' ? 'Resend' : 'Retry'}
                               >
                                 <RefreshCw className="w-4 h-4 text-blue-400" />
                               </button>
@@ -604,7 +604,7 @@ export default function EmailQueueManagement({ currentPage, onNavigate }: EmailQ
               )}
 
               <div className="flex gap-3 pt-4 border-t border-slate-800">
-                {(detailEmail.status === 'failed' || detailEmail.status === 'cancelled') && (
+                {(detailEmail.status === 'failed' || detailEmail.status === 'cancelled' || detailEmail.status === 'sent') && (
                   <button
                     onClick={() => {
                       handleRetry(detailEmail.id);
@@ -613,7 +613,7 @@ export default function EmailQueueManagement({ currentPage, onNavigate }: EmailQ
                     className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
                   >
                     <RefreshCw className="w-4 h-4" />
-                    Retry
+                    {detailEmail.status === 'sent' ? 'Resend' : 'Retry'}
                   </button>
                 )}
                 {(detailEmail.status === 'pending' || detailEmail.status === 'failed') && (
