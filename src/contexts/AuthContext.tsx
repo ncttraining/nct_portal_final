@@ -39,6 +39,8 @@ interface AuthContextType {
   pendingTwoFactorAuth: PendingTwoFactorAuth | null;
   completeTwoFactorAuth: () => Promise<void>;
   cancelTwoFactorAuth: () => Promise<void>;
+  // 2FA enforcement - true if user is logged in but hasn't set up 2FA
+  requires2FASetup: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -203,6 +205,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Check if user needs to set up 2FA (logged in but 2FA not enabled)
+  const requires2FASetup = !!(user && profile && !profile.two_factor_enabled);
+
   const value = {
     user,
     profile,
@@ -214,6 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     pendingTwoFactorAuth,
     completeTwoFactorAuth,
     cancelTwoFactorAuth,
+    requires2FASetup,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
