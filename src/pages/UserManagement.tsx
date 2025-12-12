@@ -242,7 +242,8 @@ This is an automated message from the NCT Portal system.
         user.email,
         'NCT Portal - Login Details',
         htmlBody,
-        textBody
+        textBody,
+        { recipientUserId: user.id }
       );
     } catch (err) {
       console.error('Failed to send login details email:', err);
@@ -428,7 +429,9 @@ This is an automated message from the NCT Portal system.
           user_name: user.full_name || user.email,
           email: user.email,
           password: newPassword,
-        }
+        },
+        undefined,
+        { recipientUserId: user.id }
       );
 
       if (emailSent) {

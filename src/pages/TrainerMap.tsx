@@ -1383,7 +1383,8 @@ function EmailModal({
           trainer.email,
           emailData.subject,
           htmlBody,
-          emailData.body
+          emailData.body,
+          { recipientTrainerId: trainer.id }
         );
       } else {
         if (!selectedTemplate) {
@@ -1412,7 +1413,9 @@ function EmailModal({
         success = await sendTemplateEmail(
           trainer.email,
           selectedTemplate,
-          templateData
+          templateData,
+          undefined,
+          { recipientTrainerId: trainer.id }
         );
       }
 

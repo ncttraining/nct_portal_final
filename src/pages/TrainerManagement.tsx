@@ -627,10 +627,10 @@ function TrainerFormModal({
       trainer_name: formData.name,
       email: formData.email,
       password: password
-    });
+    }, undefined, { recipientTrainerId: trainerId });
 
     setSaving(false);
-    onSuccess({ name: formData.name, email: formData.email, password, user_id: functionResult.userId });
+    onSuccess({ name: formData.name, email: formData.email, password, user_id: functionResult.userId, trainer_id: trainerId });
   }
 
   async function updateTrainer(coords: { latitude: number; longitude: number }) {
@@ -1014,7 +1014,7 @@ function SuccessModal({
   data,
   onClose
 }: {
-  data: { name: string; email: string; password: string; user_id?: string };
+  data: { name: string; email: string; password: string; user_id?: string; trainer_id?: string };
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
@@ -1094,7 +1094,7 @@ function SuccessModal({
                       trainer_name: data.name,
                       email: data.email,
                       password: data.password
-                    });
+                    }, undefined, { recipientTrainerId: data.trainer_id });
 
                     onClose();
                   } catch (error) {

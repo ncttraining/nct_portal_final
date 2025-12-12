@@ -831,7 +831,8 @@ If you have any questions about this change, please don't hesitate to contact us
 
 Best regards,
 The Training Team`,
-          priority: 5
+          priority: 5,
+          recipientDelegateId: delegateToMove.delegate.id,
         });
       }
 
@@ -1375,6 +1376,7 @@ The Training Team`,
             delegates_list: delegatesList,
             delegates_text: delegatesText,
           },
+          recipientTrainerId: trainerId,
         });
       }
 

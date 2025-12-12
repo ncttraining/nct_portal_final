@@ -212,7 +212,7 @@ export async function sendNewBookingNotification(
     'trainer_new_booking',
     templateData,
     undefined,
-    { recipientName: trainer.name, priority: 3 }
+    { recipientName: trainer.name, priority: 3, recipientTrainerId: trainer.id }
   );
 }
 
@@ -260,7 +260,7 @@ export async function sendBookingMovedNotification(
     'trainer_booking_moved',
     templateData,
     undefined,
-    { recipientName: trainer.name, priority: 3 }
+    { recipientName: trainer.name, priority: 3, recipientTrainerId: trainer.id }
   );
 }
 
@@ -296,7 +296,7 @@ export async function sendBookingCancelledNotification(
     'trainer_booking_cancelled',
     templateData,
     undefined,
-    { recipientName: trainer.name, priority: 3 }
+    { recipientName: trainer.name, priority: 3, recipientTrainerId: trainer.id }
   );
 }
 
@@ -401,7 +401,7 @@ export async function sendBookingUpdatedNotification(
     'trainer_booking_updated',
     templateData,
     undefined,
-    { recipientName: trainer.name, priority: 4 }
+    { recipientName: trainer.name, priority: 4, recipientTrainerId: trainer.id }
   );
 }
 
@@ -479,7 +479,7 @@ export async function sendOpenCourseAssignmentNotification(
     'trainer_open_course_assignment',
     templateData,
     undefined,
-    { recipientName: trainer.name, priority: 5 }
+    { recipientName: trainer.name, priority: 5, recipientTrainerId: trainer.id }
   );
 }
 
@@ -514,6 +514,6 @@ export async function sendProvisionalBookingNotification(
     'trainer_provisional_booking',
     templateData,
     undefined,
-    { recipientName: trainer.name, priority: 4 }
+    { recipientName: trainer.name, priority: 4, recipientTrainerId: trainer.id }
   );
 }

@@ -21,6 +21,10 @@ export interface EmailQueueEntry {
   created_at: string;
   updated_at: string;
   created_by_user_id: string | null;
+  // Recipient references for email refresh on retry
+  recipient_trainer_id: string | null;
+  recipient_user_id: string | null;
+  recipient_delegate_id: string | null;
 }
 
 export interface EmailAttachment {
@@ -39,6 +43,10 @@ export interface QueueEmailParams {
   attachments?: EmailAttachment[];
   priority?: number;
   scheduledAt?: Date;
+  // Optional recipient references - if provided, email address will be refreshed on retry
+  recipientTrainerId?: string;
+  recipientUserId?: string;
+  recipientDelegateId?: string;
 }
 
 export interface EmailQueueStats {
@@ -85,6 +93,10 @@ export async function queueEmail(params: QueueEmailParams): Promise<string | nul
       priority: params.priority || 5,
       scheduled_at: params.scheduledAt?.toISOString() || new Date().toISOString(),
       created_by_user_id: user?.id || null,
+      // Recipient references for email refresh on retry
+      recipient_trainer_id: params.recipientTrainerId || null,
+      recipient_user_id: params.recipientUserId || null,
+      recipient_delegate_id: params.recipientDelegateId || null,
     };
 
     const { data, error } = await supabase
@@ -198,25 +210,17 @@ export async function getEmailQueueStats(): Promise<EmailQueueStats | null> {
 
 export async function retryEmail(id: string): Promise<boolean> {
   try {
-    // Allow retrying/resending failed, cancelled, and sent emails
-    const { error } = await supabase
-      .from('email_queue')
-      .update({
-        status: 'pending',
-        error_message: null,
-        scheduled_at: new Date().toISOString(),
-        sent_at: null,
-        attempts: 0, // Reset attempts counter
-      })
-      .eq('id', id)
-      .in('status', ['failed', 'cancelled', 'sent']);
+    // Use database function that refreshes recipient email from source record
+    const { data, error } = await supabase.rpc('retry_email_with_refresh', {
+      email_id: id,
+    });
 
     if (error) {
       console.error('Error retrying email:', error);
       return false;
     }
 
-    return true;
+    return data === true;
   } catch (error) {
     console.error('Failed to retry email:', error);
     return false;
@@ -245,26 +249,17 @@ export async function cancelEmail(id: string): Promise<boolean> {
 
 export async function bulkRetryEmails(ids: string[]): Promise<number> {
   try {
-    // Allow retrying/resending failed, cancelled, and sent emails
-    const { data, error } = await supabase
-      .from('email_queue')
-      .update({
-        status: 'pending',
-        error_message: null,
-        scheduled_at: new Date().toISOString(),
-        sent_at: null,
-        attempts: 0, // Reset attempts counter
-      })
-      .in('id', ids)
-      .in('status', ['failed', 'cancelled', 'sent'])
-      .select('id');
+    // Use database function that refreshes recipient emails from source records
+    const { data, error } = await supabase.rpc('bulk_retry_emails_with_refresh', {
+      email_ids: ids,
+    });
 
     if (error) {
       console.error('Error bulk retrying emails:', error);
       return 0;
     }
 
-    return data?.length || 0;
+    return data || 0;
   } catch (error) {
     console.error('Failed to bulk retry emails:', error);
     return 0;

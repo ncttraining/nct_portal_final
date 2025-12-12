@@ -22,7 +22,14 @@ export async function sendEmail(
   subject: string,
   htmlBody: string,
   textBody?: string,
-  options?: { sendImmediately?: boolean; recipientName?: string; priority?: number }
+  options?: {
+    sendImmediately?: boolean;
+    recipientName?: string;
+    priority?: number;
+    recipientTrainerId?: string;
+    recipientUserId?: string;
+    recipientDelegateId?: string;
+  }
 ): Promise<boolean> {
   if (options?.sendImmediately) {
     try {
@@ -61,6 +68,9 @@ export async function sendEmail(
     htmlBody,
     textBody,
     priority: options?.priority || 5,
+    recipientTrainerId: options?.recipientTrainerId,
+    recipientUserId: options?.recipientUserId,
+    recipientDelegateId: options?.recipientDelegateId,
   });
 
   return queueId !== null;
@@ -71,7 +81,14 @@ export async function sendTemplateEmail(
   templateKey: string,
   templateData: Record<string, string>,
   attachments?: EmailAttachment[],
-  options?: { sendImmediately?: boolean; recipientName?: string; priority?: number }
+  options?: {
+    sendImmediately?: boolean;
+    recipientName?: string;
+    priority?: number;
+    recipientTrainerId?: string;
+    recipientUserId?: string;
+    recipientDelegateId?: string;
+  }
 ): Promise<boolean> {
   if (options?.sendImmediately) {
     try {
@@ -110,6 +127,9 @@ export async function sendTemplateEmail(
     templateData,
     attachments,
     priority: options?.priority || 5,
+    recipientTrainerId: options?.recipientTrainerId,
+    recipientUserId: options?.recipientUserId,
+    recipientDelegateId: options?.recipientDelegateId,
   });
 
   return queueId !== null;
