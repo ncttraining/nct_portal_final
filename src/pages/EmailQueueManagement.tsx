@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Search, RefreshCw, CheckCircle, Clock, Send, XCircle, AlertCircle, X, Eye, Calendar } from 'lucide-react';
+import { Mail, Search, RefreshCw, CheckCircle, Clock, Send, XCircle, AlertCircle, X, Eye, Calendar, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Notification from '../components/Notification';
 import {
@@ -386,7 +386,17 @@ export default function EmailQueueManagement({ currentPage, onNavigate }: EmailQ
                             className="rounded bg-slate-800 border-slate-700"
                           />
                         </td>
-                        <td className="px-4 py-3">{getStatusBadge(email.status)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                            {getStatusBadge(email.status)}
+                            {email.resend_count > 0 && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-purple-500/20 text-purple-400" title={`Resent ${email.resend_count} time${email.resend_count > 1 ? 's' : ''}`}>
+                                <RotateCcw className="w-3 h-3" />
+                                {email.resend_count}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-3">
                           <div className="text-sm">
                             {email.recipient_name && (
@@ -508,7 +518,15 @@ export default function EmailQueueManagement({ currentPage, onNavigate }: EmailQ
             <div className="p-6 space-y-6">
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Status</label>
-                <div>{getStatusBadge(detailEmail.status)}</div>
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(detailEmail.status)}
+                  {detailEmail.resend_count > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-purple-500/20 text-purple-400">
+                      <RotateCcw className="w-3 h-3" />
+                      Resent {detailEmail.resend_count} time{detailEmail.resend_count > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -587,9 +605,16 @@ export default function EmailQueueManagement({ currentPage, onNavigate }: EmailQ
                 </div>
               )}
 
+              {detailEmail.original_sent_at && (
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Originally Sent</label>
+                  <div className="text-sm">{new Date(detailEmail.original_sent_at).toLocaleString()}</div>
+                </div>
+              )}
+
               {detailEmail.sent_at && (
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Sent At</label>
+                  <label className="block text-sm text-slate-400 mb-1">{detailEmail.original_sent_at ? 'Last Sent At' : 'Sent At'}</label>
                   <div className="text-sm">{new Date(detailEmail.sent_at).toLocaleString()}</div>
                 </div>
               )}

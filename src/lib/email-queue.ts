@@ -25,6 +25,9 @@ export interface EmailQueueEntry {
   recipient_trainer_id: string | null;
   recipient_user_id: string | null;
   recipient_delegate_id: string | null;
+  // Resend tracking
+  resend_count: number;
+  original_sent_at: string | null;
 }
 
 export interface EmailAttachment {
