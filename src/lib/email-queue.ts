@@ -28,6 +28,7 @@ export interface EmailQueueEntry {
   // Resend tracking
   resend_count: number;
   original_sent_at: string | null;
+  original_recipient_email: string | null;
 }
 
 export interface EmailAttachment {
@@ -308,5 +309,29 @@ export async function getUniqueTemplateKeys(): Promise<string[]> {
   } catch (error) {
     console.error('Failed to fetch template keys:', error);
     return [];
+  }
+}
+
+export async function forwardEmail(
+  emailId: string,
+  forwardToEmail: string,
+  forwardToName?: string
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.rpc('forward_email', {
+      email_id: emailId,
+      forward_to_email: forwardToEmail,
+      forward_to_name: forwardToName || null,
+    });
+
+    if (error) {
+      console.error('Error forwarding email:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to forward email:', error);
+    return null;
   }
 }
