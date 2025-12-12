@@ -25,6 +25,7 @@ interface PendingTwoFactorAuth {
   userId: string;
   email: string;
   fullName: string | null;
+  password: string; // Store password temporarily for 2FA verification
 }
 
 interface AuthContextType {
@@ -166,11 +167,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Checking 2FA status:', userProfile?.two_factor_enabled);
       if (userProfile && userProfile.two_factor_enabled) {
         console.log('2FA is enabled - setting pending state and signing out');
-        // Set pending 2FA state - user needs to verify before completing login
+        // Set pending 2FA state with credentials - user needs to verify before completing login
         setPendingTwoFactorAuth({
           userId: data.user.id,
           email: data.user.email || email,
           fullName: userProfile.full_name,
+          password, // Store password for re-authentication after 2FA
         });
         // Sign out temporarily - will sign back in after 2FA verification
         await supabase.auth.signOut();
