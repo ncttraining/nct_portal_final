@@ -873,7 +873,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
     switch (status) {
       case 'issued':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded">
+          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded">
             <CheckCircle className="w-3 h-3" />
             Issued
           </span>
@@ -881,12 +881,12 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
       case 'revoked':
         return (
           <div className="inline-flex flex-col gap-1">
-            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
+            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded">
               <XCircle className="w-3 h-3" />
               Revoked
             </span>
             {revokedReason && (
-              <span className="text-xs text-red-400/80 italic">
+              <span className="text-xs text-red-600 dark:text-red-400/80 italic">
                 {revokedReason}
               </span>
             )}
@@ -894,7 +894,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         );
       case 'expired':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded">
+          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30 rounded">
             <AlertTriangle className="w-3 h-3" />
             Expired
           </span>
@@ -910,7 +910,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
     if (!expiryDate) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-slate-500/20 text-slate-400 border border-slate-500/30 rounded">
+        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-slate-500/20 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 border border-slate-500/30 rounded">
           No Expiry
         </span>
       );
@@ -919,7 +919,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
     switch (status) {
       case 'valid':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded">
+          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded">
             <CheckCircle className="w-3 h-3" />
             Valid ({days} days)
           </span>
@@ -933,7 +933,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
         );
       case 'expired':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
+          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded">
             <XCircle className="w-3 h-3" />
             Expired
           </span>
@@ -1050,14 +1050,14 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors flex items-center justify-center">
+        <div className="text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
 
       <main className="max-w-[1600px] mx-auto px-6 py-6">
@@ -1067,7 +1067,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
               activeTab === 'issue'
                 ? 'bg-blue-500 text-white'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                : 'bg-slate-900 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-800'
             }`}
           >
             Issue Certificates
@@ -1077,7 +1077,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
               activeTab === 'view'
                 ? 'bg-blue-500 text-white'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                : 'bg-slate-900 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-800'
             }`}
           >
             View Issued Certificates
@@ -1086,18 +1086,18 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
         {activeTab === 'issue' && (
           <>
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-6">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
               <h2 className="text-sm font-semibold uppercase tracking-wider mb-4">
                 Filter Courses
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Course Type</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">Course Type</label>
                   <select
                     value={issueFilters.courseTypeId}
                     onChange={(e) => setIssueFilters({ ...issueFilters, courseTypeId: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                   >
                     <option value="">All Types</option>
                     {courseTypes.map(type => (
@@ -1107,29 +1107,29 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Start Date</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">Start Date</label>
                   <input
                     type="date"
                     value={issueFilters.startDate}
                     onChange={(e) => setIssueFilters({ ...issueFilters, startDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">End Date</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">End Date</label>
                   <input
                     type="date"
                     value={issueFilters.endDate}
                     onChange={(e) => setIssueFilters({ ...issueFilters, endDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                   />
                 </div>
 
                 <div className="flex items-end">
                   <button
                     onClick={() => setIssueFilters({ courseTypeId: '', startDate: '', endDate: '' })}
-                    className="px-4 py-2 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                    className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
                   >
                     Clear Filters
                   </button>
@@ -1144,7 +1144,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   issueSubTab === 'private'
                     ? 'bg-slate-700 text-white'
-                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                    : 'bg-slate-900 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-800'
                 }`}
               >
                 Private Courses ({bookings.length})
@@ -1154,7 +1154,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   issueSubTab === 'open'
                     ? 'bg-slate-700 text-white'
-                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                    : 'bg-slate-900 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-800'
                 }`}
               >
                 Open Courses ({openCourseSessions.length})
@@ -1169,10 +1169,10 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
               </h2>
 
               {bookings.length === 0 ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center">
-                  <Award className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400 mb-2">No booked courses found</p>
-                  <p className="text-sm text-slate-500">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center">
+                  <Award className="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-2">No booked courses found</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-600 dark:text-slate-500">
                     Courses with assigned course types will appear here
                   </p>
                 </div>
@@ -1192,7 +1192,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                     return (
                       <div
                         key={booking.id}
-                        className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden"
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden"
                       >
                         <div
                           className="p-4 cursor-pointer hover:bg-slate-900/80 transition-colors"
@@ -1201,21 +1201,21 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-3 flex-1">
                               {isExpanded ? (
-                                <ChevronDown className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                                <ChevronDown className="w-5 h-5 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mt-0.5 flex-shrink-0" />
                               ) : (
-                                <ChevronRight className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                                <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mt-0.5 flex-shrink-0" />
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3 mb-2 flex-wrap">
                                   <h3 className="font-semibold text-lg">{booking.title}</h3>
-                                  <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">
+                                  <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded">
                                     {courseType?.name}
                                   </span>
-                                  <span className="px-2 py-1 text-xs bg-slate-800 text-slate-300 rounded">
+                                  <span className="px-2 py-1 text-xs bg-slate-800 text-slate-400 dark:text-slate-600 dark:text-slate-300 rounded">
                                     {candidateCount} candidate{candidateCount !== 1 ? 's' : ''}
                                   </span>
                                   {passedCount > 0 && (
-                                    <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded">
+                                    <span className="px-2 py-1 text-xs bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded">
                                       {passedCount} passed
                                     </span>
                                   )}
@@ -1225,7 +1225,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                     </span>
                                   )}
                                   {!isExpanded && requiredFields.length > 0 && (
-                                    <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded">
+                                    <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded">
                                       {requiredFields.length} field{requiredFields.length !== 1 ? 's' : ''} to complete
                                     </span>
                                   )}
@@ -1233,23 +1233,23 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
                                 <div className="grid grid-cols-3 gap-4 text-sm">
                                   <div>
-                                    <span className="text-slate-500">Course Dates:</span>
-                                    <span className="ml-2 text-slate-300">
+                                    <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Course Dates:</span>
+                                    <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">
                                       {formatDate(booking.booking_date)}
                                       {booking.num_days > 1 && ` - ${formatDate(booking.course_date_end)}`}
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-slate-500">Trainer:</span>
-                                    <span className="ml-2 text-slate-300">{booking.trainer_name}</span>
+                                    <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Trainer:</span>
+                                    <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">{booking.trainer_name}</span>
                                   </div>
                                   <div>
-                                    <span className="text-slate-500">Client:</span>
-                                    <span className="ml-2 text-slate-300">{booking.client_name}</span>
+                                    <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Client:</span>
+                                    <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">{booking.client_name}</span>
                                   </div>
                                 </div>
                                 {!isExpanded && requiredFields.length > 0 && passedCount > 0 && passedCount > withCerts && (
-                                  <div className="mt-3 text-xs text-slate-400 flex items-center gap-2">
+                                  <div className="mt-3 text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 flex items-center gap-2">
                                     <ChevronDown className="w-4 h-4" />
                                     <span>Click to expand and complete certificate fields for passed candidates</span>
                                   </div>
@@ -1263,7 +1263,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                   <button
                                     onClick={() => handleBulkGeneratePDFs(booking)}
                                     disabled={bulkGenerating === booking.id || !selectedTemplates[booking.id]}
-                                    className="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded transition-colors flex items-center gap-1.5"
+                                    className="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 disabled:bg-slate-700 disabled:text-slate-400 dark:text-slate-600 dark:text-slate-500 text-white rounded transition-colors flex items-center gap-1.5"
                                   >
                                     {bulkGenerating === booking.id ? (
                                       <>
@@ -1282,7 +1282,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                   <button
                                     onClick={() => handleBulkEmailCertificates(booking)}
                                     disabled={bulkEmailing === booking.id}
-                                    className="px-3 py-1.5 text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded transition-colors flex items-center gap-1.5"
+                                    className="px-3 py-1.5 text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:text-slate-400 dark:text-slate-600 dark:text-slate-500 text-white rounded transition-colors flex items-center gap-1.5"
                                   >
                                     {bulkEmailing === booking.id ? (
                                       <>
@@ -1305,16 +1305,16 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                         {isExpanded && (
                           <div className="border-t border-slate-800 bg-slate-950/50 p-4">
                             {(requiredFields.filter(f => f.scope === 'course').length > 0 || (booking.course_type_id && availableTemplates[booking.course_type_id])) && (
-                              <div className="mb-6 bg-slate-900 border border-slate-800 rounded-lg p-4">
+                              <div className="mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
                                 <h4 className="text-sm font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                                  <Award className="w-4 h-4 text-blue-400" />
+                                  <Award className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                   Course-Level Information (applies to all candidates)
                                 </h4>
 
                                 {booking.course_type_id && availableTemplates[booking.course_type_id] && availableTemplates[booking.course_type_id].length > 0 && (
                                   <div className="mb-4 grid grid-cols-2 gap-3">
                                     <div>
-                                      <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
+                                      <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
                                         Certificate Template *
                                       </label>
                                       <select
@@ -1324,7 +1324,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                           setSelectedTemplates({ ...selectedTemplates, [booking.id]: newTemplateId });
                                           updateBookingCertificateTemplate(booking.id, newTemplateId);
                                         }}
-                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                       >
                                         {availableTemplates[booking.course_type_id].map(template => (
                                           <option key={template.id} value={template.id}>{template.name}</option>
@@ -1332,7 +1332,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                       </select>
                                     </div>
                                     <div>
-                                      <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
+                                      <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
                                         Course Duration (override default)
                                       </label>
@@ -1356,7 +1356,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                             });
                                             updateBookingDuration(booking.id, newValue, unit);
                                           }}
-                                          className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                          className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                         />
                                         <select
                                           value={bookingDurations[booking.id]?.unit || 'days'}
@@ -1372,7 +1372,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                             });
                                             updateBookingDuration(booking.id, value, newUnit);
                                           }}
-                                          className="px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                          className="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                         >
                                           <option value="hours">Hours</option>
                                           <option value="days">Days</option>
@@ -1388,10 +1388,10 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                     const hasDefault = isDefaultValue(booking, field.name);
                                     return (
                                       <div key={field.name}>
-                                        <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
+                                        <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
                                           {field.label}{field.required && ' *'}
                                           {hasDefault && (
-                                            <span className="text-xs text-blue-400" title="Using course type default">
+                                            <span className="text-xs text-blue-600 dark:text-blue-400" title="Using course type default">
                                               (default)
                                             </span>
                                           )}
@@ -1493,34 +1493,34 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                 return (
                                   <div
                                     key={candidate.id}
-                                    className="bg-slate-900 border border-slate-800 rounded-lg p-4"
+                                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4"
                                   >
                                     <div className="flex items-start justify-between gap-4">
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                           <h5 className="font-semibold">{candidate.candidate_name}</h5>
                                           {candidate.passed && (
-                                            <CheckCircle className="w-4 h-4 text-green-400" />
+                                            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                                           )}
                                           {cert && cert.status === 'issued' && (
-                                            <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">
+                                            <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded">
                                               Certificate Issued
                                             </span>
                                           )}
                                           {cert && cert.status === 'revoked' && (
-                                            <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded flex items-center gap-1">
+                                            <span className="px-2 py-1 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded flex items-center gap-1">
                                               <XCircle className="w-3 h-3" />
                                               Certificate Revoked
                                             </span>
                                           )}
                                           {cert && cert.status === 'expired' && (
-                                            <span className="px-2 py-1 text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded">
+                                            <span className="px-2 py-1 text-xs bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 rounded">
                                               Certificate Expired
                                             </span>
                                           )}
                                         </div>
                                         {candidate.email && (
-                                          <p className="text-xs text-slate-400 mb-3">{candidate.email}</p>
+                                          <p className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-3">{candidate.email}</p>
                                         )}
 
                                         {candidate.passed && (!cert || cert.status !== 'issued') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
@@ -1529,10 +1529,10 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               const hasDefault = isCandidateDefaultValue(candidate.id, field.name, booking);
                                               return (
                                                 <div key={field.name}>
-                                                  <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
+                                                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
                                                     {field.label}{field.required && ' *'}
                                                     {hasDefault && (
-                                                      <span className="text-xs text-green-400" title="Using course type default">
+                                                      <span className="text-xs text-green-600 dark:text-green-400" title="Using course type default">
                                                         (default)
                                                       </span>
                                                     )}
@@ -1611,7 +1611,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               <button
                                                 onClick={() => handleDownloadCertificate(cert)}
                                                 disabled={regeneratingPdf === cert.id}
-                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                               >
                                                 <Download className="w-4 h-4" />
                                                 {regeneratingPdf === cert.id ? 'Generating...' : (cert.certificate_pdf_url ? 'Download' : 'Generate PDF')}
@@ -1619,30 +1619,30 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               <button
                                                 onClick={() => handleEmailCertificate(cert)}
                                                 disabled={!cert.certificate_pdf_url || sendingEmailFor === cert.id}
-                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                               >
                                                 <Send className="w-4 h-4" />
                                                 {sendingEmailFor === cert.id ? 'Sending...' : 'Send to Candidate'}
                                               </button>
                                               <button
                                                 onClick={() => setShowRevokeModal(cert.id)}
-                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
+                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
                                               >
                                                 <Ban className="w-4 h-4" />
                                                 Revoke
                                               </button>
-                                              <span className="text-xs text-slate-500 ml-2">
+                                              <span className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 ml-2">
                                                 Cert #{cert.certificate_number}
                                               </span>
                                             </>
                                           )}
                                           {cert && cert.status === 'revoked' && (
                                             <div className="flex items-center gap-2">
-                                              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
+                                              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded">
                                                 <XCircle className="w-3 h-3" />
                                                 Revoked
                                               </span>
-                                              <span className="text-xs text-slate-500">
+                                              <span className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500">
                                                 Cert #{cert.certificate_number}
                                               </span>
                                               {candidate.passed && (
@@ -1668,7 +1668,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                           disabled={cert && cert.status === 'issued'}
                                           className="w-4 h-4 rounded disabled:cursor-not-allowed"
                                         />
-                                        <span className="text-xs text-slate-400">Passed</span>
+                                        <span className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400">Passed</span>
                                       </label>
                                     </div>
                                   </div>
@@ -1693,10 +1693,10 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
               </h2>
 
               {openCourseSessions.length === 0 ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center">
-                  <Award className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400 mb-2">No open course sessions found</p>
-                  <p className="text-sm text-slate-500">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center">
+                  <Award className="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-2">No open course sessions found</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-600 dark:text-slate-500">
                     Open courses with assigned course types and delegates will appear here
                   </p>
                 </div>
@@ -1717,7 +1717,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                     return (
                       <div
                         key={session.id}
-                        className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden"
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden"
                       >
                         <div
                           className="p-4 cursor-pointer hover:bg-slate-900/80 transition-colors"
@@ -1726,24 +1726,24 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-3 flex-1">
                               {isExpanded ? (
-                                <ChevronDown className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                                <ChevronDown className="w-5 h-5 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mt-0.5 flex-shrink-0" />
                               ) : (
-                                <ChevronRight className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                                <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mt-0.5 flex-shrink-0" />
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3 mb-2 flex-wrap">
                                   <h3 className="font-semibold text-lg">{session.event_title}</h3>
-                                  <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded">
+                                  <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded">
                                     Open Course
                                   </span>
-                                  <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">
+                                  <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded">
                                     {courseType?.name}
                                   </span>
-                                  <span className="px-2 py-1 text-xs bg-slate-800 text-slate-300 rounded">
+                                  <span className="px-2 py-1 text-xs bg-slate-800 text-slate-400 dark:text-slate-600 dark:text-slate-300 rounded">
                                     {delegateCount} delegate{delegateCount !== 1 ? 's' : ''}
                                   </span>
                                   {attendedCount > 0 && (
-                                    <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded">
+                                    <span className="px-2 py-1 text-xs bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded">
                                       {attendedCount} attended
                                     </span>
                                   )}
@@ -1756,19 +1756,19 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
                                 <div className="grid grid-cols-3 gap-4 text-sm">
                                   <div>
-                                    <span className="text-slate-500">Session Date:</span>
-                                    <span className="ml-2 text-slate-300">
+                                    <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Session Date:</span>
+                                    <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">
                                       {formatDate(session.session_date)}
                                       {session.end_date && session.end_date !== session.session_date && ` - ${formatDate(session.end_date)}`}
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="text-slate-500">Trainer:</span>
-                                    <span className="ml-2 text-slate-300">{session.trainer_name}</span>
+                                    <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Trainer:</span>
+                                    <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">{session.trainer_name}</span>
                                   </div>
                                   <div>
-                                    <span className="text-slate-500">Venue:</span>
-                                    <span className="ml-2 text-slate-300">{session.venue_name || 'Not set'}</span>
+                                    <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Venue:</span>
+                                    <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">{session.venue_name || 'Not set'}</span>
                                   </div>
                                 </div>
                               </div>
@@ -1780,7 +1780,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                   <button
                                     onClick={() => handleBulkGenerateOpenCourseCertificates(session)}
                                     disabled={bulkGenerating === session.id || !selectedTemplates[session.id]}
-                                    className="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded transition-colors flex items-center gap-1.5"
+                                    className="px-3 py-1.5 text-xs bg-green-500 hover:bg-green-600 disabled:bg-slate-700 disabled:text-slate-400 dark:text-slate-600 dark:text-slate-500 text-white rounded transition-colors flex items-center gap-1.5"
                                   >
                                     {bulkGenerating === session.id ? (
                                       <>
@@ -1799,7 +1799,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                   <button
                                     onClick={() => handleBulkEmailOpenCourseCertificates(session)}
                                     disabled={bulkEmailing === session.id}
-                                    className="px-3 py-1.5 text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded transition-colors flex items-center gap-1.5"
+                                    className="px-3 py-1.5 text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:text-slate-400 dark:text-slate-600 dark:text-slate-500 text-white rounded transition-colors flex items-center gap-1.5"
                                   >
                                     {bulkEmailing === session.id ? (
                                       <>
@@ -1822,16 +1822,16 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                         {isExpanded && (
                           <div className="border-t border-slate-800 bg-slate-950/50 p-4">
                             {(requiredFields.filter(f => f.scope === 'course').length > 0 || (session.course_type_id && availableTemplates[session.course_type_id])) && (
-                              <div className="mb-6 bg-slate-900 border border-slate-800 rounded-lg p-4">
+                              <div className="mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
                                 <h4 className="text-sm font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                                  <Award className="w-4 h-4 text-blue-400" />
+                                  <Award className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                   Session-Level Information (applies to all delegates)
                                 </h4>
 
                                 {session.course_type_id && availableTemplates[session.course_type_id] && availableTemplates[session.course_type_id].length > 0 && (
                                   <div className="mb-4 grid grid-cols-2 gap-3">
                                     <div>
-                                      <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
+                                      <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
                                         Certificate Template *
                                       </label>
                                       <select
@@ -1839,7 +1839,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                         onChange={(e) => {
                                           setSelectedTemplates({ ...selectedTemplates, [session.id]: e.target.value });
                                         }}
-                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                       >
                                         {availableTemplates[session.course_type_id].map(template => (
                                           <option key={template.id} value={template.id}>{template.name}</option>
@@ -1847,7 +1847,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                       </select>
                                     </div>
                                     <div>
-                                      <label className="block text-xs text-slate-400 mb-1 flex items-center gap-1">
+                                      <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
                                         Course Duration (override default)
                                       </label>
@@ -1880,7 +1880,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               console.error('Failed to save duration:', err);
                                             });
                                           }}
-                                          className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                          className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                         />
                                         <select
                                           value={openCourseDurations[session.id]?.unit || 'days'}
@@ -1905,7 +1905,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                               console.error('Failed to save duration unit:', err);
                                             });
                                           }}
-                                          className="px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                          className="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                         >
                                           <option value="hours">Hours</option>
                                           <option value="days">Days</option>
@@ -1919,14 +1919,14 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                   <div className="grid grid-cols-2 gap-3">
                                     {requiredFields.filter(f => f.scope === 'course').map(field => (
                                       <div key={field.name}>
-                                        <label className="block text-xs text-slate-400 mb-1">
+                                        <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">
                                           {field.label}{field.required && ' *'}
                                         </label>
                                         {field.type === 'dropdown' ? (
                                           <select
                                             value={openCourseSessionData[session.id]?.[field.name] || ''}
                                             onChange={(e) => updateOpenCourseSessionField(session.id, field.name, e.target.value)}
-                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                           >
                                             <option value="">Select...</option>
                                             {field.options?.map(option => (
@@ -1939,14 +1939,14 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                             value={openCourseSessionData[session.id]?.[field.name] || ''}
                                             onChange={(e) => updateOpenCourseSessionField(session.id, field.name, parseFloat(e.target.value) || 0)}
                                             placeholder={field.placeholder}
-                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                           />
                                         ) : field.type === 'date' ? (
                                           <input
                                             type="date"
                                             value={openCourseSessionData[session.id]?.[field.name] || ''}
                                             onChange={(e) => updateOpenCourseSessionField(session.id, field.name, e.target.value)}
-                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                           />
                                         ) : (
                                           <input
@@ -1954,7 +1954,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                             value={openCourseSessionData[session.id]?.[field.name] || ''}
                                             onChange={(e) => updateOpenCourseSessionField(session.id, field.name, e.target.value)}
                                             placeholder={field.placeholder}
-                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                           />
                                         )}
                                       </div>
@@ -1975,47 +1975,47 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                 return (
                                   <div
                                     key={delegate.id}
-                                    className="bg-slate-900 border border-slate-800 rounded-lg p-4"
+                                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4"
                                   >
                                     <div className="flex items-start justify-between gap-4">
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                           <h5 className="font-semibold">{delegate.delegate_name}</h5>
                                           {isAttended && (
-                                            <CheckCircle className="w-4 h-4 text-green-400" />
+                                            <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                                           )}
                                           {cert && cert.status === 'issued' && (
-                                            <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">
+                                            <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded">
                                               Certificate Issued
                                             </span>
                                           )}
                                           {cert && cert.status === 'revoked' && (
-                                            <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
+                                            <span className="px-2 py-1 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded">
                                               Certificate Revoked
                                             </span>
                                           )}
                                           {cert && cert.status === 'expired' && (
-                                            <span className="px-2 py-1 text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded">
+                                            <span className="px-2 py-1 text-xs bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 rounded">
                                               Certificate Expired
                                             </span>
                                           )}
                                         </div>
                                         {delegate.delegate_email && (
-                                          <p className="text-xs text-slate-400 mb-3">{delegate.delegate_email}</p>
+                                          <p className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-3">{delegate.delegate_email}</p>
                                         )}
 
                                         {isAttended && (!cert || cert.status !== 'issued') && requiredFields.filter(f => f.scope === 'candidate').length > 0 && (
                                           <div className="grid grid-cols-2 gap-3 mb-3">
                                             {requiredFields.filter(f => f.scope === 'candidate').map(field => (
                                               <div key={field.name}>
-                                                <label className="block text-xs text-slate-400 mb-1">
+                                                <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">
                                                   {field.label}{field.required && ' *'}
                                                 </label>
                                                 {field.type === 'dropdown' ? (
                                                   <select
                                                     value={openCourseDelegateData[delegate.id]?.[field.name] || ''}
                                                     onChange={(e) => updateOpenCourseDelegateField(delegate.id, field.name, e.target.value)}
-                                                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                                   >
                                                     <option value="">Select...</option>
                                                     {field.options?.map(option => (
@@ -2028,14 +2028,14 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                                     value={openCourseDelegateData[delegate.id]?.[field.name] || ''}
                                                     onChange={(e) => updateOpenCourseDelegateField(delegate.id, field.name, parseFloat(e.target.value) || 0)}
                                                     placeholder={field.placeholder}
-                                                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                                   />
                                                 ) : field.type === 'date' ? (
                                                   <input
                                                     type="date"
                                                     value={openCourseDelegateData[delegate.id]?.[field.name] || ''}
                                                     onChange={(e) => updateOpenCourseDelegateField(delegate.id, field.name, e.target.value)}
-                                                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                                   />
                                                 ) : (
                                                   <input
@@ -2043,7 +2043,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                                     value={openCourseDelegateData[delegate.id]?.[field.name] || ''}
                                                     onChange={(e) => updateOpenCourseDelegateField(delegate.id, field.name, e.target.value)}
                                                     placeholder={field.placeholder}
-                                                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                                   />
                                                 )}
                                               </div>
@@ -2072,7 +2072,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                                   }
                                                 }}
                                                 disabled={!cert.certificate_pdf_url}
-                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50"
+                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50"
                                               >
                                                 <Download className="w-4 h-4" />
                                                 Download
@@ -2105,19 +2105,19 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                                   }
                                                 }}
                                                 disabled={!cert.certificate_pdf_url || sendingEmailFor === cert.id}
-                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors disabled:opacity-50"
                                               >
                                                 <Send className="w-4 h-4" />
                                                 {sendingEmailFor === cert.id ? 'Sending...' : 'Send to Delegate'}
                                               </button>
                                               <button
                                                 onClick={() => setShowRevokeModal(cert.id)}
-                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
+                                                className="flex items-center gap-2 px-3 py-2 text-sm bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
                                               >
                                                 <Ban className="w-4 h-4" />
                                                 Revoke
                                               </button>
-                                              <span className="text-xs text-slate-500 ml-2">
+                                              <span className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 ml-2">
                                                 Cert #{cert.certificate_number}
                                               </span>
                                             </>
@@ -2133,7 +2133,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                           disabled={cert && cert.status === 'issued'}
                                           className="w-4 h-4 rounded disabled:cursor-not-allowed"
                                         />
-                                        <span className="text-xs text-slate-400">Attended</span>
+                                        <span className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400">Attended</span>
                                       </label>
                                     </div>
                                   </div>
@@ -2154,18 +2154,18 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
         {activeTab === 'view' && (
           <>
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-6">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
               <h2 className="text-sm font-semibold uppercase tracking-wider mb-4">
                 Filter Certificates
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Course Type</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">Course Type</label>
                   <select
                     value={viewFilters.courseTypeId}
                     onChange={(e) => setViewFilters({ ...viewFilters, courseTypeId: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                   >
                     <option value="">All Types</option>
                     {courseTypes.map(type => (
@@ -2175,11 +2175,11 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Status</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">Status</label>
                   <select
                     value={viewFilters.status}
                     onChange={(e) => setViewFilters({ ...viewFilters, status: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                   >
                     <option value="">All Statuses</option>
                     <option value="issued">Issued</option>
@@ -2189,11 +2189,11 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Expiry Status</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">Expiry Status</label>
                   <select
                     value={viewFilters.expiryStatus}
                     onChange={(e) => setViewFilters({ ...viewFilters, expiryStatus: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                   >
                     <option value="">All</option>
                     <option value="valid">Valid</option>
@@ -2203,35 +2203,35 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Start Date</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">Start Date</label>
                   <input
                     type="date"
                     value={viewFilters.startDate}
                     onChange={(e) => setViewFilters({ ...viewFilters, startDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">End Date</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">End Date</label>
                   <input
                     type="date"
                     value={viewFilters.endDate}
                     onChange={(e) => setViewFilters({ ...viewFilters, endDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Search</label>
+                  <label className="block text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-1">Search</label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-600 dark:text-slate-500" />
                     <input
                       type="text"
                       value={viewFilters.searchTerm}
                       onChange={(e) => setViewFilters({ ...viewFilters, searchTerm: e.target.value })}
                       placeholder="Name or cert number..."
-                      className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                      className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                     />
                   </div>
                 </div>
@@ -2240,31 +2240,31 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
             <div className="space-y-6">
               {Object.keys(groupedCertificates).length === 0 ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center">
-                  <Award className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400 mb-2">No certificates found</p>
-                  <p className="text-sm text-slate-500">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center">
+                  <Award className="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-2">No certificates found</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-600 dark:text-slate-500">
                     Certificates will appear here once they are issued from courses
                   </p>
                 </div>
               ) : (
                 Object.entries(groupedCertificates).map(([courseType, certs]) => (
-                  <div key={courseType} className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-                    <div className="bg-slate-900/80 border-b border-slate-800 px-4 py-3">
+                  <div key={courseType} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+                    <div className="bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 py-3">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold flex items-center gap-2">
-                          <Award className="w-4 h-4 text-blue-400" />
+                          <Award className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                           {courseType}
                         </h3>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400">
                           {certs.length} {certs.length === 1 ? 'certificate' : 'certificates'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="divide-y divide-slate-800">
+                    <div className="divide-y divide-slate-200 dark:divide-slate-800">
                       {certs.map(cert => (
-                        <div key={cert.id} className="p-4 hover:bg-slate-900/50 transition-colors">
+                        <div key={cert.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -2272,7 +2272,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                 {getStatusBadge(cert.status, cert.revoked_reason)}
                                 {getExpiryBadge(cert.expiry_date)}
                                 {cert.sent_at && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded">
                                     <Mail className="w-3 h-3" />
                                     Sent
                                   </span>
@@ -2281,41 +2281,41 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 text-sm">
                                 <div>
-                                  <span className="text-slate-500">Certificate No:</span>
-                                  <span className="ml-2 font-mono text-blue-400">{cert.certificate_number}</span>
+                                  <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Certificate No:</span>
+                                  <span className="ml-2 font-mono text-blue-600 dark:text-blue-400">{cert.certificate_number}</span>
                                 </div>
                                 <div>
-                                  <span className="text-slate-500">Issue Date:</span>
-                                  <span className="ml-2 text-slate-300">{formatDate(cert.issue_date)}</span>
+                                  <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Issue Date:</span>
+                                  <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">{formatDate(cert.issue_date)}</span>
                                 </div>
                                 <div>
-                                  <span className="text-slate-500">Expiry Date:</span>
-                                  <span className="ml-2 text-slate-300">
+                                  <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Expiry Date:</span>
+                                  <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">
                                     {cert.expiry_date ? formatDate(cert.expiry_date) : 'No Expiry'}
                                   </span>
                                 </div>
                                 <div>
-                                  <span className="text-slate-500">Trainer:</span>
-                                  <span className="ml-2 text-slate-300">{cert.trainer_name || 'N/A'}</span>
+                                  <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">Trainer:</span>
+                                  <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">{cert.trainer_name || 'N/A'}</span>
                                 </div>
                               </div>
 
                               {cert.candidate_email && (
-                                <div className="text-xs text-slate-400 mt-1">
+                                <div className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mt-1">
                                   {cert.candidate_email}
                                 </div>
                               )}
 
                               {cert.course_specific_data && Object.keys(cert.course_specific_data).length > 0 && (
                                 <details className="mt-2">
-                                  <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-300">
+                                  <summary className="text-xs text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-400 dark:text-slate-600 dark:text-slate-300">
                                     View course details
                                   </summary>
                                   <div className="mt-2 p-2 bg-slate-950 rounded text-xs space-y-1">
                                     {Object.entries(cert.course_specific_data).map(([key, value]) => (
                                       <div key={key}>
-                                        <span className="text-slate-500">{key}:</span>
-                                        <span className="ml-2 text-slate-300">{String(value)}</span>
+                                        <span className="text-slate-400 dark:text-slate-600 dark:text-slate-500">{key}:</span>
+                                        <span className="ml-2 text-slate-400 dark:text-slate-600 dark:text-slate-300">{String(value)}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -2329,7 +2329,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                   <button
                                     onClick={() => handleDownloadCertificate(cert)}
                                     disabled={regeneratingPdf === cert.id}
-                                    className="flex items-center gap-1 px-3 py-2 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                    className="flex items-center gap-1 px-3 py-2 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                   >
                                     <Download className="w-3 h-3" />
                                     {regeneratingPdf === cert.id ? 'Generating...' : (cert.certificate_pdf_url ? 'Download' : 'Generate PDF')}
@@ -2337,14 +2337,14 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                   <button
                                     onClick={() => handleEmailCertificate(cert)}
                                     disabled={!cert.certificate_pdf_url || sendingEmailFor === cert.id}
-                                    className="flex items-center gap-1 px-3 py-2 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                    className="flex items-center gap-1 px-3 py-2 text-xs bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                   >
                                     <Send className="w-3 h-3" />
                                     {sendingEmailFor === cert.id ? 'Sending...' : 'Send to Candidate'}
                                   </button>
                                   <button
                                     onClick={() => setShowRevokeModal(cert.id)}
-                                    className="flex items-center gap-1 px-3 py-2 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors whitespace-nowrap"
+                                    className="flex items-center gap-1 px-3 py-2 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors whitespace-nowrap"
                                   >
                                     <Ban className="w-3 h-3" />
                                     Revoke
@@ -2352,7 +2352,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                                 </>
                               )}
                               {cert.status === 'revoked' && (
-                                <span className="text-xs text-red-400">Certificate has been revoked</span>
+                                <span className="text-xs text-red-600 dark:text-red-400">Certificate has been revoked</span>
                               )}
                             </div>
                           </div>
@@ -2364,7 +2364,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
               )}
             </div>
 
-            <div className="mt-6 text-center text-sm text-slate-500">
+            <div className="mt-6 text-center text-sm text-slate-400 dark:text-slate-600 dark:text-slate-500">
               Showing {certificates.length} {certificates.length === 1 ? 'certificate' : 'certificates'}
             </div>
           </>
@@ -2381,21 +2381,21 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
 
       {showRevokeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 max-w-md w-full">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Ban className="w-5 h-5 text-red-400" />
+              <Ban className="w-5 h-5 text-red-600 dark:text-red-400" />
               Revoke Certificate
             </h3>
-            <p className="text-sm text-slate-400 mb-4">
+            <p className="text-sm text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-4">
               This action will revoke the certificate. Please provide a reason for the revocation.
             </p>
             <div className="mb-4">
-              <label className="block text-sm text-slate-400 mb-2">Reason for Revocation *</label>
+              <label className="block text-sm text-slate-400 dark:text-slate-600 dark:text-slate-500 dark:text-slate-400 mb-2">Reason for Revocation *</label>
               <textarea
                 value={revokeReason}
                 onChange={(e) => setRevokeReason(e.target.value)}
                 placeholder="e.g., Issued in error, candidate failed re-assessment..."
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm resize-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm resize-none"
                 rows={3}
               />
             </div>
@@ -2406,7 +2406,7 @@ export default function ViewIssueCertificates({ currentPage, onNavigate }: ViewI
                   setRevokeReason('');
                 }}
                 disabled={revokingCertId !== null}
-                className="px-4 py-2 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

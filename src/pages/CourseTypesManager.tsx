@@ -100,21 +100,21 @@ export default function CourseTypesManager({ currentPage, onNavigate }: CourseTy
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors flex items-center justify-center">
+        <div className="text-slate-500 dark:text-slate-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
 
       <main className="max-w-7xl mx-auto px-6 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold">Course Types</h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {courseTypes.length} {courseTypes.length === 1 ? 'type' : 'types'} configured
             </p>
           </div>
@@ -131,18 +131,18 @@ export default function CourseTypesManager({ currentPage, onNavigate }: CourseTy
           {courseTypes.map(type => (
             <div
               key={type.id}
-              className="bg-slate-900 border border-slate-800 rounded-lg p-4 hover:border-slate-700 transition-colors"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1">{type.name}</h3>
-                  <p className="text-xs font-mono text-blue-400 mb-2">{type.code}</p>
+                  <p className="text-xs font-mono text-blue-600 dark:text-blue-400 mb-2">{type.code}</p>
                   {type.description && (
-                    <p className="text-sm text-slate-400 mb-2">{type.description}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{type.description}</p>
                   )}
                 </div>
                 {!type.active && (
-                  <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded">
+                  <span className="px-2 py-1 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded">
                     Inactive
                   </span>
                 )}
@@ -150,28 +150,28 @@ export default function CourseTypesManager({ currentPage, onNavigate }: CourseTy
 
               <div className="space-y-1 text-sm mb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Duration:</span>
-                  <span className="text-slate-300">
+                  <span className="text-slate-500 dark:text-slate-500">Duration:</span>
+                  <span className="text-slate-600 dark:text-slate-300">
                     {type.duration_days ? `${type.duration_days} ${type.duration_unit || 'days'}` : 'From booking'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Certificate Validity:</span>
-                  <span className="text-slate-300">
+                  <span className="text-slate-500 dark:text-slate-500">Certificate Validity:</span>
+                  <span className="text-slate-600 dark:text-slate-300">
                     {type.certificate_validity_months ? `${type.certificate_validity_months} months` : 'No expiry'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Required Fields:</span>
-                  <span className="text-slate-300">{type.required_fields.length}</span>
+                  <span className="text-slate-500 dark:text-slate-500">Required Fields:</span>
+                  <span className="text-slate-600 dark:text-slate-300">{type.required_fields.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 flex items-center gap-1">
+                  <span className="text-slate-500 dark:text-slate-500 flex items-center gap-1">
                     <Users className="w-3 h-3" />
                     Qualified Trainers:
                   </span>
-                  <span className={`text-slate-300 font-medium ${
-                    qualifiedTrainerCounts[type.id] === 0 ? 'text-yellow-400' : ''
+                  <span className={`text-slate-600 dark:text-slate-300 font-medium ${
+                    qualifiedTrainerCounts[type.id] === 0 ? 'text-yellow-600 dark:text-yellow-400' : ''
                   }`}>
                     {qualifiedTrainerCounts[type.id] || 0}
                   </span>
@@ -181,14 +181,14 @@ export default function CourseTypesManager({ currentPage, onNavigate }: CourseTy
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleEdit(type)}
-                  className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors"
                 >
                   <Edit2 className="w-3 h-3" />
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(type.id)}
-                  className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
                   Delete
@@ -199,8 +199,8 @@ export default function CourseTypesManager({ currentPage, onNavigate }: CourseTy
         </div>
 
         {courseTypes.length === 0 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center">
-            <p className="text-slate-400 mb-4">No course types configured yet</p>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center">
+            <p className="text-slate-500 dark:text-slate-400 mb-4">No course types configured yet</p>
             <button
               onClick={handleCreate}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
@@ -362,10 +362,10 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4 overflow-y-auto"
+      className="fixed inset-0 bg-slate-950/90 dark:bg-slate-950/90 flex items-center justify-center z-50 p-4 overflow-y-auto"
     >
       <div
-        className="bg-slate-900 border border-slate-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto my-8"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto my-8"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-6">
@@ -373,13 +373,13 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
             <h2 className="text-xl font-semibold uppercase tracking-wider">
               {formData.id ? 'Edit Course Type' : 'Create Course Type'}
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Configure course type details and certificate fields
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -388,7 +388,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Course Name *
               </label>
               <input
@@ -397,12 +397,12 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 required
                 placeholder="e.g., Forklift Training"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Course Code *
               </label>
               <input
@@ -411,13 +411,13 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                 onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
                 required
                 placeholder="e.g., FLT"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm uppercase"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm uppercase text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Description
             </label>
             <textarea
@@ -425,13 +425,13 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Brief description of this course type"
               rows={2}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
             />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Duration
               </label>
               <div className="flex gap-2">
@@ -441,12 +441,12 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                   onChange={(e) => setFormData(prev => ({ ...prev, duration_days: e.target.value ? parseInt(e.target.value) : null }))}
                   placeholder="Use booking"
                   min="1"
-                  className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                  className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                 />
                 <select
                   value={formData.duration_unit || 'days'}
                   onChange={(e) => setFormData(prev => ({ ...prev, duration_unit: e.target.value as 'hours' | 'days' }))}
-                  className="px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                 >
                   <option value="hours">Hours</option>
                   <option value="days">Days</option>
@@ -458,7 +458,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Certificate Validity (months)
               </label>
               <input
@@ -467,12 +467,12 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                 onChange={(e) => setFormData(prev => ({ ...prev, certificate_validity_months: e.target.value ? parseInt(e.target.value) : null }))}
                 placeholder="Leave empty for no expiry"
                 min="1"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Sort Order
               </label>
               <input
@@ -480,19 +480,19 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                 value={formData.sort_order}
                 onChange={(e) => setFormData(prev => ({ ...prev, sort_order: parseInt(e.target.value) || 0 }))}
                 min="0"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Required Trainer Type
             </label>
             <select
               value={formData.trainer_type_id || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, trainer_type_id: e.target.value || null }))}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
             >
               <option value="">No requirement (any trainer can teach this)</option>
               {trainerTypes.map(type => (
@@ -516,11 +516,11 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
             </label>
           </div>
 
-          <div className="border-t border-slate-800 pt-6">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wider">Required Fields</h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Define fields that must be filled when issuing certificates
                 </p>
               </div>
@@ -543,22 +543,22 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                   onDragOver={(e) => handleFieldDragOver(e, index)}
                   onDrop={(e) => handleFieldDrop(e, index)}
                   onDragEnd={handleFieldDragEnd}
-                  className={`bg-slate-950 border rounded-lg p-4 transition-all ${
+                  className={`bg-slate-50 dark:bg-slate-950 border rounded-lg p-4 transition-all ${
                     draggedFieldIndex === index
-                      ? 'opacity-50 scale-95 border-slate-600'
+                      ? 'opacity-50 scale-95 border-slate-300 dark:border-slate-600'
                       : dragOverIndex === index && draggedFieldIndex !== null
                       ? 'border-blue-500 border-2'
-                      : 'border-slate-700'
+                      : 'border-slate-300 dark:border-slate-700'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-2 cursor-grab active:cursor-grabbing">
-                      <GripVertical className="w-4 h-4 text-slate-500 hover:text-slate-300" />
+                      <GripVertical className="w-4 h-4 text-slate-500 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300" />
                     </div>
 
                     <div className="flex-1 space-y-3">
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">Field Label</label>
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Field Label</label>
                         <input
                           type="text"
                           value={field.label}
@@ -568,7 +568,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                             updateField(index, { label, name: autoName });
                           }}
                           placeholder="e.g., Equipment Types"
-                          className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs"
+                          className="w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white"
                         />
                         {field.name && (
                           <p className="text-[10px] text-slate-500 mt-1 font-mono">
@@ -579,11 +579,11 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
 
                       <div className="grid grid-cols-3 gap-3">
                         <div>
-                          <label className="block text-xs text-slate-400 mb-1">Field Type</label>
+                          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Field Type</label>
                           <select
                             value={field.type}
                             onChange={(e) => updateField(index, { type: e.target.value as any })}
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs"
+                            className="w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white"
                           >
                             <option value="text">Text</option>
                             <option value="number">Number</option>
@@ -593,11 +593,11 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                         </div>
 
                         <div>
-                          <label className="block text-xs text-slate-400 mb-1">Scope</label>
+                          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Scope</label>
                           <select
                             value={field.scope}
                             onChange={(e) => updateField(index, { scope: e.target.value as 'course' | 'candidate' })}
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs"
+                            className="w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white"
                           >
                             <option value="candidate">Candidate-level</option>
                             <option value="course">Course-level</option>
@@ -605,7 +605,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                         </div>
 
                         <div className="flex items-end">
-                          <label className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                             <input
                               type="checkbox"
                               checked={field.required}
@@ -619,7 +619,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
 
                       {field.type === 'dropdown' && (
                         <div>
-                          <label className="block text-xs text-slate-400 mb-1">Options (comma-separated)</label>
+                          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Options (comma-separated)</label>
                           <input
                             type="text"
                             value={dropdownInputs[index] ?? (field.options || []).join(', ')}
@@ -636,18 +636,18 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                               });
                             }}
                             placeholder="e.g., Option 1, Option 2, Option 3"
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs"
+                            className="w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white"
                           />
                         </div>
                       )}
 
                       {field.type === 'number' && (
                         <div>
-                          <label className="block text-xs text-slate-400 mb-1">Unit (for duration fields)</label>
+                          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Unit (for duration fields)</label>
                           <select
                             value={field.unit || ''}
                             onChange={(e) => updateField(index, { unit: e.target.value as 'hours' | 'days' | undefined || undefined })}
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs"
+                            className="w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white"
                           >
                             <option value="">None</option>
                             <option value="hours">Hours</option>
@@ -658,19 +658,19 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
 
                       {(field.type === 'text' || field.type === 'number') && (
                         <div>
-                          <label className="block text-xs text-slate-400 mb-1">Placeholder</label>
+                          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Placeholder</label>
                           <input
                             type="text"
                             value={field.placeholder || ''}
                             onChange={(e) => updateField(index, { placeholder: e.target.value })}
                             placeholder="e.g., Enter equipment types..."
-                            className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs"
+                            className="w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white"
                           />
                         </div>
                       )}
 
                       <div className={field.scope === 'course' ? 'bg-blue-500/5 border border-blue-500/20 rounded p-3' : 'bg-green-500/5 border border-green-500/20 rounded p-3'}>
-                        <label className="block text-xs text-slate-400 mb-1">
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
                           Default Value (optional)
                           <span className="ml-1 text-slate-500">
                             {field.scope === 'course'
@@ -682,7 +682,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                           <select
                             value={formData.default_course_data?.[field.name] || ''}
                             onChange={(e) => updateDefaultValue(field.name, e.target.value)}
-                            className={`w-full px-2 py-1.5 bg-slate-900 rounded text-xs ${
+                            className={`w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 rounded text-xs text-slate-900 dark:text-white ${
                               field.scope === 'course' ? 'border border-blue-500/30' : 'border border-green-500/30'
                             }`}
                           >
@@ -699,14 +699,14 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                                 value={formData.default_course_data?.[field.name] || ''}
                                 onChange={(e) => updateDefaultValue(field.name, parseFloat(e.target.value) || '')}
                                 placeholder={field.placeholder || 'Enter value...'}
-                                className={`flex-1 px-2 py-1.5 bg-slate-900 rounded text-xs ${
+                                className={`flex-1 px-2 py-1.5 bg-slate-200 dark:bg-slate-900 rounded text-xs text-slate-900 dark:text-white ${
                                   field.scope === 'course' ? 'border border-blue-500/30' : 'border border-green-500/30'
                                 }`}
                               />
                               <select
                                 value={formData.default_course_data?.[`${field.name}_unit`] || field.unit}
                                 onChange={(e) => updateDefaultValue(`${field.name}_unit`, e.target.value)}
-                                className={`px-2 py-1.5 bg-slate-900 rounded text-xs ${
+                                className={`px-2 py-1.5 bg-slate-200 dark:bg-slate-900 rounded text-xs text-slate-900 dark:text-white ${
                                   field.scope === 'course' ? 'border border-blue-500/30' : 'border border-green-500/30'
                                 }`}
                               >
@@ -720,7 +720,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                               value={formData.default_course_data?.[field.name] || ''}
                               onChange={(e) => updateDefaultValue(field.name, parseFloat(e.target.value) || '')}
                               placeholder={field.placeholder || 'Enter default value...'}
-                              className={`w-full px-2 py-1.5 bg-slate-900 rounded text-xs ${
+                              className={`w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 rounded text-xs text-slate-900 dark:text-white ${
                                 field.scope === 'course' ? 'border border-blue-500/30' : 'border border-green-500/30'
                               }`}
                             />
@@ -730,7 +730,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                             type="date"
                             value={formData.default_course_data?.[field.name] || ''}
                             onChange={(e) => updateDefaultValue(field.name, e.target.value)}
-                            className={`w-full px-2 py-1.5 bg-slate-900 rounded text-xs ${
+                            className={`w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 rounded text-xs text-slate-900 dark:text-white ${
                               field.scope === 'course' ? 'border border-blue-500/30' : 'border border-green-500/30'
                             }`}
                           />
@@ -740,20 +740,20 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                             value={formData.default_course_data?.[field.name] || ''}
                             onChange={(e) => updateDefaultValue(field.name, e.target.value)}
                             placeholder={field.placeholder || 'Enter default value...'}
-                            className={`w-full px-2 py-1.5 bg-slate-900 rounded text-xs ${
+                            className={`w-full px-2 py-1.5 bg-slate-200 dark:bg-slate-900 rounded text-xs text-slate-900 dark:text-white ${
                               field.scope === 'course' ? 'border border-blue-500/30' : 'border border-green-500/30'
                             }`}
                           />
                         )}
                       </div>
 
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-500 dark:text-slate-500">
                         {field.scope === 'course' ? (
-                          <span className="text-blue-400">
+                          <span className="text-blue-600 dark:text-blue-400">
                             📋 Course-level: Entered once for the entire course (applies to all candidates)
                           </span>
                         ) : (
-                          <span className="text-green-400">
+                          <span className="text-green-600 dark:text-green-400">
                             👤 Candidate-level: Entered separately for each individual candidate
                           </span>
                         )}
@@ -763,7 +763,7 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
                     <button
                       type="button"
                       onClick={() => removeField(index)}
-                      className="p-1 text-slate-400 hover:text-red-400 transition-colors"
+                      className="p-1 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -773,17 +773,17 @@ function CourseTypeModal({ courseType, onClose, onSave, onNotify }: CourseTypeMo
             </div>
 
             {(formData.required_fields || []).length === 0 && (
-              <div className="text-center py-8 text-slate-400 text-sm border border-dashed border-slate-700 rounded">
+              <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm border border-dashed border-slate-300 dark:border-slate-700 rounded">
                 No fields defined yet. Click "Add Field" to create certificate fields.
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-6 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-6 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
             >
               Cancel
             </button>

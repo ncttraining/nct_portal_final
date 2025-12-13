@@ -194,16 +194,16 @@ function App() {
   if (currentPage !== 'home' && currentPage !== 'administration' && currentPage !== 'bookings-management' && currentPage !== 'course-management') {
     if (!hasAccess(currentPage)) {
       return (
-        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white flex items-center justify-center transition-colors">
           <div className="text-center max-w-md">
             <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
             <h1 className="text-2xl font-semibold mb-2">Access Denied</h1>
-            <p className="text-slate-400 mb-6">
+            <p className="text-slate-500 dark:text-slate-400 mb-6">
               You do not have permission to access this page.
             </p>
             <button
               onClick={() => setCurrentPage('home')}
-              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
+              className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
             >
               Return to Home
             </button>
@@ -445,7 +445,7 @@ function App() {
     const SectionIcon = sectionIcon;
 
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader
           currentPage={currentPage}
           onNavigate={handleNavigate}
@@ -469,10 +469,10 @@ function App() {
         <main className="max-w-7xl mx-auto px-6 py-12">
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <SectionIcon className="w-8 h-8 text-blue-400" />
+              <SectionIcon className="w-8 h-8 text-blue-500 dark:text-blue-400" />
               <h2 className="text-2xl font-semibold">{sectionTitle}</h2>
             </div>
-            <p className="text-slate-400">{sectionDescription}</p>
+            <p className="text-slate-500 dark:text-slate-400">{sectionDescription}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -482,16 +482,16 @@ function App() {
                 <button
                   key={card.id}
                   onClick={() => handleNavigate(card.id)}
-                  className="bg-slate-900 border border-slate-800 rounded-lg p-6 text-left hover:border-blue-500/50 hover:bg-slate-800 transition-all group"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 text-left hover:border-blue-500/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                      <CardIcon className="w-6 h-6 text-blue-400" />
+                      <CardIcon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
                     </div>
-                    <ArrowRight className="w-5 h-5 text-slate-600 group-hover:text-blue-400 transition-colors" />
+                    <ArrowRight className="w-5 h-5 text-slate-400 dark:text-slate-600 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
-                  <p className="text-sm text-slate-400">{card.description}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{card.description}</p>
                 </button>
               );
             })}
@@ -504,7 +504,7 @@ function App() {
   // Show calendar for trainers
   if (profile?.is_trainer && profile?.trainer_id) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader
           currentPage={currentPage}
           onNavigate={handleNavigate}
@@ -530,7 +530,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader
         currentPage={currentPage}
         onNavigate={handleNavigate}
@@ -555,7 +555,7 @@ function App() {
         {/* Portal Home Section */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold mb-2">PORTAL HOME</h2>
-          <p className="text-slate-400">
+          <p className="text-slate-500 dark:text-slate-400">
             Welcome to the National Compliance Training portal. Use the navigation menu above to access different areas of the system.
           </p>
         </div>
@@ -563,67 +563,67 @@ function App() {
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Quick Access Cards */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">System Status</h3>
-              <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded">
+              <span className="px-2 py-1 text-xs bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded">
                 All Systems Operational
               </span>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-400">Database</span>
-                <span className="text-green-400">Connected</span>
+                <span className="text-slate-500 dark:text-slate-400">Database</span>
+                <span className="text-green-600 dark:text-green-400">Connected</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Authentication</span>
-                <span className="text-green-400">Active</span>
+                <span className="text-slate-500 dark:text-slate-400">Authentication</span>
+                <span className="text-green-600 dark:text-green-400">Active</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Storage</span>
-                <span className="text-green-400">Available</span>
+                <span className="text-slate-500 dark:text-slate-400">Storage</span>
+                <span className="text-green-600 dark:text-green-400">Available</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
             <h3 className="text-lg font-semibold mb-4">Your Permissions</h3>
             <div className="space-y-2 text-sm">
               {isAdmin && (
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                  <span className="text-slate-300">Full Administrative Access</span>
+                  <div className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400"></div>
+                  <span className="text-slate-600 dark:text-slate-300">Full Administrative Access</span>
                 </div>
               )}
               {canManageBookings && (
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                  <span className="text-slate-300">Bookings Management</span>
+                  <div className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400"></div>
+                  <span className="text-slate-600 dark:text-slate-300">Bookings Management</span>
                 </div>
               )}
               {canManageCourses && (
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-                  <span className="text-slate-300">Course Management</span>
+                  <div className="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400"></div>
+                  <span className="text-slate-600 dark:text-slate-300">Course Management</span>
                 </div>
               )}
               {canViewBookings && (
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                  <span className="text-slate-300">View Bookings</span>
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 dark:bg-yellow-400"></div>
+                  <span className="text-slate-600 dark:text-slate-300">View Bookings</span>
                 </div>
               )}
               {!isAdmin && !canManageBookings && !canManageCourses && !canViewBookings && (
-                <div className="text-slate-400">
+                <div className="text-slate-500 dark:text-slate-400">
                   Contact your administrator for access permissions.
                 </div>
               )}
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
             <h3 className="text-lg font-semibold mb-4">Today's Focus</h3>
-            <div className="space-y-2 text-sm text-slate-400">
+            <div className="space-y-2 text-sm text-slate-500 dark:text-slate-400">
               <div>Trainer coverage</div>
               <div>Insurance expiry</div>
               <div>DCPC registers</div>

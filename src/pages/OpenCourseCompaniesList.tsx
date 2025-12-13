@@ -367,7 +367,7 @@ export default function OpenCourseCompaniesList({ currentPage, onNavigate }: Ope
   const filteredCompanies = getFilteredAndSortedCompanies();
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader
         title="Open Course Companies"
         icon={Building2}
@@ -510,10 +510,10 @@ export default function OpenCourseCompaniesList({ currentPage, onNavigate }: Ope
             </button>
           </div>
         ) : (
-          <div className="bg-slate-900/50 rounded-lg border border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-900 border-b border-slate-800">
+                <thead className="bg-slate-200 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-3 w-12">
                       <button

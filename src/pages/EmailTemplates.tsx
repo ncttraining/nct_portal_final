@@ -58,9 +58,9 @@ export default function EmailTemplates({ currentPage, onNavigate }: EmailTemplat
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
-      <div className="border-b border-slate-800 px-6 py-3 bg-slate-900/50">
+      <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-3 bg-white/50 dark:bg-slate-900/50">
         <div className="flex items-center justify-end gap-3 max-w-7xl mx-auto">
           <button
             onClick={() => {
@@ -78,11 +78,11 @@ export default function EmailTemplates({ currentPage, onNavigate }: EmailTemplat
       <div className="max-w-6xl mx-auto p-6">
 
         {loading ? (
-          <div className="text-center py-12 text-slate-400">Loading templates...</div>
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">Loading templates...</div>
         ) : templates.length === 0 ? (
           <div className="text-center py-12">
             <Mail className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400">No email templates yet</p>
+            <p className="text-slate-500 dark:text-slate-400">No email templates yet</p>
             <button
               onClick={() => {
                 setEditingTemplate(null);
@@ -98,25 +98,25 @@ export default function EmailTemplates({ currentPage, onNavigate }: EmailTemplat
             {templates.map((template) => (
               <div
                 key={template.id}
-                className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-colors"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold">{template.name}</h3>
-                      <span className="px-2 py-1 text-xs bg-slate-800 rounded-full font-mono">
+                      <span className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-800 rounded-full font-mono">
                         {template.template_key}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-400 mb-3">{template.description}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{template.description}</p>
                     <div className="space-y-2">
                       <div>
                         <span className="text-xs uppercase tracking-wider text-slate-500">Subject:</span>
-                        <p className="text-sm text-slate-300 mt-1">{template.subject_template}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{template.subject_template}</p>
                       </div>
                       <div>
                         <span className="text-xs uppercase tracking-wider text-slate-500">Body Preview:</span>
-                        <p className="text-sm text-slate-300 mt-1 line-clamp-2">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
                           {template.body_text || template.body_html.replace(/<[^>]*>/g, '')}
                         </p>
                       </div>
@@ -128,7 +128,7 @@ export default function EmailTemplates({ currentPage, onNavigate }: EmailTemplat
                         setEditingTemplate(template);
                         setShowModal(true);
                       }}
-                      className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                      className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors"
                       title="Edit template"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -287,7 +287,7 @@ function TemplateModal({
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
     >
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-6">
@@ -296,7 +296,7 @@ function TemplateModal({
           </h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -305,7 +305,7 @@ function TemplateModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Template Name *
               </label>
               <input
@@ -313,12 +313,12 @@ function TemplateModal({
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                 placeholder="Insurance Expiry Reminder"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Template Key * {template && '(cannot be changed)'}
               </label>
               <input
@@ -327,7 +327,7 @@ function TemplateModal({
                 disabled={!!template}
                 value={formData.template_key}
                 onChange={(e) => setFormData({ ...formData, template_key: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 dark:text-white"
                 placeholder="insurance_expiry_reminder"
               />
               <p className="text-xs text-slate-500 mt-1">Unique identifier (use underscores)</p>
@@ -335,20 +335,20 @@ function TemplateModal({
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Description
             </label>
             <input
               type="text"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               placeholder="Brief description of when this template is used"
             />
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Subject Template *
             </label>
             <input
@@ -356,7 +356,7 @@ function TemplateModal({
               required
               value={formData.subject_template}
               onChange={(e) => setFormData({ ...formData, subject_template: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               placeholder="Insurance Document Expiry - {{trainer_name}}"
             />
             <p className="text-xs text-slate-500 mt-1">
@@ -367,17 +367,17 @@ function TemplateModal({
           {/* Email Body Editor with Mode Toggle */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs uppercase tracking-wider text-slate-400">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Email Body *
               </label>
-              <div className="flex bg-slate-800 rounded-lg p-1">
+              <div className="flex bg-slate-200 dark:bg-slate-800 rounded-lg p-1">
                 <button
                   type="button"
                   onClick={() => setEditorMode('visual')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                     editorMode === 'visual'
                       ? 'bg-blue-500 text-white'
-                      : 'text-slate-400 hover:text-white'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'
                   }`}
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -389,7 +389,7 @@ function TemplateModal({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                     editorMode === 'html'
                       ? 'bg-blue-500 text-white'
-                      : 'text-slate-400 hover:text-white'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'
                   }`}
                 >
                   <Code className="w-3.5 h-3.5" />
@@ -404,13 +404,13 @@ function TemplateModal({
                 rows={16}
                 value={formData.body_html}
                 onChange={(e) => setFormData({ ...formData, body_html: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm text-slate-900 dark:text-white"
                 placeholder="<html><body>Hi {{trainer_name}}, ...</body></html>"
               />
             ) : (
               <iframe
                 ref={iframeRef}
-                className="w-full h-96 bg-white border border-slate-700 rounded-lg"
+                className="w-full h-96 bg-white border border-slate-300 dark:border-slate-700 rounded-lg"
                 title="Email Preview"
               />
             )}
@@ -421,15 +421,15 @@ function TemplateModal({
             </p>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-            <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">Available Placeholders:</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-slate-300">
-              <code className="bg-slate-900 px-2 py-1 rounded">{`{{trainer_name}}`}</code>
-              <code className="bg-slate-900 px-2 py-1 rounded">{`{{trainer_type}}`}</code>
-              <code className="bg-slate-900 px-2 py-1 rounded">{`{{email}}`}</code>
-              <code className="bg-slate-900 px-2 py-1 rounded">{`{{telephone}}`}</code>
-              <code className="bg-slate-900 px-2 py-1 rounded">{`{{expiry_date}}`}</code>
-              <code className="bg-slate-900 px-2 py-1 rounded">{`{{course_title}}`}</code>
+          <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+            <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Available Placeholders:</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-slate-600 dark:text-slate-300">
+              <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded">{`{{trainer_name}}`}</code>
+              <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded">{`{{trainer_type}}`}</code>
+              <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded">{`{{email}}`}</code>
+              <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded">{`{{telephone}}`}</code>
+              <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded">{`{{expiry_date}}`}</code>
+              <code className="bg-white dark:bg-slate-900 px-2 py-1 rounded">{`{{course_title}}`}</code>
             </div>
           </div>
 
@@ -445,7 +445,7 @@ function TemplateModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>

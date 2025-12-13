@@ -343,7 +343,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
 
   if (!canManageExpenses && !isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader
           icon={DollarSign}
           title="Travel Expenses"
@@ -353,8 +353,8 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
         />
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
-            <p className="text-gray-500 text-lg mb-2">Access Denied</p>
-            <p className="text-gray-400">You do not have permission to manage expenses.</p>
+            <p className="text-slate-600 dark:text-slate-400 text-lg mb-2">Access Denied</p>
+            <p className="text-slate-500 dark:text-slate-400">You do not have permission to manage expenses.</p>
           </div>
         </div>
       </div>
@@ -363,7 +363,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader
           icon={DollarSign}
           title="Travel Expenses"
@@ -372,7 +372,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
           onNavigate={onNavigate}
         />
         <div className="flex justify-center items-center h-64">
-          <div className="text-gray-500">Loading...</div>
+          <div className="text-slate-500 dark:text-slate-400">Loading...</div>
         </div>
       </div>
     );
@@ -380,7 +380,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
 
   if (!trainer && !isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader
           icon={DollarSign}
           title="Travel Expenses"
@@ -389,8 +389,8 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
           onNavigate={onNavigate}
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-800">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+            <p className="text-yellow-800 dark:text-yellow-400">
               No trainer profile found. Please contact an administrator.
             </p>
           </div>
@@ -400,7 +400,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader
         icon={DollarSign}
         title="Travel Expenses"
@@ -419,7 +419,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Expense Claims</h2>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Expense Claims</h2>
           {trainer && !isAdmin && (
             <button
               onClick={() => setShowNewClaimModal(true)}
@@ -432,9 +432,9 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
         </div>
 
         {claims.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <DollarSign className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">No expense claims yet</p>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow p-8 text-center">
+            <DollarSign className="w-16 h-16 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
+            <p className="text-slate-500 dark:text-slate-400 mb-4">No expense claims yet</p>
             {trainer && !isAdmin && (
               <button
                 onClick={() => setShowNewClaimModal(true)}
@@ -445,53 +445,53 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+              <thead className="bg-slate-50 dark:bg-slate-800">
                 <tr>
                   {isAdmin && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Trainer
                     </th>
                   )}
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Vehicle
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Miles
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Total Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
                 {claims.map((claim) => (
-                  <tr key={claim.id} className="hover:bg-gray-50">
+                  <tr key={claim.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
                     {isAdmin && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white">
                         {claim.trainer_name}
                       </td>
                     )}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white">
                       {formatDate(claim.submission_date)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white">
                       {claim.vehicle_registration}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white">
                       {claim.total_miles.toFixed(1)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">
                       {formatCurrency(claim.total_amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -506,7 +506,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
                         onClick={() => handleViewClaim(claim)}
-                        className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 flex items-center gap-1"
                       >
                         <Eye className="w-4 h-4" />
                         View
@@ -522,33 +522,33 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
 
       {showNewClaimModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">New Expense Claim</h3>
-              <button onClick={() => setShowNewClaimModal(false)} className="text-gray-400 hover:text-gray-600">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">New Expense Claim</h3>
+              <button onClick={() => setShowNewClaimModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Vehicle Registration
                 </label>
                 <input
                   type="text"
                   value={newClaimForm.vehicle_registration}
                   onChange={(e) => setNewClaimForm({ ...newClaimForm, vehicle_registration: e.target.value.toUpperCase() })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="AB12 CDE"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Fuel Type
                 </label>
-                <div className="flex gap-4">
+                <div className="flex gap-4 text-slate-900 dark:text-white">
                   <label className="flex items-center">
                     <input
                       type="radio"
@@ -571,13 +571,13 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Engine Size
                 </label>
                 <select
                   value={newClaimForm.engine_size}
                   onChange={(e) => setNewClaimForm({ ...newClaimForm, engine_size: e.target.value as EngineSize })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="1400cc_or_less">1400cc or less</option>
                   <option value="1401cc_to_2000cc">1401cc to 2000cc</option>
@@ -585,8 +585,8 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                 </select>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-900">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+                <p className="text-sm text-blue-900 dark:text-blue-400">
                   <strong>Mileage Rate:</strong> {formatCurrency(calculateMileageRate(newClaimForm.fuel_type, newClaimForm.engine_size))} per mile
                 </p>
               </div>
@@ -595,7 +595,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setShowNewClaimModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
@@ -612,23 +612,23 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
 
       {showViewClaimModal && selectedClaim && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Expense Claim Details</h3>
-                <p className="text-sm text-gray-500">Submitted {formatDate(selectedClaim.submission_date)}</p>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Expense Claim Details</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Submitted {formatDate(selectedClaim.submission_date)}</p>
               </div>
-              <button onClick={() => setShowViewClaimModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowViewClaimModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6">
-              <div className="grid grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-lg relative">
+              <div className="grid grid-cols-2 gap-4 mb-6 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-lg relative">
                 {canEditClaim && !editingClaim && (
                   <button
                     onClick={() => setEditingClaim(true)}
-                    className="absolute top-2 right-2 text-blue-600 hover:text-blue-900 flex items-center gap-1 text-sm"
+                    className="absolute top-2 right-2 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 flex items-center gap-1 text-sm"
                   >
                     <Edit2 className="w-4 h-4" />
                     Edit
@@ -637,17 +637,17 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                 {editingClaim ? (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Registration</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vehicle Registration</label>
                       <input
                         type="text"
                         value={editClaimForm.vehicle_registration}
                         onChange={(e) => setEditClaimForm({ ...editClaimForm, vehicle_registration: e.target.value.toUpperCase() })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Type</label>
-                      <div className="flex gap-4">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fuel Type</label>
+                      <div className="flex gap-4 text-slate-900 dark:text-white">
                         <label className="flex items-center">
                           <input
                             type="radio"
@@ -669,11 +669,11 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Engine Size</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Engine Size</label>
                       <select
                         value={editClaimForm.engine_size}
                         onChange={(e) => setEditClaimForm({ ...editClaimForm, engine_size: e.target.value as EngineSize })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="1400cc_or_less">1400cc or less</option>
                         <option value="1401cc_to_2000cc">1401cc to 2000cc</option>
@@ -683,7 +683,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                     <div className="flex items-end gap-2">
                       <button
                         onClick={() => setEditingClaim(false)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                        className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                       >
                         Cancel
                       </button>
@@ -698,24 +698,24 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                   </>
                 ) : (
                   <>
-                    <div className="col-span-2 pb-4 border-b border-gray-200">
-                      <p className="text-sm text-gray-500">Trainer Name</p>
-                      <p className="text-lg font-semibold text-gray-900">{selectedClaim.trainer_name}</p>
+                    <div className="col-span-2 pb-4 border-b border-slate-200 dark:border-slate-700">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Trainer Name</p>
+                      <p className="text-lg font-semibold text-slate-900 dark:text-white">{selectedClaim.trainer_name}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Vehicle Registration</p>
-                      <p className="font-medium text-gray-900">{selectedClaim.vehicle_registration}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Vehicle Registration</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{selectedClaim.vehicle_registration}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Fuel Type</p>
-                      <p className="font-medium text-gray-900 capitalize">{selectedClaim.fuel_type}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Fuel Type</p>
+                      <p className="font-medium text-slate-900 dark:text-white capitalize">{selectedClaim.fuel_type}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Engine Size</p>
-                      <p className="font-medium text-gray-900">{getEngineSizeLabel(selectedClaim.engine_size)}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Engine Size</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{getEngineSizeLabel(selectedClaim.engine_size)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Status</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Status</p>
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(selectedClaim.status)}`}>
                         {selectedClaim.status.charAt(0).toUpperCase() + selectedClaim.status.slice(1)}
                       </span>
@@ -726,58 +726,58 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
 
               {selectedClaim.status === 'pending' && !isAdmin && (
                 <div className="mb-6">
-                  <h4 className="text-md font-semibold text-gray-900 mb-3">Add Journey</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h4 className="text-md font-semibold text-slate-900 dark:text-white mb-3">Add Journey</h4>
+                  <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-lg space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date</label>
                         <input
                           type="date"
                           value={newJourney.journey_date}
                           onChange={(e) => setNewJourney({ ...newJourney, journey_date: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Miles</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Miles</label>
                         <input
                           type="number"
                           step="0.1"
                           value={newJourney.miles}
                           onChange={(e) => setNewJourney({ ...newJourney, miles: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                           placeholder="0.0"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">From (Origin)</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">From (Origin)</label>
                       <input
                         type="text"
                         value={newJourney.origin}
                         onChange={(e) => setNewJourney({ ...newJourney, origin: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                         placeholder="Starting location"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">To (Destination)</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">To (Destination)</label>
                       <input
                         type="text"
                         value={newJourney.destination}
                         onChange={(e) => setNewJourney({ ...newJourney, destination: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                         placeholder="Ending location"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tolls/Parking (£)</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tolls/Parking (£)</label>
                       <input
                         type="number"
                         step="0.01"
                         value={newJourney.tolls_parking}
                         onChange={(e) => setNewJourney({ ...newJourney, tolls_parking: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                         placeholder="0.00"
                       />
                     </div>
@@ -793,24 +793,24 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
               )}
 
               <div className="mb-6">
-                <h4 className="text-md font-semibold text-gray-900 mb-3">Journeys</h4>
+                <h4 className="text-md font-semibold text-slate-900 dark:text-white mb-3">Journeys</h4>
                 {journeys.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No journeys added yet</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-center py-4">No journeys added yet</p>
                 ) : (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                      <thead className="bg-slate-50 dark:bg-slate-800">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">From/To</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tolls/Parking</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Date</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">From/To</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Miles</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Tolls/Parking</th>
                           {canEditClaim && (
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Actions</th>
                           )}
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
                         {journeys.map((journey) => (
                           <tr key={journey.id}>
                             {editingJourney === journey.id ? (
@@ -820,7 +820,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                                     type="date"
                                     value={editJourneyForm.journey_date}
                                     onChange={(e) => setEditJourneyForm({ ...editJourneyForm, journey_date: e.target.value })}
-                                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                    className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                   />
                                 </td>
                                 <td className="px-4 py-2">
@@ -828,14 +828,14 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                                     type="text"
                                     value={editJourneyForm.origin}
                                     onChange={(e) => setEditJourneyForm({ ...editJourneyForm, origin: e.target.value })}
-                                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm mb-1"
+                                    className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white mb-1"
                                     placeholder="From"
                                   />
                                   <input
                                     type="text"
                                     value={editJourneyForm.destination}
                                     onChange={(e) => setEditJourneyForm({ ...editJourneyForm, destination: e.target.value })}
-                                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                    className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                     placeholder="To"
                                   />
                                 </td>
@@ -845,7 +845,7 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                                     step="0.1"
                                     value={editJourneyForm.miles}
                                     onChange={(e) => setEditJourneyForm({ ...editJourneyForm, miles: e.target.value })}
-                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    className="w-20 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                   />
                                 </td>
                                 <td className="px-4 py-2">
@@ -854,20 +854,20 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                                     step="0.01"
                                     value={editJourneyForm.tolls_parking}
                                     onChange={(e) => setEditJourneyForm({ ...editJourneyForm, tolls_parking: e.target.value })}
-                                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    className="w-20 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                                   />
                                 </td>
                                 <td className="px-4 py-2">
                                   <div className="flex gap-2">
                                     <button
                                       onClick={() => handleSaveJourneyEdit(journey.id)}
-                                      className="text-green-600 hover:text-green-900"
+                                      className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300"
                                     >
                                       <Save className="w-4 h-4" />
                                     </button>
                                     <button
                                       onClick={() => setEditingJourney(null)}
-                                      className="text-gray-600 hover:text-gray-900"
+                                      className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
@@ -876,25 +876,25 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                               </>
                             ) : (
                               <>
-                                <td className="px-4 py-2 text-sm text-gray-900">{formatDate(journey.journey_date)}</td>
-                                <td className="px-4 py-2 text-sm text-gray-900">
+                                <td className="px-4 py-2 text-sm text-slate-900 dark:text-white">{formatDate(journey.journey_date)}</td>
+                                <td className="px-4 py-2 text-sm text-slate-900 dark:text-white">
                                   <div>{journey.origin}</div>
-                                  <div className="text-gray-500">→ {journey.destination}</div>
+                                  <div className="text-slate-500 dark:text-slate-400">→ {journey.destination}</div>
                                 </td>
-                                <td className="px-4 py-2 text-sm text-gray-900">{journey.miles}</td>
-                                <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(journey.tolls_parking)}</td>
+                                <td className="px-4 py-2 text-sm text-slate-900 dark:text-white">{journey.miles}</td>
+                                <td className="px-4 py-2 text-sm text-slate-900 dark:text-white">{formatCurrency(journey.tolls_parking)}</td>
                                 {canEditClaim && (
                                   <td className="px-4 py-2 text-sm">
                                     <div className="flex gap-2">
                                       <button
                                         onClick={() => handleStartEditJourney(journey)}
-                                        className="text-blue-600 hover:text-blue-900"
+                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
                                       >
                                         <Edit2 className="w-4 h-4" />
                                       </button>
                                       <button
                                         onClick={() => handleDeleteJourney(journey.id)}
-                                        className="text-red-600 hover:text-red-900"
+                                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                                       >
                                         <X className="w-4 h-4" />
                                       </button>
@@ -911,35 +911,35 @@ export default function TrainerExpenses({ currentPage, onNavigate, userRole, can
                 )}
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-blue-700">Total Miles</p>
-                    <p className="text-lg font-semibold text-blue-900">{selectedClaim.total_miles.toFixed(1)}</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400">Total Miles</p>
+                    <p className="text-lg font-semibold text-blue-900 dark:text-blue-300">{selectedClaim.total_miles.toFixed(1)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-blue-700">Tolls & Parking</p>
-                    <p className="text-lg font-semibold text-blue-900">{formatCurrency(selectedClaim.total_tolls_parking)}</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400">Tolls & Parking</p>
+                    <p className="text-lg font-semibold text-blue-900 dark:text-blue-300">{formatCurrency(selectedClaim.total_tolls_parking)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-blue-700">Total Amount</p>
-                    <p className="text-2xl font-bold text-blue-900">{formatCurrency(selectedClaim.total_amount)}</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400">Total Amount</p>
+                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">{formatCurrency(selectedClaim.total_amount)}</p>
                   </div>
                 </div>
               </div>
 
               {selectedClaim.notes && (
                 <div className="mb-6">
-                  <h4 className="text-md font-semibold text-gray-900 mb-2">Notes</h4>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-700">{selectedClaim.notes}</p>
+                  <h4 className="text-md font-semibold text-slate-900 dark:text-white mb-2">Notes</h4>
+                  <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-lg">
+                    <p className="text-sm text-slate-700 dark:text-slate-300">{selectedClaim.notes}</p>
                   </div>
                 </div>
               )}
 
               {selectedClaim.payment_date && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
-                  <p className="text-sm text-green-900">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-3 mb-6">
+                  <p className="text-sm text-green-900 dark:text-green-400">
                     <strong>Paid on:</strong> {formatDate(selectedClaim.payment_date)}
                   </p>
                 </div>

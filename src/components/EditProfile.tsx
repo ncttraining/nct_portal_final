@@ -220,7 +220,7 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800">
         {notification && (
           <Notification
             type={notification.type}
@@ -229,11 +229,11 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
           />
         )}
 
-        <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Edit Profile</h2>
+        <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Edit Profile</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 transition-colors"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -249,7 +249,7 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
                   className="w-32 h-32 rounded-full object-cover border-4 border-slate-700"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-4 border-slate-700">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-4 border-slate-300 dark:border-slate-700">
                   <User className="w-16 h-16 text-white" />
                 </div>
               )}
@@ -268,37 +268,37 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
                 className="hidden"
               />
             </div>
-            <p className="text-sm text-slate-400">Click the upload button to change your avatar</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Click the upload button to change your avatar</p>
           </div>
 
-          <div className="border-t border-slate-800 pt-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <User className="w-5 h-5" />
               Profile Information
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                   Email
                 </label>
                 <input
                   type="email"
                   value={profile.email}
                   disabled
-                  className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800 text-slate-500 cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed"
                 />
                 <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                   Full Name
                 </label>
                 <input
                   type="text"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -306,21 +306,21 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
           </div>
 
           {!loadingTrainer && trainerData && (
-            <div className="border-t border-slate-800 pt-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                 <Bell className="w-5 h-5" />
                 Notification Preferences
               </h3>
-              <label className="flex items-start gap-3 cursor-pointer hover:bg-slate-800/50 p-3 rounded-lg">
+              <label className="flex items-start gap-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 p-3 rounded-lg">
                 <input
                   type="checkbox"
                   checked={trainerData.receive_booking_notifications}
                   onChange={(e) => setTrainerData({ ...trainerData, receive_booking_notifications: e.target.checked })}
-                  className="mt-1 w-4 h-4 bg-slate-700 border-slate-600 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-4 h-4 bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
                 />
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-white">Receive Booking Notifications</div>
-                  <div className="text-xs text-slate-400 mt-1">
+                  <div className="text-sm font-medium text-slate-900 dark:text-white">Receive Booking Notifications</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     When enabled, you will receive email notifications when new bookings are assigned to you, when bookings are moved to you from other trainers, when your bookings are cancelled, or when booking details are updated.
                   </div>
                 </div>
@@ -328,34 +328,34 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
             </div>
           )}
 
-          <div className="border-t border-slate-800 pt-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <Lock className="w-5 h-5" />
               Change Password
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                   New Password
                 </label>
                 <input
                   type="password"
                   value={formData.new_password}
                   onChange={(e) => setFormData({ ...formData, new_password: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="Leave blank to keep current password"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
                   Confirm New Password
                 </label>
                 <input
                   type="password"
                   value={formData.confirm_password}
                   onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="Confirm new password"
                 />
               </div>
@@ -363,31 +363,31 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
           </div>
 
           {/* Two-Factor Authentication Section */}
-          <div className="border-t border-slate-800 pt-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <Shield className="w-5 h-5" />
               Two-Factor Authentication
             </h3>
 
             {loading2FA ? (
-              <div className="flex items-center gap-2 text-slate-400">
+              <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Loading 2FA status...</span>
               </div>
             ) : twoFactorEnabled ? (
               <div className="space-y-4">
                 <div className="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                  <ShieldCheck className="w-5 h-5 text-green-400 mt-0.5" />
+                  <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
                   <div>
-                    <div className="text-sm font-medium text-green-400">2FA is enabled</div>
-                    <div className="text-xs text-slate-400 mt-1">
+                    <div className="text-sm font-medium text-green-600 dark:text-green-400">2FA is enabled</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       Your account is protected with two-factor authentication using an authenticator app.
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowDisable2FAModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-red-400 border border-red-400/50 rounded-lg hover:bg-red-400/10 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-red-500 dark:text-red-400 border border-red-400/50 rounded-lg hover:bg-red-400/10 transition-colors"
                 >
                   <ShieldOff className="w-4 h-4" />
                   Disable 2FA
@@ -395,11 +395,11 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-start gap-3 p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
-                  <Shield className="w-5 h-5 text-slate-400 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 bg-slate-100 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg">
+                  <Shield className="w-5 h-5 text-slate-500 dark:text-slate-400 mt-0.5" />
                   <div>
-                    <div className="text-sm font-medium text-slate-300">2FA is not enabled</div>
-                    <div className="text-xs text-slate-400 mt-1">
+                    <div className="text-sm font-medium text-slate-600 dark:text-slate-300">2FA is not enabled</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       Add an extra layer of security to your account by enabling two-factor authentication.
                     </div>
                   </div>
@@ -416,10 +416,10 @@ export default function EditProfile({ profile, onClose, onUpdate }: EditProfileP
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-slate-800 px-6 py-4 border-t border-slate-700 flex justify-end gap-3">
+        <div className="sticky bottom-0 bg-slate-100 dark:bg-slate-800 px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+            className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
           >
             Cancel
           </button>

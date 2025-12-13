@@ -630,22 +630,22 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors flex items-center justify-center">
+        <div className="text-slate-500 dark:text-slate-400">Loading...</div>
       </div>
     );
   }
 
   if (showEditor && editingTemplate) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
-        <header className="border-b border-slate-800 px-6 py-4">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
+        <header className="border-b border-slate-200 dark:border-slate-800 px-6 py-4">
           <div className="flex items-center justify-between max-w-[1800px] mx-auto">
             <div>
               <h1 className="text-xl font-semibold tracking-wide">
                 CERTIFICATE TEMPLATE EDITOR
               </h1>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                 {editingTemplate.id ? 'Edit' : 'Create'} certificate template (A4 size: 2480x3508px)
               </p>
             </div>
@@ -663,7 +663,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                   setEditingTemplate(null);
                   setSelectedFieldId(null);
                 }}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
               >
                 Cancel
               </button>
@@ -699,30 +699,30 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
 
           <div className="grid grid-cols-[320px_1fr_320px] gap-6">
             <div className="space-y-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
                 <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">
                   Template Settings
                 </h3>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Template Name</label>
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Template Name</label>
                     <input
                       type="text"
                       value={editingTemplate.name}
                       onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Course Type</label>
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Course Type</label>
                     {showCourseTypeChanger ? (
                       <div className="space-y-2">
                         <select
                           value={newCourseTypeId}
                           onChange={(e) => setNewCourseTypeId(e.target.value)}
-                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                         >
                           {courseTypes.map(type => (
                             <option key={type.id} value={type.id}>
@@ -739,7 +739,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                           </button>
                           <button
                             onClick={() => setShowCourseTypeChanger(false)}
-                            className="flex-1 px-3 py-1.5 text-xs border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                            className="flex-1 px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
                           >
                             Cancel
                           </button>
@@ -747,13 +747,13 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <div className="px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm">
+                        <div className="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white">
                           {courseTypes.find(ct => ct.id === editingTemplate.course_type_id)?.name || 'Unknown'} (
                           {courseTypes.find(ct => ct.id === editingTemplate.course_type_id)?.code || 'N/A'})
                         </div>
                         <button
                           onClick={openCourseTypeChanger}
-                          className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                          className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
                         >
                           <RefreshCw className="w-3 h-3" />
                           Change Course Type
@@ -763,15 +763,15 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Background Image</label>
+                    <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Background Image</label>
                     {editingTemplate.background_image_url ? (
                       <div className="space-y-2">
                         <img
                           src={editingTemplate.background_image_url}
                           alt="Background"
-                          className="w-full h-32 object-cover rounded border border-slate-700"
+                          className="w-full h-32 object-cover rounded border border-slate-300 dark:border-slate-700"
                         />
-                        <label className="flex items-center justify-center gap-2 px-3 py-2 text-xs border border-slate-700 hover:border-slate-600 rounded cursor-pointer transition-colors">
+                        <label className="flex items-center justify-center gap-2 px-3 py-2 text-xs border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded cursor-pointer transition-colors">
                           <Upload className="w-3 h-3" />
                           Change Background
                           <input
@@ -783,7 +783,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                         </label>
                       </div>
                     ) : (
-                      <label className="flex items-center justify-center gap-2 px-3 py-2 text-sm border-2 border-dashed border-slate-700 hover:border-slate-600 rounded cursor-pointer transition-colors h-32">
+                      <label className="flex items-center justify-center gap-2 px-3 py-2 text-sm border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded cursor-pointer transition-colors h-32">
                         <Upload className="w-4 h-4" />
                         {uploading ? 'Uploading...' : 'Upload A4 Background'}
                         <input
@@ -795,7 +795,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                         />
                       </label>
                     )}
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-500 mt-1">
                       Recommended: 2480x3508px (A4 at 300 DPI)
                     </p>
                   </div>
@@ -805,11 +805,11 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
               {getAvailableSystemFields().length > 0 && (
                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-blue-400 flex items-center gap-2">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-2">
                       <ListPlus className="w-4 h-4" />
                       Available System Fields
                     </h3>
-                    <span className="text-xs text-blue-400/70 bg-blue-500/20 px-2 py-1 rounded">
+                    <span className="text-xs text-blue-600/70 dark:text-blue-400/70 bg-blue-500/20 px-2 py-1 rounded">
                       {getAvailableSystemFields().length} available
                     </span>
                   </div>
@@ -818,12 +818,12 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                     {getAvailableSystemFields().map((field) => (
                       <div
                         key={field.name}
-                        className="p-3 rounded border border-blue-500/30 bg-slate-950/50"
+                        className="p-3 rounded border border-blue-500/30 bg-slate-50/50 dark:bg-slate-950/50"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
-                            <div className="text-sm font-medium text-blue-300">{field.label}</div>
-                            <div className="text-xs text-blue-400/60 mt-1">
+                            <div className="text-sm font-medium text-blue-700 dark:text-blue-300">{field.label}</div>
+                            <div className="text-xs text-blue-600/60 dark:text-blue-400/60 mt-1">
                               <span className="inline-block px-2 py-0.5 rounded bg-blue-500/20 border border-blue-500/30">
                                 system
                               </span>
@@ -846,11 +846,11 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
               {getAvailableCourseFields().length > 0 && (
                 <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                       <ListPlus className="w-4 h-4" />
                       Available Course Fields
                     </h3>
-                    <span className="text-xs text-emerald-400/70 bg-emerald-500/20 px-2 py-1 rounded">
+                    <span className="text-xs text-emerald-600/70 dark:text-emerald-400/70 bg-emerald-500/20 px-2 py-1 rounded">
                       {getAvailableCourseFields().length} available
                     </span>
                   </div>
@@ -859,17 +859,17 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                     {getAvailableCourseFields().map((field) => (
                       <div
                         key={field.name}
-                        className="p-3 rounded border border-emerald-500/30 bg-slate-950/50"
+                        className="p-3 rounded border border-emerald-500/30 bg-slate-50/50 dark:bg-slate-950/50"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
-                            <div className="text-sm font-medium text-emerald-300">{field.label}</div>
-                            <div className="text-xs text-emerald-400/60 mt-1">
+                            <div className="text-sm font-medium text-emerald-700 dark:text-emerald-300">{field.label}</div>
+                            <div className="text-xs text-emerald-600/60 dark:text-emerald-400/60 mt-1">
                               <span className="inline-block px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30">
                                 {field.scope}
                               </span>
                               {field.required && (
-                                <span className="inline-block ml-1 px-2 py-0.5 rounded bg-orange-500/20 border border-orange-500/30 text-orange-400">
+                                <span className="inline-block ml-1 px-2 py-0.5 rounded bg-orange-500/20 border border-orange-500/30 text-orange-600 dark:text-orange-400">
                                   required
                                 </span>
                               )}
@@ -889,7 +889,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                 </div>
               )}
 
-              <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold uppercase tracking-wider">Certificate Fields</h3>
                   <button
@@ -922,7 +922,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                         className={`p-3 rounded border cursor-pointer transition-colors ${
                           selectedFieldId === field.id
                             ? 'bg-blue-500/20 border-blue-500'
-                            : 'bg-slate-950 border-slate-700 hover:border-slate-600'
+                            : 'bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -937,12 +937,12 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                               e.stopPropagation();
                               removeField(field.id);
                             }}
-                            className="p-1 text-slate-400 hover:text-red-400"
+                            className="p-1 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
-                        <div className="text-xs text-slate-400 mt-1">
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                           {field.width}x{field.height}px at ({field.x}, {field.y})
                         </div>
                       </div>
@@ -952,14 +952,14 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold uppercase tracking-wider">Preview (25% scale)</h3>
-                <p className="text-xs text-slate-400">Click and drag fields to position them</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Click and drag fields to position them</p>
               </div>
               <div
                 ref={previewRef}
-                className="relative border border-slate-700 mx-auto bg-white cursor-crosshair"
+                className="relative border border-slate-300 dark:border-slate-700 mx-auto bg-white cursor-crosshair"
                 style={{
                   width: `${A4_WIDTH * PREVIEW_SCALE}px`,
                   height: `${A4_HEIGHT * PREVIEW_SCALE}px`,
@@ -1046,7 +1046,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
 
             <div className="space-y-4">
               {selectedField ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
                   <h3 className="text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
                     <Type className="w-4 h-4" />
                     Field Properties
@@ -1054,69 +1054,69 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
 
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Label</label>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Label</label>
                       <input
                         type="text"
                         value={selectedField.label}
                         onChange={(e) => updateField(selectedField.id, { label: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">X Position</label>
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">X Position</label>
                         <input
                           type="number"
                           value={selectedField.x}
                           onChange={(e) => updateField(selectedField.id, { x: parseInt(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">Y Position</label>
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Y Position</label>
                         <input
                           type="number"
                           value={selectedField.y}
                           onChange={(e) => updateField(selectedField.id, { y: parseInt(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">Width</label>
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Width</label>
                         <input
                           type="number"
                           value={selectedField.width}
                           onChange={(e) => updateField(selectedField.id, { width: parseInt(e.target.value) || 100 })}
-                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">Height</label>
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Height</label>
                         <input
                           type="number"
                           value={selectedField.height}
                           onChange={(e) => updateField(selectedField.id, { height: parseInt(e.target.value) || 40 })}
-                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Font Size</label>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Font Size</label>
                       <input
                         type="number"
                         value={selectedField.fontSize}
                         onChange={(e) => updateField(selectedField.id, { fontSize: parseInt(e.target.value) || 16 })}
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs text-slate-400 mb-2 flex items-center gap-2">
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-2">
                         <Palette className="w-3 h-3" />
                         Text Color
                       </label>
@@ -1125,23 +1125,23 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                           type="color"
                           value={selectedField.color}
                           onChange={(e) => updateField(selectedField.id, { color: e.target.value })}
-                          className="w-12 h-10 bg-slate-950 border border-slate-700 rounded cursor-pointer"
+                          className="w-12 h-10 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded cursor-pointer"
                         />
                         <input
                           type="text"
                           value={selectedField.color}
                           onChange={(e) => updateField(selectedField.id, { color: e.target.value })}
-                          className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm font-mono"
+                          className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm font-mono text-slate-900 dark:text-white"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Text Alignment</label>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Text Alignment</label>
                       <select
                         value={selectedField.align}
                         onChange={(e) => updateField(selectedField.id, { align: e.target.value as 'left' | 'center' | 'right' })}
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                       >
                         <option value="left">Left</option>
                         <option value="center">Center</option>
@@ -1150,11 +1150,11 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                     </div>
 
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Font Family</label>
+                      <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Font Family</label>
                       <select
                         value={selectedField.fontFamily}
                         onChange={(e) => updateField(selectedField.id, { fontFamily: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white"
                       >
                         <option value="Arial">Arial</option>
                         <option value="Times New Roman">Times New Roman</option>
@@ -1165,7 +1165,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                     </div>
 
                     <div className="flex items-center gap-4 pt-2">
-                      <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                      <label className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={selectedField.bold}
@@ -1174,7 +1174,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                         />
                         Bold
                       </label>
-                      <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                      <label className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={selectedField.italic}
@@ -1187,7 +1187,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
 
                     <button
                       onClick={() => removeField(selectedField.id)}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-4 text-sm bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-4 text-sm bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                       Remove Field
@@ -1195,16 +1195,16 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                   </div>
                 </div>
               ) : (
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-                  <p className="text-sm text-slate-400 text-center py-8">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">
                     Select a field to edit its properties
                   </p>
                 </div>
               )}
 
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                <h4 className="text-xs font-semibold text-blue-400 uppercase mb-2">Tips</h4>
-                <ul className="text-xs text-blue-400/80 space-y-1">
+                <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase mb-2">Tips</h4>
+                <ul className="text-xs text-blue-600/80 dark:text-blue-400/80 space-y-1">
                   <li>• Click and drag fields to move them</li>
                   <li>• Drag the corner handle to resize</li>
                   <li>• Use the properties panel for precise control</li>
@@ -1217,15 +1217,15 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
 
         {showCourseTypeConfirm && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg shadow-2xl max-w-md w-full">
               <div className="p-6">
                 <div className="flex items-start gap-4 mb-4">
                   <div className="p-3 bg-orange-500/10 rounded-lg">
-                    <AlertCircle className="w-6 h-6 text-orange-400" />
+                    <AlertCircle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold mb-2">Change course type to "{courseTypes.find(ct => ct.id === newCourseTypeId)?.name}"?</h3>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                       Note: Course-specific fields from the old course type may no longer be valid. You can remove them and add new course fields from the available fields panel.
                     </p>
                   </div>
@@ -1233,7 +1233,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                 <div className="flex items-center gap-3 justify-end">
                   <button
                     onClick={cancelChangeCourseType}
-                    className="px-4 py-2 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                    className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
                   >
                     Cancel
                   </button>
@@ -1253,7 +1253,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       {notification && (
         <Notification
           type={notification.type}
@@ -1265,11 +1265,11 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
 
       <main className="max-w-7xl mx-auto px-6 py-6">
         <div className="mb-6">
-          <label className="block text-sm text-slate-400 mb-2">Select Course Type</label>
+          <label className="block text-sm text-slate-500 dark:text-slate-400 mb-2">Select Course Type</label>
           <select
             value={selectedCourseType || ''}
             onChange={(e) => setSelectedCourseType(e.target.value)}
-            className="px-4 py-2 bg-slate-900 border border-slate-700 rounded"
+            className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-slate-900 dark:text-white"
           >
             {courseTypes.map(type => (
               <option key={type.id} value={type.id}>
@@ -1294,9 +1294,9 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
           {templates.map(template => (
             <div
               key={template.id}
-              className="bg-slate-900 border border-slate-800 rounded-lg p-4"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4"
             >
-              <div className="aspect-[2480/3508] bg-slate-950 rounded mb-3 overflow-hidden">
+              <div className="aspect-[2480/3508] bg-slate-100 dark:bg-slate-950 rounded mb-3 overflow-hidden">
                 {template.background_image_url ? (
                   <img
                     src={template.background_image_url}
@@ -1304,26 +1304,26 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-600">
+                  <div className="w-full h-full flex items-center justify-center text-slate-400 dark:text-slate-600">
                     No Background
                   </div>
                 )}
               </div>
               <h3 className="font-semibold mb-1">{template.name}</h3>
-              <p className="text-xs text-slate-400 mb-3">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
                 {(template.fields_config as CertificateField[]).length} fields configured
               </p>
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => editTemplate(template)}
-                  className="flex items-center gap-1 px-3 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors"
                 >
                   <Edit2 className="w-3 h-3" />
                   Edit
                 </button>
                 <button
                   onClick={() => handleDuplicateTemplate(template.id)}
-                  className="flex items-center gap-1 px-3 py-1 text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded hover:bg-emerald-500/30 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1 text-xs bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded hover:bg-emerald-500/30 transition-colors"
                   title="Duplicate this template"
                 >
                   <Copy className="w-3 h-3" />
@@ -1331,7 +1331,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
                 </button>
                 <button
                   onClick={() => handleDeleteTemplate(template.id)}
-                  className="flex items-center gap-1 px-3 py-1 text-xs bg-red-500/20 text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1 text-xs bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 rounded hover:bg-red-500/30 transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
                   Delete
@@ -1342,7 +1342,7 @@ export default function CertificateTemplates({ currentPage, onNavigate }: Certif
         </div>
 
         {templates.length === 0 && (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
             <p>No templates created yet for this course type</p>
             <button
               onClick={createNewTemplate}

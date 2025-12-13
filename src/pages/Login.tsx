@@ -260,7 +260,7 @@ export default function Login() {
           ) : (
             <form onSubmit={handleUpdatePassword} className="flex flex-col gap-4">
               <div>
-                <label htmlFor="newPassword" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                <label htmlFor="newPassword" className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                   New Password
                 </label>
                 <input
@@ -270,13 +270,13 @@ export default function Login() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                   placeholder="Enter new password"
                 />
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                <label htmlFor="confirmPassword" className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                   Confirm Password
                 </label>
                 <input
@@ -286,7 +286,7 @@ export default function Login() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                   placeholder="Confirm new password"
                 />
               </div>
@@ -337,12 +337,12 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                <label htmlFor="password" className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                   Password
                 </label>
                 <input
@@ -351,7 +351,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                 />
               </div>
 
@@ -408,7 +408,7 @@ export default function Login() {
                 </p>
 
                 <div>
-                  <label htmlFor="resetEmail" className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+                  <label htmlFor="resetEmail" className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                     Email Address
                   </label>
                   <input
@@ -417,7 +417,7 @@ export default function Login() {
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     required
-                    className="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                     placeholder="Enter your email"
                   />
                 </div>

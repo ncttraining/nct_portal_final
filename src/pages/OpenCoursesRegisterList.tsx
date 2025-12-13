@@ -259,7 +259,7 @@ export default function OpenCoursesRegisterList({
   const hasActiveFilters = searchTerm || selectedVenue || selectedTrainer || selectedCourseType;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader
         currentPage={currentPage}
         onNavigate={onNavigate}
@@ -272,8 +272,8 @@ export default function OpenCoursesRegisterList({
           <div className="flex items-center gap-3">
             <ClipboardList className="w-8 h-8 text-blue-400" />
             <div>
-              <h1 className="text-2xl font-semibold">Open Courses Registers</h1>
-              <p className="text-slate-400 text-sm">
+              <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Open Courses Registers</h1>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
                 {isAdmin
                   ? 'Manage attendance and compliance for all sessions'
                   : 'Manage attendance and compliance for your sessions'}
@@ -286,7 +286,7 @@ export default function OpenCoursesRegisterList({
             className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
               showFilters || hasActiveFilters
                 ? 'bg-blue-500 text-white'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700'
             }`}
           >
             <Filter className="w-4 h-4" />
@@ -300,10 +300,10 @@ export default function OpenCoursesRegisterList({
         </div>
 
         {/* Week Navigation */}
-        <div className="flex items-center justify-between mb-6 bg-slate-900 border border-slate-800 rounded-lg p-3">
+        <div className="flex items-center justify-between mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
           <button
             onClick={goToPreviousWeek}
-            className="flex items-center gap-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded transition-colors text-sm"
+            className="flex items-center gap-1 px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded transition-colors text-sm text-slate-900 dark:text-white"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
@@ -312,7 +312,7 @@ export default function OpenCoursesRegisterList({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-blue-400" />
-              <span className="text-white font-medium">{dateRangeDisplay}</span>
+              <span className="text-slate-900 dark:text-white font-medium">{dateRangeDisplay}</span>
             </div>
             <button
               onClick={goToToday}
@@ -324,7 +324,7 @@ export default function OpenCoursesRegisterList({
 
           <button
             onClick={goToNextWeek}
-            className="flex items-center gap-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded transition-colors text-sm"
+            className="flex items-center gap-1 px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded transition-colors text-sm text-slate-900 dark:text-white"
           >
             Next
             <ChevronRight className="w-4 h-4" />
@@ -332,28 +332,28 @@ export default function OpenCoursesRegisterList({
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
           {/* Search Bar */}
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by course name, trainer, venue, or JAUPT code..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
             />
           </div>
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-800">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Course Type</label>
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Course Type</label>
                 <select
                   value={selectedCourseType}
                   onChange={(e) => setSelectedCourseType(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="">All Course Types</option>
                   {courseTypes.map((ct) => (
@@ -365,11 +365,11 @@ export default function OpenCoursesRegisterList({
               </div>
 
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Venue</label>
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Venue</label>
                 <select
                   value={selectedVenue}
                   onChange={(e) => setSelectedVenue(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="">All Venues</option>
                   {venues.map((v) => (
@@ -382,11 +382,11 @@ export default function OpenCoursesRegisterList({
 
               {isAdmin && (
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Trainer</label>
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Trainer</label>
                   <select
                     value={selectedTrainer}
                     onChange={(e) => setSelectedTrainer(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                   >
                     <option value="">All Trainers</option>
                     {trainers.map((t) => (
@@ -402,7 +402,7 @@ export default function OpenCoursesRegisterList({
                 <div className="flex items-end">
                   <button
                     onClick={clearFilters}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded transition-colors text-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600 rounded transition-colors text-sm text-slate-900 dark:text-white"
                   >
                     <X className="w-4 h-4" />
                     Clear Filters
@@ -414,7 +414,7 @@ export default function OpenCoursesRegisterList({
         </div>
 
         {/* Sessions Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
@@ -422,7 +422,7 @@ export default function OpenCoursesRegisterList({
           ) : sessions.length === 0 ? (
             <div className="text-center py-12">
               <ClipboardList className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-400">
+              <p className="text-slate-500 dark:text-slate-400">
                 {hasActiveFilters
                   ? 'No sessions match your filters'
                   : 'No sessions found'}
@@ -431,26 +431,26 @@ export default function OpenCoursesRegisterList({
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-800/50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                <tr className="bg-slate-200 dark:bg-slate-800/50">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                     Date
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                     Course
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                     Venue
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                     Trainer
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                     Delegates
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide w-10">
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide w-10">
                     {/* Action */}
                   </th>
                 </tr>
@@ -472,23 +472,23 @@ export default function OpenCoursesRegisterList({
                     <tr
                       key={session.id}
                       onClick={() => handleRowClick(session)}
-                      className="border-b border-slate-800 hover:bg-slate-800/50 cursor-pointer transition-colors"
+                      className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
                     >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-slate-500" />
-                          <span className="text-sm text-white">
+                          <span className="text-sm text-slate-900 dark:text-white">
                             {formatDate(session.session_date)}
                           </span>
                         </div>
                       </td>
                       <td className="px-4 py-4">
                         <div>
-                          <p className="text-sm text-white font-medium">
+                          <p className="text-sm text-slate-900 dark:text-white font-medium">
                             {session.event_title || 'Untitled'}
                           </p>
                           {session.course_type?.jaupt_code && (
-                            <p className="text-xs text-blue-400 font-mono">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 font-mono">
                               {session.course_type.jaupt_code}
                             </p>
                           )}
@@ -497,7 +497,7 @@ export default function OpenCoursesRegisterList({
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-slate-500" />
-                          <span className="text-sm text-slate-300">
+                          <span className="text-sm text-slate-600 dark:text-slate-300">
                             {session.is_online
                               ? 'ONLINE'
                               : session.venue?.name || 'TBC'}
@@ -507,7 +507,7 @@ export default function OpenCoursesRegisterList({
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-slate-500" />
-                          <span className="text-sm text-slate-300">
+                          <span className="text-sm text-slate-600 dark:text-slate-300">
                             {session.trainer?.name || 'Unassigned'}
                           </span>
                         </div>
@@ -515,8 +515,8 @@ export default function OpenCoursesRegisterList({
                       <td className="px-4 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Users className="w-4 h-4 text-slate-500" />
-                          <span className="text-sm text-white">
-                            <span className="text-green-400">{counts.present}</span>
+                          <span className="text-sm text-slate-900 dark:text-white">
+                            <span className="text-green-600 dark:text-green-400">{counts.present}</span>
                             <span className="text-slate-500"> / </span>
                             {counts.total}
                           </span>
@@ -580,7 +580,7 @@ export default function OpenCoursesRegisterList({
 
         {/* Results Count */}
         {!loading && sessions.length > 0 && (
-          <div className="mt-4 text-sm text-slate-400 text-center">
+          <div className="mt-4 text-sm text-slate-500 dark:text-slate-400 text-center">
             Showing {sessions.length} session{sessions.length !== 1 ? 's' : ''}
           </div>
         )}

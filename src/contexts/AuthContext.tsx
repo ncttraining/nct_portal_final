@@ -19,6 +19,7 @@ interface UserProfile {
   can_login: boolean;
   trainer_id: string | null;
   two_factor_enabled: boolean;
+  theme_preference: 'light' | 'dark';
 }
 
 interface PendingTwoFactorAuth {

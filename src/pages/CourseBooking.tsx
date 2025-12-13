@@ -664,14 +664,14 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors flex items-center justify-center">
+        <div className="text-slate-500 dark:text-slate-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
 
       {notification && (
@@ -683,7 +683,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
       )}
 
       <main className="max-w-[1400px] mx-auto px-6 py-6">
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
@@ -694,19 +694,19 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                   Beta
                 </span>
               </div>
-              <p className="text-sm text-slate-400 mb-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 Review and schedule training courses across the NCT trainer team. Drag & drop bookings between
                 trainers or dates, then click any booking to edit the details.
               </p>
 
-              <div className="flex items-center gap-4 pt-4 border-t border-slate-800">
+              <div className="flex items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <span className="text-xs text-slate-500 uppercase tracking-wider">
                   Schedule Overview
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => changeMonth(-1)}
-                    className="px-3 py-1 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                    className="px-3 py-1 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -715,7 +715,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                   </span>
                   <button
                     onClick={() => changeMonth(1)}
-                    className="px-3 py-1 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                    className="px-3 py-1 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -727,7 +727,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                   <select
                     value={selectedTrainerType || ''}
                     onChange={(e) => setSelectedTrainerType(e.target.value || null)}
-                    className="px-3 py-1 text-sm bg-slate-950 border border-slate-700 hover:border-slate-600 rounded transition-colors focus:border-blue-500 outline-none"
+                    className="px-3 py-1 text-sm bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors focus:border-blue-500 outline-none text-slate-900 dark:text-white"
                   >
                     <option value="">All Types ({trainerTypes.length})</option>
                     {trainerTypes.map(type => (
@@ -735,7 +735,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                     ))}
                   </select>
                 </div>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   {trainers.filter(t => !selectedTrainerType || t.assigned_types?.some(at => at.id === selectedTrainerType)).length} trainer(s) - {days} day(s)
                 </span>
               </div>
@@ -751,8 +751,8 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                   Live & connected
                 </span>
               </div>
-              <div className="text-slate-400">
-                <span className="font-medium text-white">
+              <div className="text-slate-500 dark:text-slate-400">
+                <span className="font-medium text-slate-900 dark:text-white">
                   Today {today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </span>
                 <span className="mx-2">·</span>
@@ -783,11 +783,11 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
             </div>
           </div>
 
-          <div className="border border-slate-800 rounded-lg overflow-hidden">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
             <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-300px)]">
               <div className="min-w-max">
-                <div className="flex bg-slate-900/80 border-b border-slate-800 sticky top-0 z-10">
-                  <div className="w-40 px-3 py-2 border-r border-slate-800 font-semibold text-sm">
+                <div className="flex bg-slate-200/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
+                  <div className="w-40 px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-semibold text-sm">
                     Trainer
                   </div>
                   <div className="flex">
@@ -800,7 +800,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                       return (
                         <div
                           key={day}
-                          className={`w-[120px] px-2 py-2 border-r border-slate-800 text-center text-xs ${
+                          className={`w-[120px] px-2 py-2 border-r border-slate-200 dark:border-slate-800 text-center text-xs ${
                             weekend ? 'bg-blue-900/20' : ''
                           }`}
                         >
@@ -818,7 +818,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                     .map((trainer, trainerIndex) => (
                     <div
                       key={trainer.id}
-                      className={`flex ${trainerIndex % 2 === 0 ? 'bg-slate-900/50' : 'bg-slate-900/80'} ${
+                      className={`flex ${trainerIndex % 2 === 0 ? 'bg-white/50 dark:bg-slate-900/50' : 'bg-slate-50/80 dark:bg-slate-900/80'} ${
                         draggedTrainer === trainer.id ? 'opacity-50' : ''
                       }`}
                       onDragOver={(e) => {
@@ -839,7 +839,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                       }}
                     >
                       <div
-                        className="w-40 px-3 py-2 border-r border-b border-slate-800 text-sm sticky left-0 bg-slate-900 cursor-move"
+                        className="w-40 px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 text-sm sticky left-0 bg-white dark:bg-slate-900 cursor-move"
                         draggable
                         onDragStart={(e) => {
                           e.stopPropagation();
@@ -877,9 +877,9 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                   : isProvisionallyBooked
                                   ? 'bg-green-900/40 border-green-700/50'
                                   : weekend
-                                  ? 'bg-slate-900/50 border-slate-800'
-                                  : 'border-slate-800'
-                              } ${isUnavailable ? '' : 'hover:bg-blue-900/10'} cursor-pointer transition-colors`}
+                                  ? 'bg-slate-200/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800'
+                                  : 'border-slate-200 dark:border-slate-800'
+                              } ${isUnavailable ? '' : 'hover:bg-blue-200/20 dark:hover:bg-blue-900/10'} cursor-pointer transition-colors`}
                               onClick={(e) => handleDayClick(trainer, dateStr, e)}
                               title={
                                 isUnavailable && unavailableRecord?.reason
@@ -957,7 +957,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                       e.stopPropagation();
                                       openBookingModal(trainer, booking.booking_date, booking);
                                     }}
-                                    className={`booking-pill absolute top-1 left-1 right-1 bottom-1 px-2 py-1.5 text-xs border rounded cursor-move ${statusClass} ${overlapsUnavailable ? 'ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950' : ''} ${hasClash || hasRoomConflict ? '!border-red-500 !border-2' : ''}`}
+                                    className={`booking-pill absolute top-1 left-1 right-1 bottom-1 px-2 py-1.5 text-xs border rounded cursor-move ${statusClass} ${overlapsUnavailable ? 'ring-2 ring-red-500 ring-offset-2 ring-offset-slate-100 dark:ring-offset-slate-950' : ''} ${hasClash || hasRoomConflict ? '!border-red-500 !border-2' : ''}`}
                                     style={{
                                       width: `calc(${booking.num_days * 120}px - 8px)`,
                                       zIndex: 2
@@ -999,7 +999,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
                                         </span>
                                       )}
                                       {delegateCount > 0 && (
-                                        <span className="px-1.5 py-0.5 bg-slate-800/80 text-slate-200 rounded text-[10px] font-medium">
+                                        <span className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 rounded text-[10px] font-medium">
                                           {delegateCount} {delegateCount === 1 ? 'delegate' : 'delegates'}
                                         </span>
                                       )}
@@ -1028,7 +1028,7 @@ export default function CourseBooking({ currentPage, onNavigate }: CourseBooking
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 mt-3 text-right">
+          <p className="text-xs text-slate-500 dark:text-slate-500 mt-3 text-right">
             Multi-day courses appear as a single bar spanning the relevant days. Drag trainer names up/down to reorder, or drag bookings to another trainer/day.
           </p>
         </div>

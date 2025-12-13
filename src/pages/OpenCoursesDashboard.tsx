@@ -1432,10 +1432,10 @@ The Training Team`,
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader currentPage={currentPage} onNavigate={onNavigate} onEditProfile={() => {}} />
         <div className="flex items-center justify-center h-96">
-          <div className="text-slate-400">Loading...</div>
+          <div className="text-slate-500 dark:text-slate-400">Loading...</div>
         </div>
       </div>
     );
@@ -1445,33 +1445,33 @@ The Training Team`,
   const weekDaysLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} onEditProfile={() => {}} />
 
       <div className="p-6">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Open Courses Dashboard</h1>
-          <p className="text-slate-400">
+          <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">Open Courses Dashboard</h1>
+          <p className="text-slate-500 dark:text-slate-400">
             Manage public course sessions, delegates, and capacity
           </p>
         </div>
 
         {/* Week Navigation */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 mr-2">
                 <button
                   onClick={() => navigateMonth('prev')}
-                  className="p-2 hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-white"
+                  className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white"
                   title="Previous Month"
                 >
                   <ChevronsLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => navigateWeek('prev')}
-                  className="p-2 hover:bg-slate-800 rounded transition-colors"
+                  className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors text-slate-900 dark:text-white"
                   title="Previous Week"
                 >
                   <ChevronLeft className="w-5 h-5" />
