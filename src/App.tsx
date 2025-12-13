@@ -38,14 +38,54 @@ interface NavigationData {
 const STORAGE_KEY_PAGE = 'nct_current_page';
 const STORAGE_KEY_NAV_DATA = 'nct_navigation_data';
 
-// Load saved page state from localStorage
+// Parse page from URL hash (e.g., #course-booking)
+function getPageFromHash(): PageType | null {
+  const hash = window.location.hash.slice(1); // Remove the # symbol
+  if (hash && hash !== '') {
+    return hash as PageType;
+  }
+  return null;
+}
+
+// Update URL hash when navigating
+function updateUrlHash(page: string) {
+  if (page === 'home') {
+    // Clear hash for home page
+    if (window.location.hash) {
+      history.pushState(null, '', window.location.pathname);
+    }
+  } else {
+    history.pushState(null, '', `#${page}`);
+  }
+}
+
+// Load saved page state from localStorage or URL hash
 function loadSavedPageState(): { page: PageType; navData: NavigationData } {
   try {
-    const savedPage = localStorage.getItem(STORAGE_KEY_PAGE);
+    // First, check URL hash for page
+    const hashPage = getPageFromHash();
     const savedNavData = localStorage.getItem(STORAGE_KEY_NAV_DATA);
-
-    const page = savedPage as PageType || 'home';
     const navData = savedNavData ? JSON.parse(savedNavData) : {};
+
+    // If page is in URL hash, use that (allows "Open in new tab" to work)
+    if (hashPage) {
+      // If page requires navigation data that's missing, fall back appropriately
+      const pagesRequiringSessionId = ['open-courses-register-trainer', 'open-courses-register-admin'];
+      const pagesRequiringCompanyId = ['open-courses-company-details'];
+
+      if (pagesRequiringSessionId.includes(hashPage) && !navData.sessionId) {
+        return { page: 'open-courses-registers', navData: {} };
+      }
+      if (pagesRequiringCompanyId.includes(hashPage) && !navData.companyId) {
+        return { page: 'open-courses-companies', navData: {} };
+      }
+
+      return { page: hashPage, navData };
+    }
+
+    // Fall back to localStorage
+    const savedPage = localStorage.getItem(STORAGE_KEY_PAGE);
+    const page = savedPage as PageType || 'home';
 
     // If page requires navigation data that's missing, fall back appropriately
     const pagesRequiringSessionId = ['open-courses-register-trainer', 'open-courses-register-admin'];
@@ -71,11 +111,27 @@ function App() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [navigationData, setNavigationData] = useState<NavigationData>(savedState.navData);
 
-  // Persist page state to localStorage
+  // Persist page state to localStorage and update URL hash
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_PAGE, currentPage);
     localStorage.setItem(STORAGE_KEY_NAV_DATA, JSON.stringify(navigationData));
+    updateUrlHash(currentPage);
   }, [currentPage, navigationData]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const hashPage = getPageFromHash();
+      if (hashPage && hashPage !== currentPage) {
+        setCurrentPage(hashPage);
+      } else if (!hashPage && currentPage !== 'home') {
+        setCurrentPage('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentPage]);
 
   const isAdmin = profile?.role === 'admin' || profile?.super_admin;
   const canManageBookings = isAdmin || profile?.can_manage_bookings;
