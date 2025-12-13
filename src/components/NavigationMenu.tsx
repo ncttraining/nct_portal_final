@@ -74,11 +74,16 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
     },
   ];
 
-  const handleItemClick = (itemId: string) => {
+  const handleItemClick = (e: React.MouseEvent, itemId: string) => {
+    e.preventDefault();
     setOpenSection(null);
     setMobileMenuOpen(false);
     setMobileExpandedSection(null);
     onNavigate(itemId);
+  };
+
+  const getPageHref = (pageId: string) => {
+    return pageId === 'home' ? '#' : `#${pageId}`;
   };
 
   const toggleMobileSection = (sectionLabel: string) => {
@@ -93,8 +98,9 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
     <>
       {/* Desktop Navigation */}
       <nav className="hidden lg:flex items-center gap-1">
-        <button
-          onClick={() => handleItemClick('home')}
+        <a
+          href={getPageHref('home')}
+          onClick={(e) => handleItemClick(e, 'home')}
           className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
             currentPage === 'home'
               ? 'bg-slate-800 text-white'
@@ -103,7 +109,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
         >
           <Home className="w-4 h-4" />
           <span className="text-sm font-medium">Home</span>
-        </button>
+        </a>
 
         {menuSections.map((section) => {
           if (!section.visible) return null;
@@ -137,9 +143,10 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                   {section.items.map((item) => {
                     const ItemIcon = item.icon;
                     return (
-                      <button
+                      <a
                         key={item.id}
-                        onClick={() => handleItemClick(item.id)}
+                        href={getPageHref(item.id)}
+                        onClick={(e) => handleItemClick(e, item.id)}
                         className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-700 first:rounded-t-lg last:rounded-b-lg ${
                           currentPage === item.id
                             ? 'bg-slate-700 text-white'
@@ -148,7 +155,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                       >
                         <ItemIcon className="w-4 h-4" />
                         <span className="text-sm">{item.label}</span>
-                      </button>
+                      </a>
                     );
                   })}
                 </div>
@@ -158,8 +165,9 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
         })}
 
         {canViewBookings && (
-          <button
-            onClick={() => handleItemClick('bookings-viewer')}
+          <a
+            href={getPageHref('bookings-viewer')}
+            onClick={(e) => handleItemClick(e, 'bookings-viewer')}
             className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
               currentPage === 'bookings-viewer'
                 ? 'bg-slate-800 text-white'
@@ -168,12 +176,13 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
           >
             <Eye className="w-4 h-4" />
             <span className="text-sm font-medium">View Bookings</span>
-          </button>
+          </a>
         )}
 
         {canManageExpenses && (
-          <button
-            onClick={() => handleItemClick('trainer-expenses')}
+          <a
+            href={getPageHref('trainer-expenses')}
+            onClick={(e) => handleItemClick(e, 'trainer-expenses')}
             className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
               currentPage === 'trainer-expenses'
                 ? 'bg-slate-800 text-white'
@@ -182,7 +191,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
           >
             <DollarSign className="w-4 h-4" />
             <span className="text-sm font-medium">Expenses</span>
-          </button>
+          </a>
         )}
       </nav>
 
@@ -203,8 +212,9 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
           />
           <div className="fixed top-[73px] right-0 bottom-0 w-80 max-w-[85vw] bg-slate-900 border-l border-slate-800 z-50 lg:hidden overflow-y-auto">
             <div className="p-4 space-y-2">
-              <button
-                onClick={() => handleItemClick('home')}
+              <a
+                href={getPageHref('home')}
+                onClick={(e) => handleItemClick(e, 'home')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded transition-colors ${
                   currentPage === 'home'
                     ? 'bg-slate-800 text-white'
@@ -213,7 +223,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
               >
                 <Home className="w-4 h-4" />
                 <span className="text-sm font-medium">Home</span>
-              </button>
+              </a>
 
               {menuSections.map((section) => {
                 if (!section.visible) return null;
@@ -244,9 +254,10 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                         {section.items.map((item) => {
                           const ItemIcon = item.icon;
                           return (
-                            <button
+                            <a
                               key={item.id}
-                              onClick={() => handleItemClick(item.id)}
+                              href={getPageHref(item.id)}
+                              onClick={(e) => handleItemClick(e, item.id)}
                               className={`w-full flex items-center gap-3 px-4 py-2 rounded transition-colors ${
                                 currentPage === item.id
                                   ? 'bg-slate-800 text-white'
@@ -255,7 +266,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                             >
                               <ItemIcon className="w-4 h-4" />
                               <span className="text-sm">{item.label}</span>
-                            </button>
+                            </a>
                           );
                         })}
                       </div>
@@ -265,8 +276,9 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
               })}
 
               {canViewBookings && (
-                <button
-                  onClick={() => handleItemClick('bookings-viewer')}
+                <a
+                  href={getPageHref('bookings-viewer')}
+                  onClick={(e) => handleItemClick(e, 'bookings-viewer')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded transition-colors ${
                     currentPage === 'bookings-viewer'
                       ? 'bg-slate-800 text-white'
@@ -275,12 +287,13 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                 >
                   <Eye className="w-4 h-4" />
                   <span className="text-sm font-medium">View Bookings</span>
-                </button>
+                </a>
               )}
 
               {canManageExpenses && (
-                <button
-                  onClick={() => handleItemClick('trainer-expenses')}
+                <a
+                  href={getPageHref('trainer-expenses')}
+                  onClick={(e) => handleItemClick(e, 'trainer-expenses')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded transition-colors ${
                     currentPage === 'trainer-expenses'
                       ? 'bg-slate-800 text-white'
@@ -289,7 +302,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                 >
                   <DollarSign className="w-4 h-4" />
                   <span className="text-sm font-medium">Expenses</span>
-                </button>
+                </a>
               )}
             </div>
           </div>
