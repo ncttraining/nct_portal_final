@@ -103,8 +103,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
           onClick={(e) => handleItemClick(e, 'home')}
           className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
             currentPage === 'home'
-              ? 'bg-slate-800 text-white'
-              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              ? 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Home className="w-4 h-4" />
@@ -128,8 +128,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
               <button
                 className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
                   isActive
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -138,7 +138,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
               </button>
 
               {isOpen && (
-                <div className="absolute top-full left-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl min-w-[220px] z-50">
+                <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl min-w-[220px] z-50">
                   <div className="absolute -top-1 left-0 right-0 h-1 bg-transparent" />
                   {section.items.map((item) => {
                     const ItemIcon = item.icon;
@@ -147,10 +147,10 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                         key={item.id}
                         href={getPageHref(item.id)}
                         onClick={(e) => handleItemClick(e, item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-700 first:rounded-t-lg last:rounded-b-lg ${
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-100 dark:hover:bg-slate-700 first:rounded-t-lg last:rounded-b-lg ${
                           currentPage === item.id
-                            ? 'bg-slate-700 text-white'
-                            : 'text-slate-300'
+                            ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white'
+                            : 'text-slate-600 dark:text-slate-300'
                         }`}
                       >
                         <ItemIcon className="w-4 h-4" />
@@ -170,8 +170,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
             onClick={(e) => handleItemClick(e, 'bookings-viewer')}
             className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
               currentPage === 'bookings-viewer'
-                ? 'bg-slate-800 text-white'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Eye className="w-4 h-4" />
@@ -185,8 +185,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
             onClick={(e) => handleItemClick(e, 'trainer-expenses')}
             className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
               currentPage === 'trainer-expenses'
-                ? 'bg-slate-800 text-white'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <DollarSign className="w-4 h-4" />
@@ -198,7 +198,7 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
       {/* Mobile Hamburger Button */}
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="lg:hidden flex items-center gap-2 px-3 py-2 rounded text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+        className="lg:hidden flex items-center gap-2 px-3 py-2 rounded text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
       >
         {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
@@ -210,15 +210,15 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed top-[73px] right-0 bottom-0 w-80 max-w-[85vw] bg-slate-900 border-l border-slate-800 z-50 lg:hidden overflow-y-auto">
+          <div className="fixed top-[73px] right-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 lg:hidden overflow-y-auto">
             <div className="p-4 space-y-2">
               <a
                 href={getPageHref('home')}
                 onClick={(e) => handleItemClick(e, 'home')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded transition-colors ${
                   currentPage === 'home'
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Home className="w-4 h-4" />
@@ -238,8 +238,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                       onClick={() => toggleMobileSection(section.label)}
                       className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded transition-colors ${
                         isActive
-                          ? 'bg-slate-800 text-white'
-                          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -260,8 +260,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                               onClick={(e) => handleItemClick(e, item.id)}
                               className={`w-full flex items-center gap-3 px-4 py-2 rounded transition-colors ${
                                 currentPage === item.id
-                                  ? 'bg-slate-800 text-white'
-                                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                               }`}
                             >
                               <ItemIcon className="w-4 h-4" />
@@ -281,8 +281,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                   onClick={(e) => handleItemClick(e, 'bookings-viewer')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded transition-colors ${
                     currentPage === 'bookings-viewer'
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Eye className="w-4 h-4" />
@@ -296,8 +296,8 @@ export default function NavigationMenu({ currentPage, onNavigate }: NavigationMe
                   onClick={(e) => handleItemClick(e, 'trainer-expenses')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded transition-colors ${
                     currentPage === 'trainer-expenses'
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <DollarSign className="w-4 h-4" />
