@@ -435,14 +435,14 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors flex items-center justify-center">
+        <div className="text-slate-500 dark:text-slate-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
 
       {notification && (
@@ -454,48 +454,48 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
       )}
 
       <main className="max-w-[1400px] mx-auto px-6 py-6">
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-lg font-semibold tracking-wide uppercase">
+                <h2 className="text-lg font-semibold tracking-wide uppercase text-slate-900 dark:text-white">
                   Trainer Availability Management
                 </h2>
               </div>
-              <p className="text-sm text-slate-400 mb-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 Manage trainer availability by marking days as unavailable. Click any day to toggle availability,
                 or use the range tools to manage multiple days at once.
               </p>
 
-              <div className="flex items-center gap-4 pt-4 border-t border-slate-800">
-                <span className="text-xs text-slate-500 uppercase tracking-wider">
+              <div className="flex items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-xs text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                   Calendar View
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => changeMonth(-1)}
-                    className="px-3 py-1 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                    className="px-3 py-1 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  <span className="font-semibold min-w-[150px] text-center">
+                  <span className="font-semibold min-w-[150px] text-center text-slate-900 dark:text-white">
                     {formatMonthLabel()}
                   </span>
                   <button
                     onClick={() => changeMonth(1)}
-                    className="px-3 py-1 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                    className="px-3 py-1 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 uppercase tracking-wider">
+                  <span className="text-xs text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                     Trainer Type
                   </span>
                   <select
                     value={selectedTrainerType || ''}
                     onChange={(e) => setSelectedTrainerType(e.target.value || null)}
-                    className="px-3 py-1 text-sm bg-slate-950 border border-slate-700 hover:border-slate-600 rounded transition-colors focus:border-blue-500 outline-none"
+                    className="px-3 py-1 text-sm bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors text-slate-900 dark:text-white focus:border-blue-500 outline-none"
                   >
                     <option value="">All Types</option>
                     {trainerTypes.map(type => (
@@ -503,7 +503,7 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                     ))}
                   </select>
                 </div>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   {filteredTrainers.length} trainer(s) - {days} day(s)
                 </span>
               </div>
@@ -536,46 +536,46 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
             <div className="text-right text-sm space-y-2">
               <div className="flex items-center justify-end gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-xs text-slate-500 uppercase tracking-wider">
+                <span className="text-xs text-slate-500 dark:text-slate-500 uppercase tracking-wider">
                   System Status
                 </span>
-                <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded">
+                <span className="px-2 py-1 text-xs bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded">
                   Live & connected
                 </span>
               </div>
-              <div className="text-slate-400">
-                <span className="font-medium text-white">
+              <div className="text-slate-500 dark:text-slate-400">
+                <span className="font-medium text-slate-900 dark:text-white">
                   Today {today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </span>
                 <span className="mx-2">·</span>
                 <span>{totalUnavailableDays} unavailable day(s)</span>
               </div>
-              <div className="flex items-center justify-end gap-4 text-xs">
+              <div className="flex items-center justify-end gap-4 text-xs text-slate-600 dark:text-slate-400">
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-900/40 border border-green-700/50 rounded"></div>
+                  <div className="w-3 h-3 bg-green-200 dark:bg-green-900/40 border border-green-400 dark:border-green-700/50 rounded"></div>
                   <span>Provisionally Booked</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-red-900/40 border border-red-700/50 rounded"></div>
+                  <div className="w-3 h-3 bg-red-200 dark:bg-red-900/40 border border-red-400 dark:border-red-700/50 rounded"></div>
                   <span>Unavailable</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-slate-900/50 border border-slate-800 rounded"></div>
+                  <div className="w-3 h-3 bg-slate-200 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800 rounded"></div>
                   <span>Weekend</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-slate-950 border border-slate-800 rounded"></div>
+                  <div className="w-3 h-3 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded"></div>
                   <span>Available</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="border border-slate-800 rounded-lg overflow-hidden">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
             <div className="overflow-x-auto max-h-[500px]">
               <div className="min-w-max">
-                <div className="flex bg-slate-900/80 border-b border-slate-800 sticky top-0 z-10">
-                  <div className="w-40 px-3 py-2 border-r border-slate-800 font-semibold text-sm">
+                <div className="flex bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
+                  <div className="w-40 px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-semibold text-sm text-slate-900 dark:text-white">
                     Trainer
                   </div>
                   <div className="flex">
@@ -588,12 +588,12 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                       return (
                         <div
                           key={day}
-                          className={`w-[120px] px-2 py-2 border-r border-slate-800 text-center text-xs ${
-                            weekend ? 'bg-blue-900/20' : ''
+                          className={`w-[120px] px-2 py-2 border-r border-slate-200 dark:border-slate-800 text-center text-xs text-slate-900 dark:text-white ${
+                            weekend ? 'bg-blue-200/20 dark:bg-blue-900/20' : ''
                           }`}
                         >
                           <div>{day}</div>
-                          <div className="text-slate-500">{dayName}</div>
+                          <div className="text-slate-500 dark:text-slate-500">{dayName}</div>
                         </div>
                       );
                     })}
@@ -604,9 +604,9 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                   {filteredTrainers.map((trainer, trainerIndex) => (
                     <div
                       key={trainer.id}
-                      className={`flex ${trainerIndex % 2 === 0 ? 'bg-slate-900/50' : 'bg-slate-900/80'}`}
+                      className={`flex ${trainerIndex % 2 === 0 ? 'bg-white dark:bg-slate-900/50' : 'bg-slate-50 dark:bg-slate-900/80'}`}
                     >
-                      <div className="w-40 px-3 py-2 border-r border-b border-slate-800 font-medium text-sm sticky left-0 bg-inherit">
+                      <div className="w-40 px-3 py-2 border-r border-b border-slate-200 dark:border-slate-800 font-medium text-sm text-slate-900 dark:text-white sticky left-0 bg-inherit">
                         {trainer.name}
                       </div>
                       <div className="flex relative">
@@ -626,14 +626,14 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                               key={day}
                               className={`w-[120px] min-h-[60px] border-r border-b relative ${
                                 isUnavailable
-                                  ? 'bg-red-900/40 border-red-700/50'
+                                  ? 'bg-red-200 dark:bg-red-900/40 border-red-400 dark:border-red-700/50'
                                   : isProvisionallyBooked
-                                  ? 'bg-green-900/40 border-green-700/50'
+                                  ? 'bg-green-200 dark:bg-green-900/40 border-green-400 dark:border-green-700/50'
                                   : weekend
-                                  ? 'bg-slate-900/50 border-slate-800'
-                                  : 'border-slate-800'
+                                  ? 'bg-slate-200 dark:bg-slate-900/50 border-slate-300 dark:border-slate-800'
+                                  : 'border-slate-200 dark:border-slate-800'
                               } ${isToday ? 'ring-1 ring-blue-500 ring-inset' : ''} ${
-                                !hasRecord && !isHovered ? 'hover:bg-slate-800/50' : ''
+                                !hasRecord && !isHovered ? 'hover:bg-slate-200 dark:hover:bg-slate-800/50' : ''
                               } cursor-pointer transition-colors`}
                               onMouseEnter={() => setHoveredCell({ trainerId: trainer.id, date: dateStr })}
                               onMouseLeave={() => setHoveredCell(null)}
@@ -653,18 +653,18 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                               {/* Show icon for existing records */}
                               {isUnavailable && (
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                  <X className="w-10 h-10 text-red-400 stroke-[3]" />
+                                  <X className="w-10 h-10 text-red-600 dark:text-red-400 stroke-[3]" />
                                 </div>
                               )}
                               {isProvisionallyBooked && (
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                  <Check className="w-10 h-10 text-green-400 stroke-[3]" />
+                                  <Check className="w-10 h-10 text-green-600 dark:text-green-400 stroke-[3]" />
                                 </div>
                               )}
 
                               {/* Hover UI with tick/cross buttons */}
                               {isHovered && !hasRecord && (
-                                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-800/80">
+                                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-200/80 dark:bg-slate-800/80">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -673,7 +673,7 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                                     className="w-10 h-10 flex items-center justify-center rounded-lg bg-green-500/20 hover:bg-green-500/40 border border-green-500/50 transition-colors"
                                     title="Provisionally book"
                                   >
-                                    <Check className="w-6 h-6 text-green-400" />
+                                    <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
                                   </button>
                                   <button
                                     onClick={(e) => {
@@ -683,14 +683,14 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                                     className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 transition-colors"
                                     title="Mark unavailable"
                                   >
-                                    <X className="w-6 h-6 text-red-400" />
+                                    <X className="w-6 h-6 text-red-600 dark:text-red-400" />
                                   </button>
                                 </div>
                               )}
 
                               {/* Hover UI for existing records - show option to toggle or edit */}
                               {isHovered && hasRecord && (
-                                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-800/80">
+                                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-slate-200/80 dark:bg-slate-800/80">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -698,12 +698,12 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                                     }}
                                     className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${
                                       isProvisionallyBooked
-                                        ? 'bg-green-500/40 border-2 border-green-400'
+                                        ? 'bg-green-500/40 border-2 border-green-600 dark:border-green-400'
                                         : 'bg-green-500/20 hover:bg-green-500/40 border border-green-500/50'
                                     }`}
                                     title={isProvisionallyBooked ? "Remove provisional booking" : "Change to provisionally booked"}
                                   >
-                                    <Check className="w-6 h-6 text-green-400" />
+                                    <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
                                   </button>
                                   <button
                                     onClick={(e) => {
@@ -712,12 +712,12 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                                     }}
                                     className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${
                                       isUnavailable
-                                        ? 'bg-red-500/40 border-2 border-red-400'
+                                        ? 'bg-red-500/40 border-2 border-red-600 dark:border-red-400'
                                         : 'bg-red-500/20 hover:bg-red-500/40 border border-red-500/50'
                                     }`}
                                     title={isUnavailable ? "Mark available" : "Change to unavailable"}
                                   >
-                                    <X className="w-6 h-6 text-red-400" />
+                                    <X className="w-6 h-6 text-red-600 dark:text-red-400" />
                                   </button>
                                 </div>
                               )}
@@ -740,11 +740,11 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
 
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-md w-full">
-              <div className="flex items-center justify-between p-6 border-b border-slate-800">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-md w-full">
+              <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Manage Availability</h2>
-                  <p className="text-sm text-slate-400 mt-1">
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Manage Availability</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     {selectedTrainer.name} - {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
@@ -755,7 +755,7 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                     setSelectedDate(null);
                     setDayReason('');
                   }}
-                  className="text-slate-400 hover:text-white transition-colors"
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -766,8 +766,8 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                 {currentStatus && (
                   <div className={`p-3 rounded border ${
                     currentStatus === 'unavailable'
-                      ? 'bg-red-500/10 border-red-500/30 text-red-400'
-                      : 'bg-green-500/10 border-green-500/30 text-green-400'
+                      ? 'bg-red-100 dark:bg-red-500/10 border-red-300 dark:border-red-500/30 text-red-700 dark:text-red-400'
+                      : 'bg-green-100 dark:bg-green-500/10 border-green-300 dark:border-green-500/30 text-green-700 dark:text-green-400'
                   }`}>
                     <div className="flex items-center gap-2">
                       {currentStatus === 'unavailable' ? (
@@ -786,7 +786,7 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Reason (Optional)
                   </label>
                   <input
@@ -794,20 +794,20 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                     value={dayReason}
                     onChange={(e) => setDayReason(e.target.value)}
                     placeholder="e.g., Holiday, Sick Leave, Reserved for client"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-white placeholder-slate-500 focus:border-blue-500 outline-none"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 p-6 border-t border-slate-800">
+              <div className="flex flex-col gap-3 p-6 border-t border-slate-200 dark:border-slate-800">
                 {/* Action buttons */}
                 <div className="flex gap-3">
                   <button
                     onClick={() => handleDayModalConfirm('provisionally_booked')}
                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded transition-colors ${
                       currentStatus === 'provisionally_booked'
-                        ? 'bg-green-500/30 text-green-300 border-2 border-green-400'
-                        : 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
+                        ? 'bg-green-500/30 text-green-700 dark:text-green-300 border-2 border-green-600 dark:border-green-400'
+                        : 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 hover:bg-green-500/30'
                     }`}
                   >
                     <Check className="w-4 h-4" />
@@ -817,8 +817,8 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                     onClick={() => handleDayModalConfirm('unavailable')}
                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded transition-colors ${
                       currentStatus === 'unavailable'
-                        ? 'bg-red-500/30 text-red-300 border-2 border-red-400'
-                        : 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                        ? 'bg-red-500/30 text-red-700 dark:text-red-300 border-2 border-red-600 dark:border-red-400'
+                        : 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 hover:bg-red-500/30'
                     }`}
                   >
                     <X className="w-4 h-4" />
@@ -835,14 +835,14 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                       setSelectedDate(null);
                       setDayReason('');
                     }}
-                    className="flex-1 px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                    className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors text-slate-700 dark:text-slate-300"
                   >
                     Cancel
                   </button>
                   {currentStatus && (
                     <button
                       onClick={handleRemoveAvailabilityRecord}
-                      className="flex-1 px-4 py-2 bg-slate-700/50 hover:bg-slate-700 text-slate-300 border border-slate-600 rounded transition-colors"
+                      className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded transition-colors"
                     >
                       Clear (Mark Available)
                     </button>
@@ -856,14 +856,14 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
 
       {showRangeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800">
-              <h2 className="text-xl font-semibold text-white">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
                 {rangeAction === 'provisional' ? 'Provisionally Book Date Range' : rangeAction === 'mark' ? 'Mark Date Range Unavailable' : 'Clear Date Range'}
               </h2>
               <button
                 onClick={() => setShowRangeModal(false)}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -871,13 +871,13 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Trainer *
                 </label>
                 <select
                   value={rangeTrainerId}
                   onChange={(e) => setRangeTrainerId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-white focus:border-blue-500 outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:border-blue-500 outline-none"
                 >
                   <option value="">Select a trainer</option>
                   {trainers.map(trainer => (
@@ -887,32 +887,32 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Start Date *
                 </label>
                 <input
                   type="date"
                   value={rangeStartDate}
                   onChange={(e) => setRangeStartDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-white focus:border-blue-500 outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:border-blue-500 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   End Date *
                 </label>
                 <input
                   type="date"
                   value={rangeEndDate}
                   onChange={(e) => setRangeEndDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-white focus:border-blue-500 outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:border-blue-500 outline-none"
                 />
               </div>
 
               {(rangeAction === 'mark' || rangeAction === 'provisional') && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Reason (Optional)
                   </label>
                   <input
@@ -920,13 +920,13 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                     value={rangeReason}
                     onChange={(e) => setRangeReason(e.target.value)}
                     placeholder={rangeAction === 'provisional' ? "e.g., Reserved for client, Tentative booking" : "e.g., Holiday, Training"}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-white placeholder-slate-500 focus:border-blue-500 outline-none"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 outline-none"
                   />
                 </div>
               )}
 
               {rangeStartDate && rangeEndDate && new Date(rangeStartDate) <= new Date(rangeEndDate) && (
-                <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded text-sm text-blue-400">
+                <div className="p-3 bg-blue-100 dark:bg-blue-500/10 border border-blue-300 dark:border-blue-500/30 rounded text-sm text-blue-700 dark:text-blue-400">
                   {(() => {
                     const start = new Date(rangeStartDate);
                     const end = new Date(rangeEndDate);
@@ -937,11 +937,11 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
               )}
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-slate-800">
+            <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => setShowRangeModal(false)}
                 disabled={processingRange}
-                className="flex-1 px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 dark:text-slate-300"
               >
                 Cancel
               </button>
@@ -950,10 +950,10 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
                 disabled={processingRange || !rangeTrainerId || !rangeStartDate || !rangeEndDate}
                 className={`flex-1 px-4 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                   rangeAction === 'mark'
-                    ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                    ? 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 hover:bg-red-500/30'
                     : rangeAction === 'provisional'
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
-                    : 'bg-slate-500/20 text-slate-300 border border-slate-500/30 hover:bg-slate-500/30'
+                    ? 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 hover:bg-green-500/30'
+                    : 'bg-slate-500/20 text-slate-700 dark:text-slate-300 border border-slate-500/30 hover:bg-slate-500/30'
                 }`}
               >
                 {processingRange ? 'Processing...' : rangeAction === 'mark' ? 'Mark Unavailable' : rangeAction === 'provisional' ? 'Provisionally Book' : 'Clear Range'}
@@ -965,12 +965,12 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
 
       {showConflictWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-md w-full">
-            <div className="flex items-center gap-3 p-6 border-b border-slate-800">
-              <AlertTriangle className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg max-w-md w-full">
+            <div className="flex items-center gap-3 p-6 border-b border-slate-200 dark:border-slate-800">
+              <AlertTriangle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
               <div>
-                <h2 className="text-xl font-semibold text-white">Booking Conflicts Detected</h2>
-                <p className="text-sm text-slate-400 mt-1">
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Booking Conflicts Detected</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                   The following bookings exist on the selected date(s)
                 </p>
               </div>
@@ -979,29 +979,29 @@ export default function TrainerAvailability({ currentPage, onNavigate }: Trainer
             <div className="p-6">
               <div className="space-y-2 mb-4">
                 {conflictingBookings.map(booking => (
-                  <div key={booking.id} className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded text-sm">
-                    <div className="font-medium text-yellow-400">{booking.title}</div>
-                    <div className="text-slate-400">
+                  <div key={booking.id} className="p-3 bg-yellow-100 dark:bg-yellow-500/10 border border-yellow-300 dark:border-yellow-500/30 rounded text-sm">
+                    <div className="font-medium text-yellow-800 dark:text-yellow-400">{booking.title}</div>
+                    <div className="text-slate-600 dark:text-slate-400">
                       {new Date(booking.booking_date).toLocaleDateString('en-GB')}
                     </div>
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Do you want to proceed with marking these dates as unavailable despite the conflicts?
               </p>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-slate-800">
+            <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={handleConflictCancel}
-                className="flex-1 px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors text-slate-700 dark:text-slate-300"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConflictProceed}
-                className="flex-1 px-4 py-2 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded hover:bg-yellow-500/30 transition-colors"
+                className="flex-1 px-4 py-2 bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30 rounded hover:bg-yellow-500/30 transition-colors"
               >
                 Proceed Anyway
               </button>

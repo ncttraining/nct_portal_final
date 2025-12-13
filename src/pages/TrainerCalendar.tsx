@@ -322,21 +322,21 @@ export default function TrainerCalendar() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-screen bg-slate-100 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6 transition-colors">
       <div className="max-w-7xl mx-auto">
         {/* Calendar Header */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={previousMonth}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-lg transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={nextMonth}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-lg transition-colors"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -348,7 +348,7 @@ export default function TrainerCalendar() {
               </button>
             </div>
 
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
 
@@ -361,15 +361,15 @@ export default function TrainerCalendar() {
         </div>
 
         {/* Calendar Grid */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
           {loading ? (
-            <div className="text-center py-12 text-slate-400">Loading calendar...</div>
+            <div className="text-center py-12 text-slate-500 dark:text-slate-400">Loading calendar...</div>
           ) : (
             <>
               {/* Day Headers */}
               <div className="grid grid-cols-7 gap-2 mb-2">
                 {dayNames.map(day => (
-                  <div key={day} className="text-center text-sm font-semibold text-slate-400 py-2">
+                  <div key={day} className="text-center text-sm font-semibold text-slate-500 dark:text-slate-400 py-2">
                     {day}
                   </div>
                 ))}
@@ -396,19 +396,19 @@ export default function TrainerCalendar() {
                       }}
                       className={`min-h-[120px] p-2 rounded-lg border relative ${
                         isUnavailable
-                          ? 'bg-red-900/40 border-red-700/50'
+                          ? 'bg-red-100 dark:bg-red-900/40 border-red-300 dark:border-red-700/50'
                           : day.isCurrentMonth
-                          ? 'bg-slate-800 border-slate-700'
-                          : 'bg-slate-900/50 border-slate-800/50'
+                          ? 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                          : 'bg-slate-100/50 dark:bg-slate-900/50 border-slate-200/50 dark:border-slate-800/50'
                       } ${isToday(day.date) ? 'ring-2 ring-blue-500' : ''} ${
-                        isUnavailable && canManageAvailability ? 'cursor-pointer hover:bg-red-900/50' : ''
+                        isUnavailable && canManageAvailability ? 'cursor-pointer hover:bg-red-200 dark:hover:bg-red-900/50' : ''
                       }`}
                     >
                       <div className={`text-sm font-medium mb-1 ${
                         isUnavailable
-                          ? 'text-red-400'
-                          : day.isCurrentMonth ? 'text-white' : 'text-slate-600'
-                      } ${isToday(day.date) ? 'text-blue-400' : ''}`}>
+                          ? 'text-red-600 dark:text-red-400'
+                          : day.isCurrentMonth ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-600'
+                      } ${isToday(day.date) ? 'text-blue-600 dark:text-blue-400' : ''}`}>
                         {day.date.getDate()}
                       </div>
 
@@ -464,13 +464,13 @@ export default function TrainerCalendar() {
 
       {/* Booking Details Modal */}
       {selectedBooking && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-slate-900 border-b border-slate-800 p-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Booking Details</h2>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Booking Details</h2>
               <button
                 onClick={() => setSelectedBooking(null)}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -487,14 +487,14 @@ export default function TrainerCalendar() {
               )}
 
               <div>
-                <label className="text-sm text-slate-400">Title</label>
-                <p className="text-white font-medium mt-1">{decodeHtmlEntities(selectedBooking.title)}</p>
+                <label className="text-sm text-slate-500 dark:text-slate-400">Title</label>
+                <p className="text-slate-900 dark:text-white font-medium mt-1">{decodeHtmlEntities(selectedBooking.title)}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-slate-400">Date</label>
-                  <p className="text-white font-medium mt-1">
+                  <label className="text-sm text-slate-500 dark:text-slate-400">Date</label>
+                  <p className="text-slate-900 dark:text-white font-medium mt-1">
                     {new Date(selectedBooking.booking_date).toLocaleDateString('en-GB', {
                       weekday: 'long',
                       year: 'numeric',
@@ -504,62 +504,62 @@ export default function TrainerCalendar() {
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm text-slate-400">Start Time</label>
-                  <p className="text-white font-medium mt-1">{selectedBooking.start_time}</p>
+                  <label className="text-sm text-slate-500 dark:text-slate-400">Start Time</label>
+                  <p className="text-slate-900 dark:text-white font-medium mt-1">{selectedBooking.start_time}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-slate-400">Duration</label>
-                  <p className="text-white font-medium mt-1">{selectedBooking.num_days} day(s)</p>
+                  <label className="text-sm text-slate-500 dark:text-slate-400">Duration</label>
+                  <p className="text-slate-900 dark:text-white font-medium mt-1">{selectedBooking.num_days} day(s)</p>
                 </div>
                 <div>
-                  <label className="text-sm text-slate-400">Course Type</label>
-                  <p className="text-white font-medium mt-1">{selectedBooking.course_type_name || 'N/A'}</p>
+                  <label className="text-sm text-slate-500 dark:text-slate-400">Course Type</label>
+                  <p className="text-slate-900 dark:text-white font-medium mt-1">{selectedBooking.course_type_name || 'N/A'}</p>
                 </div>
               </div>
 
               <div>
-                <label className="text-sm text-slate-400">Location</label>
-                <p className="text-white font-medium mt-1">{selectedBooking.location || 'N/A'}</p>
+                <label className="text-sm text-slate-500 dark:text-slate-400">Location</label>
+                <p className="text-slate-900 dark:text-white font-medium mt-1">{selectedBooking.location || 'N/A'}</p>
               </div>
 
               <div>
-                <label className="text-sm text-slate-400">Venue Type</label>
-                <p className="text-white font-medium mt-1">
+                <label className="text-sm text-slate-500 dark:text-slate-400">Venue Type</label>
+                <p className="text-slate-900 dark:text-white font-medium mt-1">
                   {selectedBooking.in_centre ? 'In Centre' : 'On-site'}
                 </p>
               </div>
 
               {selectedBooking.client_name && (
-                <div className="border-t border-slate-800 pt-4 mt-4">
-                  <h3 className="text-lg font-semibold text-white mb-3">Client Information</h3>
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-4">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Client Information</h3>
 
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm text-slate-400">Client Name</label>
-                      <p className="text-white font-medium mt-1">{selectedBooking.client_name}</p>
+                      <label className="text-sm text-slate-500 dark:text-slate-400">Client Name</label>
+                      <p className="text-slate-900 dark:text-white font-medium mt-1">{selectedBooking.client_name}</p>
                     </div>
 
                     {selectedBooking.client_contact_name && (
                       <div>
-                        <label className="text-sm text-slate-400">Contact Name</label>
-                        <p className="text-white font-medium mt-1">{selectedBooking.client_contact_name}</p>
+                        <label className="text-sm text-slate-500 dark:text-slate-400">Contact Name</label>
+                        <p className="text-slate-900 dark:text-white font-medium mt-1">{selectedBooking.client_contact_name}</p>
                       </div>
                     )}
 
                     {selectedBooking.client_email && (
                       <div>
-                        <label className="text-sm text-slate-400">Contact Email</label>
-                        <p className="text-white font-medium mt-1">{selectedBooking.client_email}</p>
+                        <label className="text-sm text-slate-500 dark:text-slate-400">Contact Email</label>
+                        <p className="text-slate-900 dark:text-white font-medium mt-1">{selectedBooking.client_email}</p>
                       </div>
                     )}
 
                     {selectedBooking.client_telephone && (
                       <div>
-                        <label className="text-sm text-slate-400">Contact Telephone</label>
-                        <p className="text-white font-medium mt-1">{selectedBooking.client_telephone}</p>
+                        <label className="text-sm text-slate-500 dark:text-slate-400">Contact Telephone</label>
+                        <p className="text-slate-900 dark:text-white font-medium mt-1">{selectedBooking.client_telephone}</p>
                       </div>
                     )}
                   </div>
@@ -567,15 +567,15 @@ export default function TrainerCalendar() {
               )}
 
               {selectedBooking.notes && (
-                <div className="border-t border-slate-800 pt-4 mt-4">
-                  <label className="text-sm text-slate-400">Notes</label>
-                  <p className="text-white mt-1 whitespace-pre-wrap">{selectedBooking.notes}</p>
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-4">
+                  <label className="text-sm text-slate-500 dark:text-slate-400">Notes</label>
+                  <p className="text-slate-900 dark:text-white mt-1 whitespace-pre-wrap">{selectedBooking.notes}</p>
                 </div>
               )}
 
-              <div className="border-t border-slate-800 pt-4 mt-4">
-                <label className="text-sm text-slate-400">Status</label>
-                <p className="text-white font-medium mt-1 capitalize">{selectedBooking.status}</p>
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-4">
+                <label className="text-sm text-slate-500 dark:text-slate-400">Status</label>
+                <p className="text-slate-900 dark:text-white font-medium mt-1 capitalize">{selectedBooking.status}</p>
               </div>
             </div>
           </div>
@@ -584,17 +584,17 @@ export default function TrainerCalendar() {
 
       {/* Mark Unavailable Modal */}
       {showMarkUnavailableModal && selectedDate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md">
-            <div className="border-b border-slate-800 p-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Mark Date Unavailable</h2>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md">
+            <div className="border-b border-slate-200 dark:border-slate-800 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Mark Date Unavailable</h2>
               <button
                 onClick={() => {
                   setShowMarkUnavailableModal(false);
                   setSelectedDate(null);
                   setUnavailableReason('');
                 }}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -602,8 +602,8 @@ export default function TrainerCalendar() {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-sm text-slate-400">Date</label>
-                <p className="text-white font-medium mt-1">
+                <label className="text-sm text-slate-500 dark:text-slate-400">Date</label>
+                <p className="text-slate-900 dark:text-white font-medium mt-1">
                   {selectedDate.toLocaleDateString('en-GB', {
                     weekday: 'long',
                     year: 'numeric',
@@ -614,13 +614,13 @@ export default function TrainerCalendar() {
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-2">
+                <label className="block text-sm text-slate-600 dark:text-slate-400 mb-2">
                   Reason (Optional)
                 </label>
                 <textarea
                   value={unavailableReason}
                   onChange={(e) => setUnavailableReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-blue-500 text-white resize-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:border-blue-500 text-slate-900 dark:text-white resize-none"
                   rows={3}
                   placeholder="e.g., Personal time off, Holiday, etc."
                 />
@@ -633,7 +633,7 @@ export default function TrainerCalendar() {
                     setSelectedDate(null);
                     setUnavailableReason('');
                   }}
-                  className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-lg transition-colors"
                   disabled={submitting}
                 >
                   Cancel
@@ -653,13 +653,13 @@ export default function TrainerCalendar() {
 
       {/* Unavailability Details Modal */}
       {selectedUnavailability && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-md">
-            <div className="border-b border-slate-800 p-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Unavailable Date</h2>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md">
+            <div className="border-b border-slate-200 dark:border-slate-800 p-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Unavailable Date</h2>
               <button
                 onClick={() => setSelectedUnavailability(null)}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -667,8 +667,8 @@ export default function TrainerCalendar() {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-sm text-slate-400">Date</label>
-                <p className="text-white font-medium mt-1">
+                <label className="text-sm text-slate-500 dark:text-slate-400">Date</label>
+                <p className="text-slate-900 dark:text-white font-medium mt-1">
                   {new Date(selectedUnavailability.unavailable_date).toLocaleDateString('en-GB', {
                     weekday: 'long',
                     year: 'numeric',
@@ -680,14 +680,14 @@ export default function TrainerCalendar() {
 
               {selectedUnavailability.reason && (
                 <div>
-                  <label className="text-sm text-slate-400">Reason</label>
-                  <p className="text-white mt-1">{selectedUnavailability.reason}</p>
+                  <label className="text-sm text-slate-500 dark:text-slate-400">Reason</label>
+                  <p className="text-slate-900 dark:text-white mt-1">{selectedUnavailability.reason}</p>
                 </div>
               )}
 
               <div>
-                <label className="text-sm text-slate-400">Marked On</label>
-                <p className="text-white mt-1">
+                <label className="text-sm text-slate-500 dark:text-slate-400">Marked On</label>
+                <p className="text-slate-900 dark:text-white mt-1">
                   {new Date(selectedUnavailability.created_at).toLocaleDateString('en-GB')}
                 </p>
               </div>
@@ -696,7 +696,7 @@ export default function TrainerCalendar() {
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={() => setSelectedUnavailability(null)}
-                    className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-lg transition-colors"
                   >
                     Close
                   </button>
@@ -715,11 +715,11 @@ export default function TrainerCalendar() {
 
       {/* Remove Unavailability Confirmation Modal */}
       {showRemoveConfirmModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg w-full max-w-md">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4">Remove Unavailability</h2>
-              <p className="text-slate-300 mb-6">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Remove Unavailability</h2>
+              <p className="text-slate-600 dark:text-slate-300 mb-6">
                 Are you sure you want to remove this unavailability?
               </p>
               <div className="flex gap-3">
@@ -729,7 +729,7 @@ export default function TrainerCalendar() {
                     setUnavailabilityToRemove(null);
                   }}
                   disabled={submitting}
-                  className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-lg transition-colors font-medium disabled:opacity-50"
                 >
                   Cancel
                 </button>

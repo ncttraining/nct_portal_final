@@ -138,14 +138,14 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-slate-400">Loading...</div>
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors flex items-center justify-center">
+        <div className="text-slate-500 dark:text-slate-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
 
       {notification && (
@@ -158,17 +158,17 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
 
       <main className="max-w-7xl mx-auto px-6 py-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-semibold mb-2">Training Centre Management</h2>
-          <p className="text-slate-400">
+          <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-white">Training Centre Management</h2>
+          <p className="text-slate-500 dark:text-slate-400">
             Manage in-centre training locations and rooms for course bookings
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
           {/* Training Centres Panel */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Training Centres</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Training Centres</h3>
               <button
                 onClick={() => openCentreModal()}
                 className="px-3 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 rounded transition-colors flex items-center gap-2"
@@ -180,7 +180,7 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
 
             <div className="p-4 space-y-2 max-h-[600px] overflow-y-auto">
               {centres.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-slate-500 dark:text-slate-500">
                   <Building className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No training centres yet</p>
                   <p className="text-sm mt-1">Click "Add Centre" to create one</p>
@@ -192,25 +192,25 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
                     onClick={() => setSelectedCentre(centre)}
                     className={`p-4 border rounded cursor-pointer transition-all ${
                       selectedCentre?.id === centre.id
-                        ? 'border-blue-500 bg-slate-800'
-                        : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/50'
+                        ? 'border-blue-500 bg-slate-100 dark:bg-slate-800'
+                        : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800/50'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-white truncate">{centre.name}</h4>
+                          <h4 className="font-semibold text-slate-900 dark:text-white truncate">{centre.name}</h4>
                           {!centre.is_active && (
-                            <span className="px-2 py-0.5 text-xs bg-slate-700 text-slate-400 rounded">
+                            <span className="px-2 py-0.5 text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded">
                               Inactive
                             </span>
                           )}
                         </div>
                         {centre.town && (
-                          <p className="text-sm text-slate-400">{centre.town}</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">{centre.town}</p>
                         )}
                         <div className="flex items-center gap-2 mt-2">
-                          <span className="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded">
+                          <span className="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded">
                             {rooms.filter(r => r.centre_id === centre.id).length} rooms
                           </span>
                         </div>
@@ -221,7 +221,7 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
                             e.stopPropagation();
                             openCentreModal(centre);
                           }}
-                          className="p-1.5 text-slate-400 hover:text-blue-400 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -230,7 +230,7 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
                             e.stopPropagation();
                             deleteCentre(centre.id);
                           }}
-                          className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -243,9 +243,9 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
           </div>
 
           {/* Rooms Panel */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 {selectedCentre ? `Rooms - ${selectedCentre.name}` : 'Rooms'}
               </h3>
               {selectedCentre && (
@@ -261,12 +261,12 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
 
             <div className="p-4 space-y-2 max-h-[600px] overflow-y-auto">
               {!selectedCentre ? (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-slate-500 dark:text-slate-500">
                   <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>Select a training centre to view its rooms</p>
                 </div>
               ) : rooms.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-slate-500 dark:text-slate-500">
                   <Building className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No rooms yet for this centre</p>
                   <p className="text-sm mt-1">Click "Add Room" to create one</p>
@@ -275,38 +275,38 @@ export default function CentreManagement({ currentPage, onNavigate }: CentreMana
                 rooms.map((room) => (
                   <div
                     key={room.id}
-                    className="p-4 border border-slate-700 rounded hover:border-slate-600 hover:bg-slate-800/50 transition-all"
+                    className="p-4 border border-slate-300 dark:border-slate-700 rounded hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-white">{room.room_name}</h4>
+                          <h4 className="font-semibold text-slate-900 dark:text-white">{room.room_name}</h4>
                           {!room.is_active && (
-                            <span className="px-2 py-0.5 text-xs bg-slate-700 text-slate-400 rounded">
+                            <span className="px-2 py-0.5 text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded">
                               Inactive
                             </span>
                           )}
                         </div>
-                        <div className="space-y-1 text-sm text-slate-400">
+                        <div className="space-y-1 text-sm text-slate-500 dark:text-slate-400">
                           <p>Capacity: {room.capacity} people</p>
                           {room.equipment && (
                             <p className="truncate">Equipment: {room.equipment}</p>
                           )}
                           {room.notes && (
-                            <p className="text-xs text-slate-500 truncate">{room.notes}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-500 truncate">{room.notes}</p>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => openRoomModal(room)}
-                          className="p-1.5 text-slate-400 hover:text-blue-400 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => deleteRoom(room.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -417,19 +417,19 @@ function CentreModal({ centre, onClose, onSave }: CentreModalProps) {
 
   return (
     <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             {centre ? 'Edit Training Centre' : 'Add Training Centre'}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               Centre Name *
             </label>
             <input
@@ -437,111 +437,111 @@ function CentreModal({ centre, onClose, onSave }: CentreModalProps) {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="e.g. NCT Training Centre - Main Building"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Address Line 1
               </label>
               <input
                 type="text"
                 value={formData.address1}
                 onChange={(e) => setFormData({ ...formData, address1: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Address Line 2
               </label>
               <input
                 type="text"
                 value={formData.address2}
                 onChange={(e) => setFormData({ ...formData, address2: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Town/City
               </label>
               <input
                 type="text"
                 value={formData.town}
                 onChange={(e) => setFormData({ ...formData, town: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Postcode
               </label>
               <input
                 type="text"
                 value={formData.postcode}
                 onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Contact Name
               </label>
               <input
                 type="text"
                 value={formData.contact_name}
                 onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Contact Email
               </label>
               <input
                 type="email"
                 value={formData.contact_email}
                 onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Contact Telephone
               </label>
               <input
                 type="tel"
                 value={formData.contact_telephone}
                 onChange={(e) => setFormData({ ...formData, contact_telephone: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               Notes
             </label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none resize-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none resize-none"
             />
           </div>
 
           <div>
-            <label className="flex items-center gap-2 text-sm text-slate-400">
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
               <input
                 type="checkbox"
                 checked={formData.is_active}
@@ -552,11 +552,11 @@ function CentreModal({ centre, onClose, onSave }: CentreModalProps) {
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors text-slate-700 dark:text-slate-300"
             >
               Cancel
             </button>
@@ -623,12 +623,12 @@ function RoomModal({ room, centreId, onClose, onSave }: RoomModalProps) {
 
   return (
     <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-2xl">
-        <div className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg w-full max-w-2xl">
+        <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             {room ? 'Edit Room' : 'Add Room'}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -636,7 +636,7 @@ function RoomModal({ room, centreId, onClose, onSave }: RoomModalProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Room Name *
               </label>
               <input
@@ -644,12 +644,12 @@ function RoomModal({ room, centreId, onClose, onSave }: RoomModalProps) {
                 value={formData.room_name}
                 onChange={(e) => setFormData({ ...formData, room_name: e.target.value })}
                 placeholder="e.g. Room A, Conference Room"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                 Capacity (Max People) *
               </label>
               <input
@@ -657,14 +657,14 @@ function RoomModal({ room, centreId, onClose, onSave }: RoomModalProps) {
                 value={formData.capacity}
                 onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 0 })}
                 min="0"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               Available Equipment
             </label>
             <textarea
@@ -672,24 +672,24 @@ function RoomModal({ room, centreId, onClose, onSave }: RoomModalProps) {
               onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
               placeholder="e.g. Projector, Whiteboard, Audio System"
               rows={2}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none resize-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               Notes / Special Instructions
             </label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded text-sm focus:border-blue-500 outline-none resize-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded text-sm text-slate-900 dark:text-white focus:border-blue-500 outline-none resize-none"
             />
           </div>
 
           <div>
-            <label className="flex items-center gap-2 text-sm text-slate-400">
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
               <input
                 type="checkbox"
                 checked={formData.is_active}
@@ -700,11 +700,11 @@ function RoomModal({ room, centreId, onClose, onSave }: RoomModalProps) {
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm border border-slate-700 hover:border-slate-600 rounded transition-colors"
+              className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors text-slate-700 dark:text-slate-300"
             >
               Cancel
             </button>

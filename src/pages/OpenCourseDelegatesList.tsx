@@ -377,7 +377,7 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
   const sortedDelegates = getSortedDelegates();
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader
         currentPage={currentPage}
         onNavigate={onNavigate}
@@ -395,10 +395,10 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
         {/* Page Title */}
         <div className="flex items-center gap-3 mb-6">
           <Users className="w-8 h-8 text-blue-400" />
-          <h1 className="text-2xl font-semibold text-white">Open Course Delegates</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Open Course Delegates</h1>
         </div>
         {/* Filters */}
-        <div className="bg-slate-900/50 rounded-lg border border-slate-800 p-6 mb-6">
+        <div className="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             <div className="lg:col-span-2">
               <div className="relative">
@@ -408,7 +408,7 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
                   placeholder="Search by name, email, or company..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -416,7 +416,7 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
             <select
               value={selectedCourseType}
               onChange={(e) => setSelectedCourseType(e.target.value)}
-              className="px-3 py-2 bg-slate-900 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+              className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
             >
               <option value="">All Course Types</option>
               {courseTypes.map(ct => (
@@ -523,10 +523,10 @@ export default function OpenCourseDelegatesList({ currentPage, onNavigate }: Ope
             <p>No delegates found matching your filters</p>
           </div>
         ) : (
-          <div className="bg-slate-900/50 rounded-lg border border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-900 border-b border-slate-800">
+                <thead className="bg-slate-200 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-3 text-left">
                       <input

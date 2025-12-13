@@ -167,9 +167,9 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
-      <div className="border-b border-slate-800 px-6 py-3 bg-slate-900/50">
+      <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-3 bg-white/50 dark:bg-slate-900/50">
         <div className="flex items-center justify-end gap-3 max-w-[1600px] mx-auto">
           <button
             onClick={() => {
@@ -192,13 +192,13 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
             return (
               <div
                 key={type.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-6"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h2 className="text-lg font-semibold">{type.name}</h2>
                     {type.description && (
-                      <p className="text-sm text-slate-400 mt-1">{type.description}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{type.description}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
                         setEditingAttribute(null);
                         setShowAttributeModal(true);
                       }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-xs border border-slate-600 rounded-full hover:bg-slate-800 transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                     >
                       <Plus className="w-3 h-3" />
                       Add attribute
@@ -218,13 +218,13 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
                         setEditingType(type);
                         setShowTypeModal(true);
                       }}
-                      className="p-2 border border-slate-600 rounded-full hover:bg-slate-800 transition-colors"
+                      className="p-2 border border-slate-300 dark:border-slate-600 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteType(type)}
-                      className="p-2 bg-red-500/20 text-red-300 border border-red-500/50 rounded-full hover:bg-red-900 transition-colors"
+                      className="p-2 bg-red-500/20 text-red-600 dark:text-red-300 border border-red-500/50 rounded-full hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -232,7 +232,7 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
                 </div>
 
                 {typeAttributes.length === 0 ? (
-                  <p className="text-sm text-slate-400 italic">No attributes defined yet</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 italic">No attributes defined yet</p>
                 ) : (
                   <div className="space-y-2">
                     {typeAttributes.map((attr) => {
@@ -241,22 +241,22 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
                       return (
                         <div
                           key={attr.id}
-                          className="bg-slate-950 border border-slate-800 rounded-lg p-4"
+                          className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-4"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium">{attr.label}</span>
-                                <span className="text-xs px-2 py-0.5 bg-slate-800 border border-slate-700 rounded">
+                                <span className="text-xs px-2 py-0.5 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded">
                                   {attr.field_type}
                                 </span>
                                 {attr.is_required && (
-                                  <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-300 border border-red-500/50 rounded">
+                                  <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-600 dark:text-red-300 border border-red-500/50 rounded">
                                     required
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-slate-400 mt-1">
+                              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                 Field name: {attr.name}
                               </div>
                             </div>
@@ -268,7 +268,7 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
                                     setEditingAttribute(attr);
                                     setShowAttributeModal(true);
                                   }}
-                                  className="p-1.5 border border-slate-600 rounded hover:bg-slate-800 transition-colors"
+                                  className="p-1.5 border border-slate-300 dark:border-slate-600 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                                   title="Manage options"
                                 >
                                   <Settings className="w-3 h-3" />
@@ -280,13 +280,13 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
                                   setEditingAttribute(attr);
                                   setShowAttributeModal(true);
                                 }}
-                                className="p-1.5 border border-slate-600 rounded hover:bg-slate-800 transition-colors"
+                                className="p-1.5 border border-slate-300 dark:border-slate-600 rounded hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                               >
                                 <Edit2 className="w-3 h-3" />
                               </button>
                               <button
                                 onClick={() => handleDeleteAttribute(attr)}
-                                className="p-1.5 bg-red-500/20 text-red-300 border border-red-500/50 rounded hover:bg-red-900 transition-colors"
+                                className="p-1.5 bg-red-500/20 text-red-600 dark:text-red-300 border border-red-500/50 rounded hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>
@@ -294,21 +294,21 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
                           </div>
 
                           {attr.field_type === 'multiselect' && attrOptions.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-slate-800">
-                              <div className="text-xs text-slate-400 mb-2">
+                            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                              <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                                 {attrOptions.length} option(s) available
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 {attrOptions.slice(0, 10).map((opt) => (
                                   <span
                                     key={opt.id}
-                                    className="text-xs px-2 py-1 bg-slate-900 border border-slate-700 rounded"
+                                    className="text-xs px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded"
                                   >
                                     {opt.code}
                                   </span>
                                 ))}
                                 {attrOptions.length > 10 && (
-                                  <span className="text-xs px-2 py-1 text-slate-400">
+                                  <span className="text-xs px-2 py-1 text-slate-500 dark:text-slate-400">
                                     +{attrOptions.length - 10} more
                                   </span>
                                 )}
@@ -325,8 +325,8 @@ export default function TrainerTypes({ currentPage, onNavigate }: TrainerTypesPr
           })}
 
           {trainerTypes.length === 0 && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-              <p className="text-slate-400 mb-4">No trainer types yet. Add your first type to get started.</p>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
+              <p className="text-slate-500 dark:text-slate-400 mb-4">No trainer types yet. Add your first type to get started.</p>
               <button
                 onClick={() => {
                   setEditingType(null);
@@ -448,10 +448,10 @@ function TypeModal({
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[100] p-4"
+      className="fixed inset-0 bg-slate-950/90 dark:bg-slate-950/90 flex items-center justify-center z-[100] p-4"
     >
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-2xl"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
@@ -459,13 +459,13 @@ function TypeModal({
             <h2 className="text-lg font-semibold uppercase tracking-wider">
               {type ? 'Edit Trainer Type' : 'Add Trainer Type'}
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Define a type of trainer (e.g., MHE, First Aid, DCPC)
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -473,7 +473,7 @@ function TypeModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Trainer type name
             </label>
             <input
@@ -484,12 +484,12 @@ function TypeModal({
               }
               required
               placeholder="e.g., MHE Trainer"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Description
             </label>
             <input
@@ -499,12 +499,12 @@ function TypeModal({
                 setFormData((prev) => ({ ...prev, description: e.target.value }))
               }
               placeholder="e.g., Materials Handling Equipment (RTITB) trainers"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Sort order
             </label>
             <input
@@ -514,7 +514,7 @@ function TypeModal({
                 setFormData((prev) => ({ ...prev, sort_order: e.target.value }))
               }
               min="1"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
             />
           </div>
 
@@ -671,10 +671,10 @@ function AttributeModal({
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[100] p-4"
+      className="fixed inset-0 bg-slate-950/90 dark:bg-slate-950/90 flex items-center justify-center z-[100] p-4"
     >
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
@@ -682,13 +682,13 @@ function AttributeModal({
             <h2 className="text-lg font-semibold uppercase tracking-wider">
               {attribute ? 'Edit Attribute' : 'Add Attribute'}
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Define custom fields for this trainer type
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -697,7 +697,7 @@ function AttributeModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Field name
               </label>
               <input
@@ -708,12 +708,12 @@ function AttributeModal({
                 }
                 required
                 placeholder="e.g., rtitb_number"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Label
               </label>
               <input
@@ -724,14 +724,14 @@ function AttributeModal({
                 }
                 required
                 placeholder="e.g., RTITB Number"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Field type
               </label>
               <select
@@ -740,7 +740,7 @@ function AttributeModal({
                   setFormData((prev) => ({ ...prev, field_type: e.target.value as any }))
                 }
                 required
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               >
                 <option value="text">Text</option>
                 <option value="date">Date</option>
@@ -751,7 +751,7 @@ function AttributeModal({
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Sort order
               </label>
               <input
@@ -761,7 +761,7 @@ function AttributeModal({
                   setFormData((prev) => ({ ...prev, sort_order: e.target.value }))
                 }
                 min="1"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
           </div>
@@ -781,7 +781,7 @@ function AttributeModal({
           </div>
 
           {formData.field_type === 'multiselect' && (
-            <div className="border border-slate-700 rounded-lg p-4">
+            <div className="border border-slate-300 dark:border-slate-700 rounded-lg p-4">
               <h3 className="text-sm font-semibold mb-3">Options</h3>
 
               <div className="grid grid-cols-3 gap-2 mb-3">
@@ -790,28 +790,28 @@ function AttributeModal({
                   value={newOption.category}
                   onChange={(e) => setNewOption({ ...newOption, category: e.target.value })}
                   placeholder="Category (optional)"
-                  className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                 />
                 <input
                   type="text"
                   value={newOption.code}
                   onChange={(e) => setNewOption({ ...newOption, code: e.target.value })}
                   placeholder="Code (e.g., B1)"
-                  className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                 />
                 <input
                   type="text"
                   value={newOption.label}
                   onChange={(e) => setNewOption({ ...newOption, label: e.target.value })}
                   placeholder="Label"
-                  className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                  className="px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={addOption}
-                className="w-full px-3 py-1.5 text-xs border border-slate-600 rounded-full hover:bg-slate-800 transition-colors"
+                className="w-full px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
               >
                 Add option
               </button>
@@ -821,19 +821,19 @@ function AttributeModal({
                   {options.map((opt, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between bg-slate-950 border border-slate-800 rounded p-2"
+                      className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded p-2"
                     >
                       <div className="text-sm">
                         {opt.category && (
-                          <span className="text-slate-400">{opt.category} / </span>
+                          <span className="text-slate-500 dark:text-slate-400">{opt.category} / </span>
                         )}
                         <span className="font-medium">{opt.code}</span>
-                        <span className="text-slate-400"> - {opt.label}</span>
+                        <span className="text-slate-500 dark:text-slate-400"> - {opt.label}</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeOption(idx)}
-                        className="p-1 text-red-300 hover:bg-red-900 rounded"
+                        className="p-1 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900 rounded"
                       >
                         <X className="w-4 h-4" />
                       </button>

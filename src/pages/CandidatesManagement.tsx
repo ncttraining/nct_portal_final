@@ -336,7 +336,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
   const filteredCandidates = getFilteredAndSortedCandidates();
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader
         title="Candidates Management"
         icon={Users}
@@ -353,17 +353,17 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
       )}
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="bg-slate-900/50 rounded-lg border border-slate-800 p-6 mb-6">
+        <div className="bg-white/50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -371,7 +371,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
             <select
               value={selectedClientFilter}
               onChange={(e) => setSelectedClientFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-900 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+              className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
             >
               <option value="">All Clients</option>
               {clients.map(client => (
@@ -382,7 +382,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
             <select
               value={selectedCourseTypeFilter}
               onChange={(e) => setSelectedCourseTypeFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-900 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+              className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
             >
               <option value="">All Course Types</option>
               {courseTypes.map(ct => (
@@ -393,7 +393,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
             <select
               value={selectedExpiryFilter}
               onChange={(e) => setSelectedExpiryFilter(e.target.value as ExpiryStatus | '')}
-              className="px-3 py-2 bg-slate-900 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+              className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
             >
               <option value="">All Expiry Status</option>
               <option value="valid">Valid</option>
@@ -404,7 +404,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
             </select>
           </div>
 
-          <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
+          <div className="mt-4 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
             <span>Showing {filteredCandidates.length} of {candidates.length} candidates</span>
             <button
               onClick={() => {
@@ -414,7 +414,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                 setSelectedExpiryFilter('');
                 setSelectedCompletionFilter('');
               }}
-              className="text-blue-400 hover:text-blue-300"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
             >
               Clear Filters
             </button>
@@ -422,80 +422,80 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-400">Loading candidates...</div>
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">Loading candidates...</div>
         ) : filteredCandidates.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
             <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p>No candidates found matching your filters</p>
           </div>
         ) : (
-          <div className="bg-slate-900/50 rounded-lg border border-slate-800 overflow-hidden">
+          <div className="bg-white/50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-900 border-b border-slate-800">
+                <thead className="bg-slate-200 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th
-                      className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white"
                       onClick={() => handleSort('name')}
                     >
                       Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
                     <th
-                      className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white"
                       onClick={() => handleSort('email')}
                     >
                       Contact {sortField === 'email' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Client
                     </th>
                     <th
-                      className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white"
                       onClick={() => handleSort('course_date')}
                     >
                       Latest Course {sortField === 'course_date' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Completed
                     </th>
                     <th
-                      className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-700 dark:hover:text-white"
                       onClick={() => handleSort('days_until_expiry')}
                     >
                       Certificate Expiry {sortField === 'days_until_expiry' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {filteredCandidates.map((candidate, index) => (
                     <tr
                       key={`${candidate.id}-${candidate.booking_id}-${index}`}
-                      className="hover:bg-slate-800/50 cursor-pointer"
+                      className="hover:bg-slate-200 dark:hover:bg-slate-800/50 cursor-pointer"
                       onClick={() => handleViewDetails(candidate)}
                     >
-                      <td className="px-4 py-3 text-white">
+                      <td className="px-4 py-3 text-slate-900 dark:text-white">
                         {candidate.candidate_name}
                       </td>
-                      <td className="px-4 py-3 text-slate-300 text-sm">
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300 text-sm">
                         <div>{candidate.email}</div>
-                        <div className="text-slate-500">{candidate.telephone}</div>
+                        <div className="text-slate-500 dark:text-slate-500">{candidate.telephone}</div>
                       </td>
-                      <td className="px-4 py-3 text-slate-300 text-sm">
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300 text-sm">
                         {candidate.client_name ? (
                           <span className="inline-flex items-center gap-1">
                             <Link2 className="w-3 h-3" />
                             {candidate.client_name}
                           </span>
                         ) : (
-                          <span className="text-slate-500">No client</span>
+                          <span className="text-slate-500 dark:text-slate-500">No client</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-slate-300 text-sm">
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300 text-sm">
                         <div>{candidate.course_type_name}</div>
-                        <div className="text-slate-500">{formatDate(candidate.booking_date)}</div>
+                        <div className="text-slate-500 dark:text-slate-500">{formatDate(candidate.booking_date)}</div>
                       </td>
                       <td className="px-4 py-3">
                         {renderCompletionBadge(candidate.course_date_end)}
@@ -507,21 +507,21 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEmailCandidate(candidate)}
-                            className="p-2 hover:bg-blue-500/20 text-blue-400 rounded transition-colors"
+                            className="p-2 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded transition-colors"
                             title="Send Email"
                           >
                             <Mail className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleEditCandidate(candidate)}
-                            className="p-2 hover:bg-slate-700 text-slate-400 rounded transition-colors"
+                            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded transition-colors"
                             title="Edit Details"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleViewDetails(candidate)}
-                            className="p-2 hover:bg-slate-700 text-slate-400 rounded transition-colors"
+                            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 rounded transition-colors"
                             title="View History"
                           >
                             <Eye className="w-4 h-4" />
@@ -539,58 +539,58 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
 
       {showDetailsModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800">
-              <h2 className="text-xl font-semibold text-white">Candidate History</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Candidate History</h2>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="p-2 hover:bg-slate-800 rounded transition-colors"
+                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
               >
-                <X className="w-5 h-5 text-slate-400" />
+                <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
               </button>
             </div>
 
             <div className="p-6">
               {loadingHistory ? (
-                <div className="text-center py-12 text-slate-400">Loading history...</div>
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400">Loading history...</div>
               ) : selectedCandidate ? (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4 p-4 bg-slate-800/50 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-slate-200 dark:bg-slate-800/50 rounded-lg">
                     <div>
-                      <div className="text-sm text-slate-400">Name</div>
-                      <div className="text-white">{selectedCandidate.candidate_name}</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Name</div>
+                      <div className="text-slate-900 dark:text-white">{selectedCandidate.candidate_name}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-slate-400">Email</div>
-                      <div className="text-white">{selectedCandidate.email}</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Email</div>
+                      <div className="text-slate-900 dark:text-white">{selectedCandidate.email}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-slate-400">Phone</div>
-                      <div className="text-white">{selectedCandidate.telephone || 'N/A'}</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Phone</div>
+                      <div className="text-slate-900 dark:text-white">{selectedCandidate.telephone || 'N/A'}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-slate-400">Client</div>
-                      <div className="text-white">{selectedCandidate.client_name || 'No client'}</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Client</div>
+                      <div className="text-slate-900 dark:text-white">{selectedCandidate.client_name || 'No client'}</div>
                     </div>
                   </div>
 
                   {selectedCandidateHistory && selectedCandidateHistory.upcomingBookings.length > 0 && (
                     <div>
-                      <h3 className="text-lg font-medium text-white mb-4">Upcoming Bookings</h3>
+                      <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Upcoming Bookings</h3>
                       <div className="space-y-3">
                         {selectedCandidateHistory.upcomingBookings.map((booking) => (
                           <div key={booking.id} className="p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
                             <div className="flex items-start justify-between mb-2">
                               <div>
-                                <div className="font-medium text-white">{booking.course_type_name}</div>
-                                <div className="text-sm text-slate-400">{booking.title}</div>
+                                <div className="font-medium text-slate-900 dark:text-white">{booking.course_type_name}</div>
+                                <div className="text-sm text-slate-500 dark:text-slate-400">{booking.title}</div>
                               </div>
-                              <div className="text-sm text-blue-400 font-medium">{formatDate(booking.booking_date)}</div>
+                              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">{formatDate(booking.booking_date)}</div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                              <div className="text-slate-400">Trainer: <span className="text-white">{booking.trainer_name}</span></div>
-                              <div className="text-slate-400">
-                                End Date: <span className="text-white">{formatDate(booking.course_date_end)}</span>
+                              <div className="text-slate-500 dark:text-slate-400">Trainer: <span className="text-slate-900 dark:text-white">{booking.trainer_name}</span></div>
+                              <div className="text-slate-500 dark:text-slate-400">
+                                End Date: <span className="text-slate-900 dark:text-white">{formatDate(booking.course_date_end)}</span>
                               </div>
                             </div>
                           </div>
@@ -600,38 +600,38 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                   )}
 
                   <div>
-                    <h3 className="text-lg font-medium text-white mb-4">Completed Courses</h3>
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Completed Courses</h3>
                     {!selectedCandidateHistory || selectedCandidateHistory.completedBookings.length === 0 ? (
-                      <div className="text-center py-8 text-slate-400 bg-slate-800/30 rounded-lg">
+                      <div className="text-center py-8 text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-slate-800/30 rounded-lg">
                         No completed courses yet
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {selectedCandidateHistory.completedBookings.map((booking) => (
-                          <div key={booking.id} className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                          <div key={booking.id} className="p-4 bg-slate-200 dark:bg-slate-800/50 rounded-lg border border-slate-300 dark:border-slate-700">
                             <div className="flex items-start justify-between mb-2">
                               <div>
-                                <div className="font-medium text-white">{booking.course_type_name}</div>
-                                <div className="text-sm text-slate-400">{booking.title}</div>
+                                <div className="font-medium text-slate-900 dark:text-white">{booking.course_type_name}</div>
+                                <div className="text-sm text-slate-500 dark:text-slate-400">{booking.title}</div>
                               </div>
-                              <div className="text-sm text-slate-400">{formatDate(booking.booking_date)}</div>
+                              <div className="text-sm text-slate-500 dark:text-slate-400">{formatDate(booking.booking_date)}</div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                              <div className="text-slate-400">Trainer: <span className="text-white">{booking.trainer_name}</span></div>
-                              <div className="text-slate-400">
+                              <div className="text-slate-500 dark:text-slate-400">Trainer: <span className="text-slate-900 dark:text-white">{booking.trainer_name}</span></div>
+                              <div className="text-slate-500 dark:text-slate-400">
                                 Status: {booking.passed ? (
-                                  <span className="text-green-400">Passed</span>
+                                  <span className="text-green-600 dark:text-green-400">Passed</span>
                                 ) : (
-                                  <span className="text-red-400">Not Passed</span>
+                                  <span className="text-red-600 dark:text-red-400">Not Passed</span>
                                 )}
                               </div>
                             </div>
                             {booking.certificate && booking.passed && (
-                              <div className="mt-3 p-3 bg-slate-900/50 rounded border border-slate-700">
+                              <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-300 dark:border-slate-700">
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="flex-1 min-w-0">
-                                    <div className="text-sm text-slate-400">Certificate #{booking.certificate.certificate_number}</div>
-                                    <div className="text-xs text-slate-500 mt-1">
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">Certificate #{booking.certificate.certificate_number}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                                       Issued: {formatDate(booking.certificate.issue_date)} • Expires: {booking.certificate.expiry_date ? formatDate(booking.certificate.expiry_date) : 'N/A'}
                                     </div>
                                   </div>
@@ -641,7 +641,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                                         href={booking.certificate.certificate_pdf_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors whitespace-nowrap"
+                                        className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors whitespace-nowrap"
                                       >
                                         <Download className="w-3 h-3" />
                                         Download
@@ -649,7 +649,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                                       <button
                                         onClick={() => handleSendCertificate(booking)}
                                         disabled={sendingCertificateFor === booking.certificate.id}
-                                        className="flex items-center gap-1 px-3 py-1 text-sm bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                        className="flex items-center gap-1 px-3 py-1 text-sm bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                       >
                                         <Send className="w-3 h-3" />
                                         {sendingCertificateFor === booking.certificate.id ? 'Sending...' : 'Send to Candidate'}
@@ -661,7 +661,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                             )}
                             {booking.passed && !booking.certificate && (
                               <div className="mt-3 p-3 bg-yellow-900/20 rounded border border-yellow-500/30">
-                                <div className="text-sm text-yellow-400">Certificate not yet generated</div>
+                                <div className="text-sm text-yellow-600 dark:text-yellow-400">Certificate not yet generated</div>
                               </div>
                             )}
                           </div>
@@ -671,7 +671,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-12 text-slate-400">No history found</div>
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400">No history found</div>
               )}
             </div>
           </div>
@@ -680,54 +680,54 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
 
       {showEditModal && editingCandidate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800">
-              <h2 className="text-xl font-semibold text-white">Edit Candidate Details</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Edit Candidate Details</h2>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="p-2 hover:bg-slate-800 rounded transition-colors"
+                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
               >
-                <X className="w-5 h-5 text-slate-400" />
+                <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Name</label>
+                <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Name</label>
                 <input
                   type="text"
                   value={editForm.candidate_name}
                   onChange={(e) => setEditForm({ ...editForm, candidate_name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Email</label>
+                <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Email</label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Telephone</label>
+                <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Telephone</label>
                 <input
                   type="tel"
                   value={editForm.telephone}
                   onChange={(e) => setEditForm({ ...editForm, telephone: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Client</label>
+                <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Client</label>
                 <select
                   value={editForm.client_id}
                   onChange={(e) => setEditForm({ ...editForm, client_id: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="">No client</option>
                   {clients.map(client => (
@@ -746,7 +746,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                 </button>
                 <button
                   onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded transition-colors"
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded transition-colors"
                 >
                   Cancel
                 </button>
@@ -758,41 +758,41 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
 
       {showEmailModal && emailingCandidate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg border border-slate-800 max-w-lg w-full">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800">
-              <h2 className="text-xl font-semibold text-white">Send Email</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 max-w-lg w-full">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Send Email</h2>
               <button
                 onClick={() => setShowEmailModal(false)}
-                className="p-2 hover:bg-slate-800 rounded transition-colors"
+                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
               >
-                <X className="w-5 h-5 text-slate-400" />
+                <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="p-3 bg-slate-800/50 rounded">
-                <div className="text-sm text-slate-400">To:</div>
-                <div className="text-white">{emailingCandidate.candidate_name} ({emailingCandidate.email})</div>
+              <div className="p-3 bg-slate-200 dark:bg-slate-800/50 rounded">
+                <div className="text-sm text-slate-500 dark:text-slate-400">To:</div>
+                <div className="text-slate-900 dark:text-white">{emailingCandidate.candidate_name} ({emailingCandidate.email})</div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Subject</label>
+                <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Subject</label>
                 <input
                   type="text"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                   placeholder="Email subject..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Message</label>
+                <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Message</label>
                 <textarea
                   value={emailBody}
                   onChange={(e) => setEmailBody(e.target.value)}
                   rows={6}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                   placeholder="Email message..."
                 />
               </div>
@@ -809,7 +809,7 @@ export default function CandidatesManagement({ currentPage, onNavigate }: Candid
                 <button
                   onClick={() => setShowEmailModal(false)}
                   disabled={sendingEmail}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white rounded transition-colors"
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-900 dark:text-white rounded transition-colors"
                 >
                   Cancel
                 </button>

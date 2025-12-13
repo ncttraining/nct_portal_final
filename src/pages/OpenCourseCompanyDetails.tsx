@@ -260,7 +260,7 @@ export default function OpenCourseCompanyDetails({ currentPage, onNavigate, comp
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader
           title="Company Details"
           icon={Building2}
@@ -276,7 +276,7 @@ export default function OpenCourseCompanyDetails({ currentPage, onNavigate, comp
 
   if (!company) {
     return (
-      <div className="min-h-screen bg-slate-950">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader
           title="Company Details"
           icon={Building2}
@@ -300,7 +300,7 @@ export default function OpenCourseCompanyDetails({ currentPage, onNavigate, comp
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader
         title={company.name}
         icon={Building2}
@@ -327,7 +327,7 @@ export default function OpenCourseCompanyDetails({ currentPage, onNavigate, comp
         </button>
 
         {/* Company Header */}
-        <div className="bg-slate-900/50 rounded-lg border border-slate-800 p-6 mb-6">
+        <div className="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800 p-6 mb-6">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
               <div className="p-3 bg-blue-500/20 rounded-lg">

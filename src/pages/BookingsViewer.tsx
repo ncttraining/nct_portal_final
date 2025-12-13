@@ -129,13 +129,13 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
 
   if (!profile?.can_view_bookings) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
-          <p className="text-slate-400 mb-6">You do not have permission to view bookings.</p>
+          <h2 className="text-2xl font-semibold mb-2 text-slate-900 dark:text-white">Access Denied</h2>
+          <p className="text-slate-500 dark:text-slate-400 mb-6">You do not have permission to view bookings.</p>
           <button
             onClick={() => onNavigate('home')}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
           >
             Back to Home
           </button>
@@ -145,11 +145,11 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
-      <div className="border-b border-slate-800 px-6 py-3 bg-slate-900/50">
+      <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-3 bg-slate-50 dark:bg-slate-900/50">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {profile?.role === 'admin'
               ? 'Viewing all bookings (Admin Access)'
               : `Viewing bookings for ${authorizedTrainerCount} trainer${authorizedTrainerCount !== 1 ? 's' : ''}`
@@ -160,7 +160,7 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
             className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
               showHistoric
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
-                : 'bg-slate-800 border border-slate-700 hover:border-slate-600 text-slate-300'
+                : 'bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 text-slate-700 dark:text-slate-300'
             }`}
           >
             <History className="w-4 h-4" />
@@ -170,7 +170,7 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
       </div>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-6 bg-slate-900 border border-slate-800 rounded-lg p-4">
+        <div className="mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
           <div className="flex gap-4 items-center">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -179,7 +179,7 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
                 placeholder="Search by course, client, location, or trainer..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
               <select
                 value={selectedTrainer}
                 onChange={(e) => setSelectedTrainer(e.target.value)}
-                className="px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500"
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
               >
                 <option value="all">All Trainers</option>
                 {trainers.map(trainer => (
@@ -200,13 +200,13 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
 
         {loading ? (
           <div className="text-center py-12">
-            <p className="text-slate-400">Loading bookings...</p>
+            <p className="text-slate-500 dark:text-slate-400">Loading bookings...</p>
           </div>
         ) : filteredBookings.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-12 text-center">
-            <Calendar className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No bookings found</h3>
-            <p className="text-slate-400">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center">
+            <Calendar className="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-white">No bookings found</h3>
+            <p className="text-slate-500 dark:text-slate-400">
               {bookings.length === 0
                 ? 'There are no bookings for the trainers you have access to.'
                 : showHistoric
@@ -216,24 +216,24 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="text-sm text-slate-400 mb-2">
+            <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">
               Showing {filteredBookings.length} {showHistoric ? '' : 'upcoming '}booking{filteredBookings.length !== 1 ? 's' : ''}
             </div>
             {filteredBookings.map(booking => (
               <div
                 key={booking.id}
                 onClick={() => setSelectedBooking(booking)}
-                className="bg-slate-900 border border-slate-800 rounded-lg p-4 hover:border-slate-700 transition-colors cursor-pointer"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold">{decodeHtmlEntities(booking.title)}</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{decodeHtmlEntities(booking.title)}</h3>
                       <span className={`px-2 py-0.5 text-xs border rounded ${STATUS_COLORS[booking.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.confirmed}`}>
                         {booking.status}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm text-slate-400">
+                    <div className="grid grid-cols-2 gap-2 text-sm text-slate-500 dark:text-slate-400">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         <span>{formatDate(booking.booking_date)}</span>
@@ -259,14 +259,14 @@ export default function BookingsViewer({ currentPage, onNavigate }: BookingsView
                     </div>
                   </div>
                   <button
-                    className="text-blue-400 hover:text-blue-300 transition-colors"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                     title="View details"
                   >
                     <Eye className="w-5 h-5" />
                   </button>
                 </div>
                 {booking.candidates && booking.candidates.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-slate-800 text-xs text-slate-400">
+                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
                     {booking.candidates.length} candidate{booking.candidates.length !== 1 ? 's' : ''}
                   </div>
                 )}
@@ -308,15 +308,15 @@ function BookingDetailsModal({ booking, onClose }: BookingDetailsModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-slate-900 border-b border-slate-800 p-6 flex items-center justify-between z-10">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-6 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-2xl font-semibold mb-1">{decodeHtmlEntities(booking.title)}</h2>
-            <p className="text-sm text-slate-400">{formatDate(booking.booking_date)}</p>
+            <h2 className="text-2xl font-semibold mb-1 text-slate-900 dark:text-white">{decodeHtmlEntities(booking.title)}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{formatDate(booking.booking_date)}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -325,12 +325,12 @@ function BookingDetailsModal({ booking, onClose }: BookingDetailsModalProps) {
         <div className="p-6 space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                 Booking Details
               </h3>
               <div className="space-y-2">
                 <div>
-                  <span className="text-xs text-slate-500">Status</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Status</span>
                   <div className="mt-1">
                     <span className={`px-2 py-1 text-xs border rounded ${STATUS_COLORS[booking.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.confirmed}`}>
                       {booking.status}
@@ -338,48 +338,48 @@ function BookingDetailsModal({ booking, onClose }: BookingDetailsModalProps) {
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500">Date</span>
-                  <p className="text-sm">{formatDate(booking.booking_date)}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Date</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{formatDate(booking.booking_date)}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500">Time</span>
-                  <p className="text-sm">{formatTime(booking.start_time)}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Time</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{formatTime(booking.start_time)}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500">Duration</span>
-                  <p className="text-sm">{booking.num_days} day{booking.num_days !== 1 ? 's' : ''}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Duration</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{booking.num_days} day{booking.num_days !== 1 ? 's' : ''}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500">Trainer</span>
-                  <p className="text-sm">{booking.trainer?.name || 'Unknown'}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Trainer</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{booking.trainer?.name || 'Unknown'}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500">Location Type</span>
-                  <p className="text-sm">{booking.in_centre ? 'In Centre' : 'On Site'}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Location Type</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{booking.in_centre ? 'In Centre' : 'On Site'}</p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                 Client Information
               </h3>
               <div className="space-y-2">
                 <div>
-                  <span className="text-xs text-slate-500">Company</span>
-                  <p className="text-sm">{booking.client_name || '-'}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Company</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{booking.client_name || '-'}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500">Contact Person</span>
-                  <p className="text-sm">{booking.client_contact_name || '-'}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Contact Person</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{booking.client_contact_name || '-'}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500">Email</span>
-                  <p className="text-sm">{booking.client_email || '-'}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Email</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{booking.client_email || '-'}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500">Telephone</span>
-                  <p className="text-sm">{booking.client_telephone || '-'}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-500">Telephone</span>
+                  <p className="text-sm text-slate-900 dark:text-white">{booking.client_telephone || '-'}</p>
                 </div>
               </div>
             </div>
@@ -387,19 +387,19 @@ function BookingDetailsModal({ booking, onClose }: BookingDetailsModalProps) {
 
           {booking.location && (
             <div>
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                 Location
               </h3>
-              <p className="text-sm">{booking.location}</p>
+              <p className="text-sm text-slate-900 dark:text-white">{booking.location}</p>
             </div>
           )}
 
           {booking.notes && (
             <div>
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                 Internal Notes
               </h3>
-              <p className="text-sm whitespace-pre-wrap bg-slate-800/50 p-3 rounded border border-slate-700">
+              <p className="text-sm whitespace-pre-wrap bg-slate-100 dark:bg-slate-800/50 p-3 rounded border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
                 {booking.notes}
               </p>
             </div>
@@ -407,24 +407,24 @@ function BookingDetailsModal({ booking, onClose }: BookingDetailsModalProps) {
 
           {booking.candidates && booking.candidates.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                 Candidates ({booking.candidates.length})
               </h3>
-              <div className="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
+              <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-700">
-                      <th className="text-left px-4 py-2 text-xs font-semibold text-slate-400">Name</th>
-                      <th className="text-left px-4 py-2 text-xs font-semibold text-slate-400">Telephone</th>
-                      <th className="text-left px-4 py-2 text-xs font-semibold text-slate-400">Email</th>
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400">Name</th>
+                      <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400">Telephone</th>
+                      <th className="text-left px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400">Email</th>
                     </tr>
                   </thead>
                   <tbody>
                     {booking.candidates.map((candidate, index) => (
-                      <tr key={candidate.id || index} className="border-b border-slate-700/50 last:border-0">
-                        <td className="px-4 py-2 text-sm">{candidate.candidate_name}</td>
-                        <td className="px-4 py-2 text-sm text-slate-400">{candidate.telephone || '-'}</td>
-                        <td className="px-4 py-2 text-sm text-slate-400">{candidate.email || '-'}</td>
+                      <tr key={candidate.id || index} className="border-b border-slate-200 dark:border-slate-700/50 last:border-0">
+                        <td className="px-4 py-2 text-sm text-slate-900 dark:text-white">{candidate.candidate_name}</td>
+                        <td className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400">{candidate.telephone || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400">{candidate.email || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -434,10 +434,10 @@ function BookingDetailsModal({ booking, onClose }: BookingDetailsModalProps) {
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 p-6 flex justify-end">
+        <div className="sticky bottom-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-6 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded transition-colors"
+            className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded transition-colors text-slate-700 dark:text-slate-300"
           >
             Close
           </button>

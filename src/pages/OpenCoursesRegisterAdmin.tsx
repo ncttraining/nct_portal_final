@@ -364,7 +364,7 @@ export default function OpenCoursesRegisterAdmin({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
       </div>
     );
@@ -372,7 +372,7 @@ export default function OpenCoursesRegisterAdmin({
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
         <PageHeader currentPage={currentPage} onNavigate={onNavigate} onEditProfile={() => {}} />
         <main className="max-w-7xl mx-auto px-6 py-8">
           <div className="text-center py-12">
@@ -394,14 +394,14 @@ export default function OpenCoursesRegisterAdmin({
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} onEditProfile={() => {}} />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Back Button */}
         <button
           onClick={() => onNavigate('open-courses-registers')}
-          className="flex items-center gap-2 text-slate-400 hover:text-white mb-6 transition-colors"
+          className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Registers
@@ -480,12 +480,12 @@ export default function OpenCoursesRegisterAdmin({
         </div>
 
         {/* Delegates Table - Admin View */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-800/50">
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                <tr className="bg-slate-200 dark:bg-slate-800/50">
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                     Learner
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
@@ -528,13 +528,13 @@ export default function OpenCoursesRegisterAdmin({
                     <>
                       <tr
                         key={delegate.id}
-                        className={`border-b border-slate-800 transition-colors ${rowColor}`}
+                        className={`border-b border-slate-200 dark:border-slate-800 transition-colors ${rowColor}`}
                       >
                         {/* Editable Name */}
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
-                              <User className="w-3 h-3 text-slate-400" />
+                            <div className="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                              <User className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <input
@@ -544,7 +544,7 @@ export default function OpenCoursesRegisterAdmin({
                                   updateDelegate(delegate.id, 'delegate_name', e.target.value)
                                 }
                                 placeholder="Delegate Name"
-                                className="w-40 px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
+                                className="w-40 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                               />
                             </div>
                           </div>
@@ -559,7 +559,7 @@ export default function OpenCoursesRegisterAdmin({
                               updateDelegate(delegate.id, 'driver_number', e.target.value)
                             }
                             placeholder="Driver #"
-                            className="w-28 px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500 font-mono"
+                            className="w-28 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 font-mono"
                           />
                         </td>
 
@@ -574,7 +574,7 @@ export default function OpenCoursesRegisterAdmin({
                                 e.target.value || null
                               )
                             }
-                            className="px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
+                            className="px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                           >
                             <option value="">--</option>
                             {LICENCE_CATEGORIES.map((cat) => (
@@ -592,7 +592,7 @@ export default function OpenCoursesRegisterAdmin({
                             onChange={(e) =>
                               updateDelegate(delegate.id, 'id_type', e.target.value)
                             }
-                            className="px-1 py-0.5 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:border-blue-500"
+                            className="px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                           >
                             <option value="">--</option>
                             {ID_TYPES.map((type) => (
@@ -789,9 +789,9 @@ export default function OpenCoursesRegisterAdmin({
       {/* Add Delegate Modal */}
       {showAddDelegateModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 rounded-lg shadow-xl w-full max-w-md border border-slate-800">
-            <div className="flex items-center justify-between p-4 border-b border-slate-800">
-              <h3 className="text-lg font-semibold">Add Delegate to Register</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Add Delegate to Register</h3>
               <button
                 onClick={() => {
                   setShowAddDelegateModal(false);
@@ -802,7 +802,7 @@ export default function OpenCoursesRegisterAdmin({
                     delegate_company: '',
                   });
                 }}
-                className="p-2 hover:bg-slate-800 rounded transition-colors"
+                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -810,8 +810,8 @@ export default function OpenCoursesRegisterAdmin({
 
             <div className="p-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
-                  Name <span className="text-red-400">*</span>
+                <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+                  Name <span className="text-red-600 dark:text-red-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -819,7 +819,7 @@ export default function OpenCoursesRegisterAdmin({
                   onChange={(e) =>
                     setNewDelegateData({ ...newDelegateData, delegate_name: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Full name"
                 />
               </div>
@@ -866,7 +866,7 @@ export default function OpenCoursesRegisterAdmin({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 p-4 border-t border-slate-800">
+            <div className="flex justify-end gap-3 p-4 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => {
                   setShowAddDelegateModal(false);
@@ -877,7 +877,7 @@ export default function OpenCoursesRegisterAdmin({
                     delegate_company: '',
                   });
                 }}
-                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                className="px-4 py-2 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors text-slate-900 dark:text-white"
               >
                 Cancel
               </button>

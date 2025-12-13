@@ -468,10 +468,10 @@ This is an automated message from the NCT Portal system.
 
   if (!profile?.can_manage_users) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white flex items-center justify-center transition-colors">
         <div className="text-center">
           <h2 className="text-2xl font-semibold mb-2">Access Denied</h2>
-          <p className="text-slate-400 mb-6">You do not have permission to manage users.</p>
+          <p className="text-slate-500 dark:text-slate-400 mb-6">You do not have permission to manage users.</p>
           <button
             onClick={() => onNavigate('home')}
             className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
@@ -484,9 +484,9 @@ This is an automated message from the NCT Portal system.
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
-      <div className="border-b border-slate-800 px-6 py-3 bg-slate-900/50">
+      <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-3 bg-white/50 dark:bg-slate-900/50">
         <div className="flex items-center justify-end gap-3 max-w-7xl mx-auto">
           {!addingUser && (
             <button
@@ -502,19 +502,19 @@ This is an automated message from the NCT Portal system.
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         {error && (
-          <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded">
+          <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 rounded">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-4 bg-green-500/10 border border-green-500/30 text-green-400 rounded">
+          <div className="mb-4 p-4 bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 rounded">
             {success}
           </div>
         )}
 
         {addingUser && (
-          <div className="mb-6 bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Add New User</h3>
               <button
@@ -528,48 +528,48 @@ This is an automated message from the NCT Portal system.
                     can_manage_users: false,
                   });
                 }}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Email</label>
+                <label className="block text-sm text-slate-500 dark:text-slate-400 mb-2">Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-slate-900 dark:text-white"
                   placeholder="user@example.com"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Password</label>
+                <label className="block text-sm text-slate-500 dark:text-slate-400 mb-2">Password</label>
                 <input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-slate-900 dark:text-white"
                   placeholder="Min 6 characters"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Full Name</label>
+                <label className="block text-sm text-slate-500 dark:text-slate-400 mb-2">Full Name</label>
                 <input
                   type="text"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-slate-900 dark:text-white"
                   placeholder="John Smith"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Role</label>
+                <label className="block text-sm text-slate-500 dark:text-slate-400 mb-2">Role</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'user' })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-slate-900 dark:text-white"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -584,7 +584,7 @@ This is an automated message from the NCT Portal system.
                       onChange={(e) => setFormData({ ...formData, super_admin: e.target.checked })}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm text-yellow-400 font-semibold">Super Admin (Full System Access)</span>
+                    <span className="text-sm text-yellow-600 dark:text-yellow-400 font-semibold">Super Admin (Full System Access)</span>
                   </label>
                 )}
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -595,7 +595,7 @@ This is an automated message from the NCT Portal system.
                     disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
                     Can manage users {formData.role === 'admin' ? '(Auto-enabled for Admins)' : '(Admin)'}
                   </span>
                 </label>
@@ -607,7 +607,7 @@ This is an automated message from the NCT Portal system.
                     disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
                     Can manage bookings {formData.role === 'admin' && '(Auto-enabled for Admins)'}
                   </span>
                 </label>
@@ -619,7 +619,7 @@ This is an automated message from the NCT Portal system.
                     disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
                     Can manage courses {formData.role === 'admin' && '(Auto-enabled for Admins)'}
                   </span>
                 </label>
@@ -631,7 +631,7 @@ This is an automated message from the NCT Portal system.
                     disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
                     Can view bookings {formData.role === 'admin' ? '(Auto-enabled for Admins)' : '(Booking Viewer)'}
                   </span>
                 </label>
@@ -643,7 +643,7 @@ This is an automated message from the NCT Portal system.
                     disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
                     Can manage expenses {formData.role === 'admin' && '(Auto-enabled for Admins)'}
                   </span>
                 </label>
@@ -655,7 +655,7 @@ This is an automated message from the NCT Portal system.
                     disabled={formData.role === 'admin'}
                     className="w-4 h-4"
                   />
-                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-sm ${formData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>
                     Can manage availability {formData.role === 'admin' ? '(Auto-enabled for Admins)' : '(Trainer)'}
                   </span>
                 </label>
@@ -673,7 +673,7 @@ This is an automated message from the NCT Portal system.
                     can_manage_users: false,
                   });
                 }}
-                className="px-4 py-2 border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                className="px-4 py-2 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
               >
                 Cancel
               </button>
@@ -695,7 +695,7 @@ This is an automated message from the NCT Portal system.
           </div>
         )}
 
-        <div className="mb-6 bg-slate-900 border border-slate-800 rounded-lg p-4">
+        <div className="mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -705,7 +705,7 @@ This is an automated message from the NCT Portal system.
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search by name or email..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -714,7 +714,7 @@ This is an automated message from the NCT Portal system.
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm text-slate-900 dark:text-white"
               >
                 <option value="all">All Roles</option>
                 <option value="super_admin">Super Admin</option>
@@ -725,7 +725,7 @@ This is an automated message from the NCT Portal system.
               <select
                 value={permissionFilter}
                 onChange={(e) => setPermissionFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm text-slate-900 dark:text-white"
               >
                 <option value="all">All Permissions</option>
                 <option value="manage_users">Manage Users</option>
@@ -743,39 +743,39 @@ This is an automated message from the NCT Portal system.
                   setRoleFilter('all');
                   setPermissionFilter('all');
                 }}
-                className="px-3 py-2 text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 rounded transition-colors"
+                className="px-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 rounded transition-colors"
               >
                 Clear
               </button>
             )}
           </div>
-          <div className="mt-3 text-sm text-slate-400">
+          <div className="mt-3 text-sm text-slate-500 dark:text-slate-400">
             Showing {filteredUsers.length} of {users.length} users
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/50">
-                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-300">Name</th>
-                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-300">Email</th>
-                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-300">Role</th>
-                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-300">Permissions</th>
-                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-300">Created</th>
-                <th className="text-right px-6 py-3 text-sm font-semibold text-slate-300">Actions</th>
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300">Name</th>
+                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300">Email</th>
+                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300">Role</th>
+                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300">Permissions</th>
+                <th className="text-left px-6 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300">Created</th>
+                <th className="text-right px-6 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
                     Loading users...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
                     {users.length === 0 ? 'No users found' : 'No users match the current filters'}
                   </td>
                 </tr>
@@ -852,7 +852,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
 
   if (isEditing) {
     return (
-      <tr className="border-b border-slate-800 bg-slate-800/30">
+      <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/30">
         <td className="px-6 py-4">
           <div className="space-y-2">
             <input
@@ -861,7 +861,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
               name="full_name"
               value={editData.full_name}
               onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
-              className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+              className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm text-slate-900 dark:text-white"
               placeholder="Full Name"
             />
           </div>
@@ -873,7 +873,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
             name="email"
             value={editData.email}
             onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-            className="w-full px-3 py-1.5 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+            className="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm text-slate-900 dark:text-white"
             placeholder="user@example.com"
           />
         </td>
@@ -883,7 +883,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
             name="role"
             value={editData.role}
             onChange={(e) => setEditData({ ...editData, role: e.target.value as 'admin' | 'user' })}
-            className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm"
+            className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded focus:outline-none focus:border-blue-500 text-sm text-slate-900 dark:text-white"
           >
             <option value="user">User</option>
             <option value="admin">Admin</option>
@@ -901,7 +901,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
                   onChange={(e) => setEditData({ ...editData, super_admin: e.target.checked })}
                   className="w-3 h-3"
                 />
-                <span className="text-yellow-400 font-semibold">Super Admin</span>
+                <span className="text-yellow-600 dark:text-yellow-400 font-semibold">Super Admin</span>
               </label>
             )}
             <label className="flex items-center gap-2 text-xs">
@@ -914,7 +914,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
                 disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Users</span>
+              <span className={editData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}>Manage Users</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
@@ -926,7 +926,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
                 disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Bookings</span>
+              <span className={editData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}>Manage Bookings</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
@@ -938,7 +938,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
                 disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Courses</span>
+              <span className={editData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}>Manage Courses</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
@@ -950,7 +950,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
                 disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>View Bookings</span>
+              <span className={editData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}>View Bookings</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
@@ -962,7 +962,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
                 disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Expenses</span>
+              <span className={editData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}>Manage Expenses</span>
             </label>
             <label className="flex items-center gap-2 text-xs">
               <input
@@ -974,7 +974,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
                 disabled={editData.role === 'admin'}
                 className="w-3 h-3"
               />
-              <span className={editData.role === 'admin' ? 'text-slate-500' : 'text-slate-400'}>Manage Availability</span>
+              <span className={editData.role === 'admin' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}>Manage Availability</span>
             </label>
             {user.is_trainer && (
               <label className="flex items-center gap-2 text-xs">
@@ -997,19 +997,19 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
                   }}
                   className="w-3 h-3"
                 />
-                <span className="text-slate-400">Allow Portal Login</span>
+                <span className="text-slate-500 dark:text-slate-400">Allow Portal Login</span>
               </label>
             )}
           </div>
         </td>
-        <td className="px-6 py-4 text-sm text-slate-400">
+        <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
           {new Date(user.created_at).toLocaleDateString()}
         </td>
         <td className="px-6 py-4">
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => onSave(user.id, editData)}
-              className="p-1.5 text-green-400 hover:text-green-300 transition-colors"
+              className="p-1.5 text-green-500 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-colors"
               title="Save"
             >
               <Save className="w-4 h-4" />
@@ -1018,7 +1018,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
               onClick={() => {
                 onCancelEdit();
               }}
-              className="p-1.5 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
               title="Cancel"
             >
               <X className="w-4 h-4" />
@@ -1030,18 +1030,18 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
   }
 
   return (
-    <tr className="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+    <tr className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-100/50 dark:hover:bg-slate-800/30 transition-colors">
       <td className="px-6 py-4">
         <div className="flex flex-col gap-1">
           <div className="text-sm">{user.full_name || '-'}</div>
           {user.is_trainer && user.trainer && (
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 text-xs bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded">
+              <span className="px-2 py-0.5 text-xs bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-teal-500/30 rounded">
                 Trainer: {user.trainer.name}
               </span>
               <button
                 onClick={() => onNavigate('trainer-management')}
-                className="text-teal-400 hover:text-teal-300 transition-colors"
+                className="text-teal-500 dark:text-teal-400 hover:text-teal-600 dark:hover:text-teal-300 transition-colors"
                 title="View Trainer Profile"
               >
                 <ExternalLink className="w-3 h-3" />
@@ -1050,19 +1050,19 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
           )}
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-slate-400">{user.email}</td>
+      <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{user.email}</td>
       <td className="px-6 py-4">
         <div className="flex flex-col gap-1">
           {user.super_admin && (
-            <span className="px-2 py-1 text-xs rounded inline-block w-fit bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 font-semibold">
+            <span className="px-2 py-1 text-xs rounded inline-block w-fit bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30 font-semibold">
               Super Admin
             </span>
           )}
           <span
             className={`px-2 py-1 text-xs rounded inline-block w-fit ${
               user.role === 'admin'
-                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                : 'bg-slate-700/50 text-slate-300 border border-slate-600'
+                ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30'
+                : 'bg-slate-200 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600'
             }`}
           >
             {user.role}
@@ -1071,13 +1071,13 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
             <div className="flex items-center gap-1">
               {user.can_login ? (
                 <>
-                  <UserCheck className="w-3 h-3 text-green-400" />
-                  <span className="text-xs text-green-400">Portal Access</span>
+                  <UserCheck className="w-3 h-3 text-green-500 dark:text-green-400" />
+                  <span className="text-xs text-green-500 dark:text-green-400">Portal Access</span>
                 </>
               ) : (
                 <>
-                  <UserX className="w-3 h-3 text-slate-500" />
-                  <span className="text-xs text-slate-500">No Portal Access</span>
+                  <UserX className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                  <span className="text-xs text-slate-400 dark:text-slate-500">No Portal Access</span>
                 </>
               )}
             </div>
@@ -1087,41 +1087,41 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
       <td className="px-6 py-4">
         <div className="flex flex-wrap gap-2">
           {user.can_manage_users && (
-            <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded">
+            <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30 rounded">
               Manage Users
             </span>
           )}
           {user.can_manage_bookings && (
-            <span className="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded">
+            <span className="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded">
               Manage Bookings
             </span>
           )}
           {user.can_manage_courses && (
-            <span className="px-2 py-0.5 text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded">
+            <span className="px-2 py-0.5 text-xs bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded">
               Manage Courses
             </span>
           )}
           {user.can_view_bookings && (
-            <span className="px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded">
+            <span className="px-2 py-0.5 text-xs bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30 rounded">
               View Bookings
             </span>
           )}
           {user.can_manage_expenses && (
-            <span className="px-2 py-0.5 text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded">
+            <span className="px-2 py-0.5 text-xs bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 rounded">
               Manage Expenses
             </span>
           )}
           {user.can_manage_availability && (
-            <span className="px-2 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded">
+            <span className="px-2 py-0.5 text-xs bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 rounded">
               Manage Availability
             </span>
           )}
           {!user.can_manage_users && !user.can_manage_bookings && !user.can_manage_courses && !user.can_view_bookings && !user.can_manage_expenses && !user.can_manage_availability && (
-            <span className="text-xs text-slate-500">None</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">None</span>
           )}
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-slate-400">
+      <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
         {new Date(user.created_at).toLocaleDateString()}
       </td>
       <td className="px-6 py-4">
@@ -1129,7 +1129,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
           {user.can_view_bookings && (
             <button
               onClick={onManagePermissions}
-              className="p-1.5 text-blue-400 hover:text-blue-300 transition-colors"
+              className="p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors"
               title="Manage booking permissions"
             >
               <Eye className="w-4 h-4" />
@@ -1137,21 +1137,21 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
           )}
           <button
             onClick={onSendLoginDetails}
-            className="p-1.5 text-green-400 hover:text-green-300 transition-colors"
+            className="p-1.5 text-green-500 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-colors"
             title="Send login details"
           >
             <Mail className="w-4 h-4" />
           </button>
           <button
             onClick={onResetPassword}
-            className="p-1.5 text-amber-400 hover:text-amber-300 transition-colors"
+            className="p-1.5 text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 transition-colors"
             title="Reset password"
           >
             <KeyRound className="w-4 h-4" />
           </button>
           <button
             onClick={onEdit}
-            className="p-1.5 text-blue-400 hover:text-blue-300 transition-colors"
+            className="p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors"
             title="Edit"
           >
             <Pencil className="w-4 h-4" />
@@ -1159,7 +1159,7 @@ function UserRow({ user, isEditing, onEdit, onCancelEdit, onSave, onDelete, onSe
           {!isCurrentUser && (user.role !== 'admin' || profile?.super_admin) && (
             <button
               onClick={() => onDelete(user.id)}
-              className="p-1.5 text-red-400 hover:text-red-300 transition-colors"
+              className="p-1.5 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors"
               title={user.role === 'admin' && !profile?.super_admin ? "Only super admins can delete admin users" : "Delete"}
             >
               <Trash2 className="w-4 h-4" />

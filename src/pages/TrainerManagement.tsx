@@ -152,26 +152,26 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-slate-100 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors">
       <PageHeader
         currentPage={currentPage}
         onNavigate={onNavigate}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Trainer Management</h1>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Trainer Management</h1>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             <div className="flex-1 w-full lg:w-auto">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search by name, email, or postcode..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -180,7 +180,7 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Types</option>
                 {trainerTypes.map((type) => (
@@ -191,7 +191,7 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -214,7 +214,7 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
             </div>
           </div>
 
-          <div className="mt-4 flex items-center gap-4 text-sm text-slate-400">
+          <div className="mt-4 flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
             <span>Total: {filteredTrainers.length}</span>
             <span>Active: {filteredTrainers.filter(t => t.active).length}</span>
             <span>Portal Access: {filteredTrainers.filter(t => t.can_login).length}</span>
@@ -222,10 +222,10 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-400">Loading trainers...</div>
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">Loading trainers...</div>
         ) : filteredTrainers.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-            <p className="text-slate-400 mb-4">No trainers found matching your criteria</p>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
+            <p className="text-slate-500 dark:text-slate-400 mb-4">No trainers found matching your criteria</p>
             <button
               onClick={() => {
                 setEditingTrainer(null);
@@ -237,90 +237,90 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
             </button>
           </div>
         ) : (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-800 border-b border-slate-700">
+                <thead className="bg-slate-200 dark:bg-slate-800 border-b border-slate-300 dark:border-slate-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Contact</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {filteredTrainers.map((trainer) => (
-                    <tr key={trainer.id} className="hover:bg-slate-800/50 transition-colors">
+                    <tr key={trainer.id} className="hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">{trainer.name}</div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-white">{trainer.name}</div>
                         {trainer.day_rate && (
-                          <div className="text-xs text-slate-400">£{Number(trainer.day_rate).toFixed(2)}/day</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">£{Number(trainer.day_rate).toFixed(2)}/day</div>
                         )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1">
                           {trainer.assigned_types && trainer.assigned_types.length > 0 ? (
                             trainer.assigned_types.map((type) => (
-                              <span key={type.id} className="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-300">
+                              <span key={type.id} className="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300">
                                 {type.name}
                               </span>
                             ))
                           ) : (
-                            <span className="px-2 py-1 text-xs rounded-full bg-slate-500/20 text-slate-400">
+                            <span className="px-2 py-1 text-xs rounded-full bg-slate-500/20 text-slate-500 dark:text-slate-400">
                               No types assigned
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-300 flex items-center gap-1">
+                        <div className="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-1">
                           <Mail className="w-3 h-3" />
                           {trainer.email}
                         </div>
                         {trainer.telephone && (
-                          <div className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                          <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1">
                             <Phone className="w-3 h-3" />
                             {trainer.telephone}
                           </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-300 flex items-center gap-1">
+                        <div className="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
                           {trainer.postcode || 'Not set'}
                         </div>
                         {trainer.town && (
-                          <div className="text-xs text-slate-400">{trainer.town}</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{trainer.town}</div>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
                           {trainer.suspended ? (
                             <div className="flex items-center gap-1">
-                              <AlertCircle className="w-4 h-4 text-red-400" />
-                              <span className="text-xs font-semibold text-red-400">SUSPENDED</span>
+                              <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                              <span className="text-xs font-semibold text-red-600 dark:text-red-400">SUSPENDED</span>
                             </div>
                           ) : (
                             <>
                               <div className="flex items-center gap-1">
                                 {trainer.active ? (
-                                  <CheckCircle className="w-4 h-4 text-green-400" />
+                                  <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                                 ) : (
-                                  <XCircle className="w-4 h-4 text-slate-400" />
+                                  <XCircle className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                 )}
-                                <span className="text-xs text-slate-300">
+                                <span className="text-xs text-slate-600 dark:text-slate-300">
                                   {trainer.active ? 'Active' : 'Inactive'}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
                                 {trainer.can_login ? (
-                                  <UserCheck className="w-4 h-4 text-blue-400" />
+                                  <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                 ) : (
-                                  <UserX className="w-4 h-4 text-slate-400" />
+                                  <UserX className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                 )}
-                                <span className="text-xs text-slate-300">
+                                <span className="text-xs text-slate-600 dark:text-slate-300">
                                   {trainer.can_login ? 'Portal Access' : 'No Portal Access'}
                                 </span>
                               </div>
@@ -335,7 +335,7 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
                               setEditingTrainer(trainer);
                               setShowAddModal(true);
                             }}
-                            className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                            className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
                             title="Edit Trainer"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -344,8 +344,8 @@ export default function TrainerManagement({ currentPage, onNavigate }: TrainerMa
                             onClick={() => handleToggleSuspend(trainer)}
                             className={`p-2 rounded-lg transition-colors ${
                               trainer.suspended
-                                ? 'text-green-400 hover:bg-green-500/20'
-                                : 'text-orange-400 hover:bg-orange-500/20'
+                                ? 'text-green-600 dark:text-green-400 hover:bg-green-500/20'
+                                : 'text-orange-600 dark:text-orange-400 hover:bg-orange-500/20'
                             }`}
                             title={trainer.suspended ? 'Unsuspend Trainer' : 'Suspend Trainer'}
                           >
@@ -735,23 +735,23 @@ function TrainerFormModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-4xl my-8">
-        <div className="flex items-center justify-between p-6 border-b border-slate-800">
-          <h2 className="text-2xl font-bold text-white">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-4xl my-8">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             {trainer ? 'Edit Trainer' : 'Add New Trainer'}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-slate-400" />
+            <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
           {error && (
-            <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 flex items-start gap-2">
+            <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-600 dark:text-red-300 flex items-start gap-2">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -759,25 +759,25 @@ function TrainerFormModal({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Trainer Name <span className="text-red-400">*</span>
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                Trainer Name <span className="text-red-600 dark:text-red-400">*</span>
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Trainer Types <span className="text-red-400">*</span>
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                Trainer Types <span className="text-red-600 dark:text-red-400">*</span>
               </label>
-              <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 space-y-2 max-h-60 overflow-y-auto">
+              <div className="bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-4 space-y-2 max-h-60 overflow-y-auto">
                 {trainerTypes.map((type) => (
-                  <label key={type.id} className="flex items-center gap-3 cursor-pointer hover:bg-slate-700/50 p-2 rounded">
+                  <label key={type.id} className="flex items-center gap-3 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700/50 p-2 rounded">
                     <input
                       type="checkbox"
                       checked={selectedTrainerTypes.includes(type.id)}
@@ -788,98 +788,98 @@ function TrainerFormModal({
                           handleRemoveTrainerType(type.id);
                         }
                       }}
-                      className="w-4 h-4 bg-slate-700 border-slate-600 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      className="w-4 h-4 bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
                     />
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-white">{type.name}</div>
+                      <div className="text-sm font-medium text-slate-900 dark:text-white">{type.name}</div>
                       {type.description && (
-                        <div className="text-xs text-slate-400">{type.description}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{type.description}</div>
                       )}
                     </div>
                   </label>
                 ))}
               </div>
               {selectedTrainerTypes.length === 0 && (
-                <p className="text-xs text-red-400 mt-1">Please select at least one trainer type</p>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">Please select at least one trainer type</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Email Address <span className="text-red-400">*</span>
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                Email Address <span className="text-red-600 dark:text-red-400">*</span>
               </label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 disabled={!!trainer}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 Telephone
               </label>
               <input
                 type="tel"
                 value={formData.telephone}
                 onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 Address Line 1
               </label>
               <input
                 type="text"
                 value={formData.address1}
                 onChange={(e) => setFormData({ ...formData, address1: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 Address Line 2
               </label>
               <input
                 type="text"
                 value={formData.address2}
                 onChange={(e) => setFormData({ ...formData, address2: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 Town / City
               </label>
               <input
                 type="text"
                 value={formData.town}
                 onChange={(e) => setFormData({ ...formData, town: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 Postcode
               </label>
               <input
                 type="text"
                 value={formData.postcode}
                 onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                 Agreed Day Rate (£)
               </label>
               <input
@@ -887,23 +887,23 @@ function TrainerFormModal({
                 step="0.01"
                 value={formData.day_rate}
                 onChange={(e) => setFormData({ ...formData, day_rate: e.target.value })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
-          <div className="border-t border-slate-800 pt-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Notification Preferences</h3>
-            <label className="flex items-start gap-3 cursor-pointer hover:bg-slate-800/50 p-3 rounded-lg">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Notification Preferences</h3>
+            <label className="flex items-start gap-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 p-3 rounded-lg">
               <input
                 type="checkbox"
                 checked={formData.receive_booking_notifications}
                 onChange={(e) => setFormData({ ...formData, receive_booking_notifications: e.target.checked })}
-                className="mt-1 w-4 h-4 bg-slate-700 border-slate-600 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+                className="mt-1 w-4 h-4 bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
               />
               <div className="flex-1">
-                <div className="text-sm font-medium text-white">Receive Booking Notifications</div>
-                <div className="text-xs text-slate-400 mt-1">
+                <div className="text-sm font-medium text-slate-900 dark:text-white">Receive Booking Notifications</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   When enabled, this trainer will receive email notifications for new bookings, booking changes, cancellations, and when bookings are moved to them from other trainers. Note: Only applies if the trainer has an email address configured.
                 </div>
               </div>
@@ -911,20 +911,20 @@ function TrainerFormModal({
           </div>
 
           {attributes.length > 0 && (
-            <div className="border-t border-slate-800 pt-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Additional Information</h3>
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Additional Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {attributes.map((attr) => (
                   <div key={attr.id} className={attr.field_type === 'multiselect' ? 'md:col-span-2' : ''}>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      {attr.label} {attr.is_required && <span className="text-red-400">*</span>}
+                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                      {attr.label} {attr.is_required && <span className="text-red-600 dark:text-red-400">*</span>}
                     </label>
                     {attr.field_type === 'text' && (
                       <input
                         type="text"
                         value={attributeValues[attr.name] || ''}
                         onChange={(e) => setAttributeValues({ ...attributeValues, [attr.name]: e.target.value })}
-                        className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required={attr.is_required}
                       />
                     )}
@@ -933,7 +933,7 @@ function TrainerFormModal({
                         type="date"
                         value={attributeValues[attr.name] || ''}
                         onChange={(e) => setAttributeValues({ ...attributeValues, [attr.name]: e.target.value })}
-                        className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required={attr.is_required}
                       />
                     )}
@@ -943,7 +943,7 @@ function TrainerFormModal({
                         step="0.01"
                         value={attributeValues[attr.name] || ''}
                         onChange={(e) => setAttributeValues({ ...attributeValues, [attr.name]: e.target.value })}
-                        className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required={attr.is_required}
                       />
                     )}
@@ -952,15 +952,15 @@ function TrainerFormModal({
                         {attributeOptions[attr.id]?.map((option) => (
                           <label
                             key={option.id}
-                            className="flex items-center gap-2 p-2 bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors"
+                            className="flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                           >
                             <input
                               type="checkbox"
                               checked={(attributeValues[attr.name] || []).includes(option.code)}
                               onChange={() => toggleMultiselectOption(attr.name, option.code)}
-                              className="rounded border-slate-600 text-blue-600 focus:ring-blue-500"
+                              className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
                             />
-                            <span className="text-sm text-slate-300">{option.label}</span>
+                            <span className="text-sm text-slate-600 dark:text-slate-300">{option.label}</span>
                           </label>
                         ))}
                       </div>
@@ -971,28 +971,28 @@ function TrainerFormModal({
             </div>
           )}
 
-          <div className="border-t border-slate-800 pt-6">
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
               Insurance Documentation
             </label>
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={(e) => setInsuranceFile(e.target.files?.[0] || null)}
-              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {trainer?.insurance_file_name && (
-              <p className="mt-2 text-sm text-slate-400">
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                 Current: {trainer.insurance_file_name}
               </p>
             )}
           </div>
 
-          <div className="flex gap-3 justify-end pt-6 border-t border-slate-800">
+          <div className="flex gap-3 justify-end pt-6 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+              className="px-6 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-lg transition-colors"
             >
               Cancel
             </button>
@@ -1026,32 +1026,32 @@ function SuccessModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-lg">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-400" />
+              <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Trainer Created Successfully!</h2>
-              <p className="text-sm text-slate-400">User account has been created and email sent</p>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Trainer Created Successfully!</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">User account has been created and email sent</p>
             </div>
           </div>
 
-          <div className="space-y-4 bg-slate-800 rounded-lg p-4">
+          <div className="space-y-4 bg-slate-100 dark:bg-slate-800 rounded-lg p-4">
             <div>
-              <p className="text-sm text-slate-400 mb-1">Trainer Name</p>
-              <p className="text-white font-medium">{data.name}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Trainer Name</p>
+              <p className="text-slate-900 dark:text-white font-medium">{data.name}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400 mb-1">Email Address</p>
-              <p className="text-white font-medium">{data.email}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Email Address</p>
+              <p className="text-slate-900 dark:text-white font-medium">{data.email}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400 mb-1">Temporary Password</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Temporary Password</p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 px-3 py-2 bg-slate-900 rounded text-blue-300 font-mono">
+                <code className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 rounded text-blue-600 dark:text-blue-300 font-mono">
                   {data.password}
                 </code>
                 <button
@@ -1075,7 +1075,7 @@ function SuccessModal({
           <div className="flex justify-end gap-3 mt-6">
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+              className="px-6 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white rounded-lg transition-colors"
             >
               Done
             </button>

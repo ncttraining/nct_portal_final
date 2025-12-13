@@ -352,21 +352,21 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
       <PageHeader currentPage={currentPage} onNavigate={onNavigate} />
 
-      <div className="border-b border-slate-800 px-6 py-3 bg-slate-900/50">
+      <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-3 bg-white/50 dark:bg-slate-900/50">
         <div className="flex items-center justify-end gap-3 max-w-[1600px] mx-auto">
           <button
             onClick={() => setShowInsuranceModal(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-600 rounded-full hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
             <AlertTriangle className="w-4 h-4" />
             Insurance monitor
           </button>
           <button
             onClick={() => document.getElementById('searchSection')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-600 rounded-full hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
             <Search className="w-4 h-4" />
             Search by postcode
@@ -386,17 +386,17 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
 
       <main className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4 p-4 max-w-[1600px] mx-auto">
         <div className="flex flex-col gap-4 max-h-[calc(100vh-140px)] overflow-y-auto">
-          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+          <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider">
                 Filter by trainer type
               </h2>
-              <Filter className="w-4 h-4 text-slate-400" />
+              <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             </div>
             <select
               value={selectedTypeId}
               onChange={(e) => setSelectedTypeId(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
             >
               <option value="all">All trainer types</option>
               {trainerTypes.map((type) => (
@@ -408,7 +408,7 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
             {selectedTypeId !== 'all' && (
               <button
                 onClick={() => setSelectedTypeId('all')}
-                className="mt-2 text-xs text-slate-400 hover:text-slate-300 transition-colors flex items-center gap-1"
+                className="mt-2 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex items-center gap-1"
               >
                 <X className="w-3 h-3" />
                 Clear filter
@@ -418,13 +418,13 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
 
           <section
             id="searchSection"
-            className="bg-slate-900 border border-slate-800 rounded-2xl p-4"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4"
           >
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider">
                 Search by postcode
               </h2>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 Sort trainers by distance from a customer site
               </span>
             </div>
@@ -435,29 +435,29 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
                 onChange={(e) => setSearchPostcode(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handlePostcodeSearch()}
                 placeholder="e.g. CV11 5DQ"
-                className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
               <button
                 onClick={handlePostcodeSearch}
-                className="px-4 py-2 text-sm border border-slate-600 rounded-lg hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
               >
                 Go
               </button>
             </div>
-            <p className="text-xs text-slate-400 mb-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
               Leave blank and click Go to clear the search and show all trainers.
             </p>
             {searchStatus && (
-              <p className="text-xs text-slate-300">{searchStatus}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">{searchStatus}</p>
             )}
           </section>
 
-          <section className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex-1">
+          <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex-1">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider">
                 Trainers
               </h2>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 Click a trainer to focus the map
               </span>
             </div>
@@ -487,10 +487,10 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
                   <div
                     key={trainer.id}
                     onClick={() => handleTrainerCardClick(trainer)}
-                    className={`bg-slate-950 border rounded-xl p-3 cursor-pointer hover:border-blue-500 transition-colors relative ${
+                    className={`bg-slate-50 dark:bg-slate-950 border rounded-xl p-3 cursor-pointer hover:border-blue-500 transition-colors relative ${
                       insuranceExpired || rtitbExpired
                         ? 'border-red-500/80'
-                        : 'border-slate-800'
+                        : 'border-slate-200 dark:border-slate-800'
                     }`}
                   >
                     {(insuranceExpired || rtitbExpired) && (
@@ -503,7 +503,7 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
                       </div>
                     )}
                     <h3 className="font-semibold text-sm mb-1">{trainer.name}</h3>
-                    <p className="text-xs text-slate-400 mb-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
                       {[
                         [trainer.town, trainer.postcode].filter(Boolean).join(' · '),
                         distanceText
@@ -511,11 +511,11 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
                         .filter(Boolean)
                         .join(' · ')}
                     </p>
-                    <p className="text-xs text-slate-400 mb-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
                       {[trainer.telephone, trainer.email].filter(Boolean).join(' · ')}
                     </p>
                     {trainer.truck_types && trainer.truck_types.length > 0 && (
-                      <p className="text-xs text-slate-300 mt-2">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-2">
                         MHE: {trainer.truck_types.slice(0, 3).join(', ')}
                         {trainer.truck_types.length > 3 && ` +${trainer.truck_types.length - 3} more`}
                       </p>
@@ -540,7 +540,7 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
                           setEditingTrainer(trainer);
                           setShowTrainerModal(true);
                         }}
-                        className="px-3 py-1 text-xs border border-slate-600 rounded-full hover:bg-slate-800 transition-colors"
+                        className="px-3 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                       >
                         Edit
                       </button>
@@ -561,7 +561,7 @@ export default function TrainerMap({ currentPage, onNavigate }: TrainerMapProps)
           </section>
         </div>
 
-        <section className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden h-[calc(100vh-140px)] relative z-0">
+        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden h-[calc(100vh-140px)] relative z-0">
           <div ref={mapContainerRef} className="w-full h-full" />
         </section>
       </main>
@@ -618,10 +618,10 @@ function InsuranceModal({
 }) {
   return (
     <div
-      className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[100]"
+      className="fixed inset-0 bg-slate-950/90 dark:bg-slate-950/90 flex items-center justify-center z-[100]"
     >
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-3xl max-h-[85vh] overflow-y-auto"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-3xl max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
@@ -629,20 +629,20 @@ function InsuranceModal({
             <h2 className="text-lg font-semibold uppercase tracking-wider">
               Insurance Monitor
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Expired or due within 3 months
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {trainers.length === 0 ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             No insurance expiries (expired or due within 3 months) recorded.
           </p>
         ) : (
@@ -656,24 +656,24 @@ function InsuranceModal({
                   key={trainer.id}
                   className={`border rounded-xl p-4 ${
                     expired
-                      ? 'border-red-500/80 bg-red-950/20'
-                      : 'border-slate-800 bg-slate-950'
+                      ? 'border-red-500/80 bg-red-100 dark:bg-red-950/20'
+                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold">{trainer.name}</h3>
                     {expired && (
-                      <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-300 border border-red-500/50 rounded-full">
+                      <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-600 dark:text-red-300 border border-red-500/50 rounded-full">
                         Expired
                       </span>
                     )}
                     {!expired && dueSoon && (
-                      <span className="text-xs px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/50 rounded-full">
+                      <span className="text-xs px-2 py-0.5 bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/50 rounded-full">
                         Due within 3 months
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-400 mb-2">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
                     {[trainer.telephone, trainer.email].filter(Boolean).join(' · ')}
                   </p>
                   <div className="flex items-center justify-between">
@@ -685,7 +685,7 @@ function InsuranceModal({
                         href={`mailto:${trainer.email}?subject=${encodeURIComponent(
                           'Insurance documents / expiry'
                         )}&body=${encodeURIComponent('Hi ' + trainer.name + ',')}`}
-                        className="px-3 py-1 text-xs bg-blue-500/20 text-blue-300 border border-blue-500/50 rounded-full hover:bg-blue-500/30 transition-colors"
+                        className="px-3 py-1 text-xs bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/50 rounded-full hover:bg-blue-500/30 transition-colors"
                       >
                         Email trainer
                       </a>
@@ -970,10 +970,10 @@ function TrainerModal({
 
   return (
     <div
-      className="fixed inset-0 bg-slate-950/90 flex items-center justify-center z-[100] p-4"
+      className="fixed inset-0 bg-slate-950/90 dark:bg-slate-950/90 flex items-center justify-center z-[100] p-4"
     >
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
@@ -981,13 +981,13 @@ function TrainerModal({
             <h2 className="text-lg font-semibold uppercase tracking-wider">
               {trainer ? 'Edit Trainer' : 'Add Trainer'}
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Add or update trainer contact, RTITB and insurance info
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -995,7 +995,7 @@ function TrainerModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Trainer name
             </label>
             <input
@@ -1005,12 +1005,12 @@ function TrainerModal({
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
               required
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Trainer type
             </label>
             <select
@@ -1018,7 +1018,7 @@ function TrainerModal({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, trainer_type_id: e.target.value }))
               }
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
             >
               <option value="">Select trainer type</option>
               {trainerTypes.map((type) => (
@@ -1031,7 +1031,7 @@ function TrainerModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Telephone
               </label>
               <input
@@ -1040,11 +1040,11 @@ function TrainerModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, telephone: e.target.value }))
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Email
               </label>
               <input
@@ -1053,14 +1053,14 @@ function TrainerModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Address line 1
               </label>
               <input
@@ -1069,11 +1069,11 @@ function TrainerModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, address1: e.target.value }))
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Address line 2
               </label>
               <input
@@ -1082,14 +1082,14 @@ function TrainerModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, address2: e.target.value }))
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Town / City
               </label>
               <input
@@ -1098,11 +1098,11 @@ function TrainerModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, town: e.target.value }))
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Postcode
               </label>
               <input
@@ -1112,13 +1112,13 @@ function TrainerModal({
                   setFormData((prev) => ({ ...prev, postcode: e.target.value }))
                 }
                 required
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Agreed day rate (£)
             </label>
             <input
@@ -1129,13 +1129,13 @@ function TrainerModal({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, day_rate: e.target.value }))
               }
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
             />
           </div>
 
           {attributes.length > 0 && (
-            <div className="border-t border-slate-800 pt-4 mt-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-3">
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-3">
                 Additional Attributes
               </h3>
             </div>
@@ -1143,7 +1143,7 @@ function TrainerModal({
 
           {attributes.map((attr) => (
             <div key={attr.id}>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 {attr.label}
                 {attr.is_required && <span className="text-red-400 ml-1">*</span>}
               </label>
@@ -1159,7 +1159,7 @@ function TrainerModal({
                     }))
                   }
                   required={attr.is_required}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                 />
               )}
 
@@ -1174,7 +1174,7 @@ function TrainerModal({
                     }))
                   }
                   required={attr.is_required}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                 />
               )}
 
@@ -1190,19 +1190,19 @@ function TrainerModal({
                     }))
                   }
                   required={attr.is_required}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                 />
               )}
 
               {attr.field_type === 'multiselect' && attributeOptions[attr.id] && (
-                <details className="border border-slate-800 rounded-lg bg-slate-950">
-                  <summary className="px-3 py-2 cursor-pointer text-sm text-slate-400 flex items-center justify-between">
+                <details className="border border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-950">
+                  <summary className="px-3 py-2 cursor-pointer text-sm text-slate-500 dark:text-slate-400 flex items-center justify-between">
                     <span>
                       {attr.label} ({(attributeValues[attr.name] || []).length} selected)
                     </span>
                     <span className="text-xs">Click to expand</span>
                   </summary>
-                  <div className="border-t border-slate-800 p-3 max-h-64 overflow-y-auto space-y-3">
+                  <div className="border-t border-slate-200 dark:border-slate-800 p-3 max-h-64 overflow-y-auto space-y-3">
                     {Object.entries(
                       attributeOptions[attr.id].reduce((acc, opt) => {
                         if (!acc[opt.category]) acc[opt.category] = [];
@@ -1210,7 +1210,7 @@ function TrainerModal({
                         return acc;
                       }, {} as Record<string, AttributeOption[]>)
                     ).map(([category, options]) => (
-                      <div key={category} className="pb-3 border-b border-slate-800 last:border-0">
+                      <div key={category} className="pb-3 border-b border-slate-200 dark:border-slate-800 last:border-0">
                         <div className="text-sm font-medium mb-2">{category}</div>
                         <div className="grid grid-cols-2 gap-2">
                           {options.map((opt) => (
@@ -1234,16 +1234,16 @@ function TrainerModal({
           ))}
 
           <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
               Insurance documentation
             </label>
 
             {trainer?.insurance_url ? (
-              <div className="bg-slate-950 border border-slate-700 rounded-lg p-3">
+              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-slate-400" />
-                    <span className="text-sm text-slate-300">
+                    <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    <span className="text-sm text-slate-600 dark:text-slate-300">
                       {trainer.insurance_file_name || 'Insurance document'}
                     </span>
                   </div>
@@ -1252,26 +1252,26 @@ function TrainerModal({
                       href={trainer.insurance_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1 text-xs border border-slate-600 rounded-full hover:bg-slate-800 transition-colors"
+                      className="px-3 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                     >
                       View
                     </a>
                     <button
                       type="button"
                       onClick={handleDeleteInsuranceFile}
-                      className="px-3 py-1 text-xs bg-red-500/20 text-red-300 border border-red-500/50 rounded-full hover:bg-red-500/30 transition-colors flex items-center gap-1"
+                      className="px-3 py-1 text-xs bg-red-500/20 text-red-600 dark:text-red-300 border border-red-500/50 rounded-full hover:bg-red-500/30 transition-colors flex items-center gap-1"
                     >
                       <Trash2 className="w-3 h-3" />
                       Delete
                     </button>
                   </div>
                 </div>
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                   Upload a new file to replace the existing document
                 </p>
               </div>
             ) : (
-              <p className="text-xs text-slate-400 mb-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                 No insurance document uploaded
               </p>
             )}
@@ -1291,29 +1291,29 @@ function TrainerModal({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-600 rounded-lg hover:bg-slate-800 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
               >
                 <Upload className="w-4 h-4" />
                 {insuranceFile ? 'Change file' : 'Upload document'}
               </button>
               {insuranceFile && (
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-slate-400" />
-                  <span className="text-sm text-slate-300">{insuranceFile.name}</span>
+                  <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                  <span className="text-sm text-slate-600 dark:text-slate-300">{insuranceFile.name}</span>
                   <button
                     type="button"
                     onClick={() => {
                       setInsuranceFile(null);
                       if (fileInputRef.current) fileInputRef.current.value = '';
                     }}
-                    className="p-1 hover:bg-slate-800 rounded transition-colors"
+                    className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               )}
             </div>
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
               Accepted formats: PDF, JPG, PNG (max 10MB)
             </p>
           </div>
@@ -1432,10 +1432,10 @@ function EmailModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/50 dark:bg-black/50 flex items-center justify-center p-4 z-50"
     >
       <div
-        className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
@@ -1444,11 +1444,11 @@ function EmailModal({
               <Mail className="w-5 h-5" />
               Send Email to {trainer.name}
             </h2>
-            <p className="text-sm text-slate-400 mt-1">{trainer.email}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{trainer.email}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
+            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1461,7 +1461,7 @@ function EmailModal({
               className={`px-4 py-2 rounded-lg text-sm transition-colors ${
                 !customEmail
                   ? 'bg-blue-500 text-white'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700'
               }`}
             >
               Use Template
@@ -1471,7 +1471,7 @@ function EmailModal({
               className={`px-4 py-2 rounded-lg text-sm transition-colors ${
                 customEmail
                   ? 'bg-blue-500 text-white'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700'
               }`}
             >
               Custom Email
@@ -1480,13 +1480,13 @@ function EmailModal({
 
           {!customEmail ? (
             <div>
-              <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+              <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Email Template
               </label>
               <select
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
               >
                 <option value="">Select a template</option>
                 {templates.map((template) => (
@@ -1496,7 +1496,7 @@ function EmailModal({
                 ))}
               </select>
               {selectedTemplate && (
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                   {
                     templates.find((t) => t.template_key === selectedTemplate)
                       ?.description
@@ -1507,7 +1507,7 @@ function EmailModal({
           ) : (
             <>
               <div>
-                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   Subject
                 </label>
                 <input
@@ -1516,12 +1516,12 @@ function EmailModal({
                   onChange={(e) =>
                     setEmailData((prev) => ({ ...prev, subject: e.target.value }))
                   }
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                   placeholder="Email subject"
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">
+                <label className="block text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   Message
                 </label>
                 <textarea
@@ -1530,7 +1530,7 @@ function EmailModal({
                     setEmailData((prev) => ({ ...prev, body: e.target.value }))
                   }
                   rows={10}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:border-blue-500 focus:outline-none text-slate-900 dark:text-white"
                   placeholder="Email message"
                 />
               </div>
@@ -1548,7 +1548,7 @@ function EmailModal({
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>
